@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,6 +62,19 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				// Love Islanders custom colors
+				love: {
+					DEFAULT: '#8B5CF6', // Vibrant purple
+					light: '#A78BFA',
+					dark: '#7E69AB',
+					foreground: '#FFFFFF',
+				},
+				island: {
+					DEFAULT: '#1A1F2C', // Rich black
+					light: '#2D3748',
+					dark: '#121212',
+					foreground: '#FFFFFF',
 				}
 			},
 			borderRadius: {
@@ -84,11 +98,68 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				'swipe-right': {
+					from: {
+						transform: 'translateX(0) rotate(0)',
+						opacity: '1'
+					},
+					to: {
+						transform: 'translateX(200%) rotate(20deg)',
+						opacity: '0'
+					}
+				},
+				'swipe-left': {
+					from: {
+						transform: 'translateX(0) rotate(0)',
+						opacity: '1'
+					},
+					to: {
+						transform: 'translateX(-200%) rotate(-20deg)',
+						opacity: '0'
+					}
+				},
+				'fade-in': {
+					from: {
+						opacity: '0'
+					},
+					to: {
+						opacity: '1'
+					}
+				},
+				'slide-up': {
+					from: {
+						transform: 'translateY(20px)',
+						opacity: '0'
+					},
+					to: {
+						transform: 'translateY(0)',
+						opacity: '1'
+					}
+				},
+				'pop-in': {
+					'0%': {
+						transform: 'scale(0.8)',
+						opacity: '0'
+					},
+					'70%': {
+						transform: 'scale(1.05)',
+						opacity: '1'
+					},
+					'100%': {
+						transform: 'scale(1)',
+						opacity: '1'
+					}
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'swipe-right': 'swipe-right 0.5s ease-out forwards',
+				'swipe-left': 'swipe-left 0.5s ease-out forwards',
+				'fade-in': 'fade-in 0.5s ease-out forwards',
+				'slide-up': 'slide-up 0.5s ease-out forwards',
+				'pop-in': 'pop-in 0.4s ease-out forwards',
 			}
 		}
 	},
