@@ -63,7 +63,7 @@ export const profiles: Profile[] = [
     name: 'Olivia',
     age: 27,
     location: 'Austin, TX',
-    bio: 'Music festival junkie and dog mom. If you love live music and good food, we'll get along just fine.',
+    bio: 'Music festival junkie and dog mom. If you love live music and good food, we\'ll get along just fine.',
     images: [
       'https://images.unsplash.com/photo-1534528741775-53994a69daeb?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=928&q=80',
       'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=774&q=80'
