@@ -1,4 +1,3 @@
-
 export interface Profile {
   id: string;
   name: string;
@@ -8,6 +7,7 @@ export interface Profile {
   images: string[];
   interests: string[];
   verified?: boolean;
+  relationshipGoal?: 'long-term' | 'casual' | 'both';
 }
 
 export const profiles: Profile[] = [
@@ -117,5 +117,6 @@ export const userProfile: Profile = {
     'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=774&q=80'
   ],
   interests: ['Technology', 'Coffee', 'Hiking', 'Movies', 'Travel'],
-  verified: false
+  verified: false,
+  relationshipGoal: 'both'
 };
