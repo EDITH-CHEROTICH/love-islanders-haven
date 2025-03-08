@@ -4,9 +4,24 @@ import { matches } from '../utils/dummyData';
 import Navbar from '../components/Navbar';
 import { format } from 'date-fns';
 import { MessageCircle } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
 
 const Matches = () => {
   const [activeMatches, setActiveMatches] = useState(matches);
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  
+  const handleChatClick = (matchId: string) => {
+    // In a real app, this would navigate to a chat page with the specific match
+    toast({
+      title: "Chat Opened",
+      description: `Starting conversation with match #${matchId}`,
+    });
+    
+    // This is a placeholder - in a real app you would navigate to a chat page
+    // navigate(`/chat/${matchId}`);
+  };
   
   return (
     <div className="min-h-screen bg-gradient-to-b from-island-dark via-island to-island-dark pt-4 pb-20">
@@ -49,7 +64,11 @@ const Matches = () => {
                   )}
                 </div>
                 
-                <button className="ml-2 bg-love/10 hover:bg-love/20 p-2 rounded-full transition-all">
+                <button 
+                  className="ml-2 bg-love/10 hover:bg-love/20 p-2 rounded-full transition-all"
+                  onClick={() => handleChatClick(match.id)}
+                  aria-label="Open chat"
+                >
                   <MessageCircle size={20} className="text-love" />
                 </button>
               </div>
