@@ -1,6 +1,7 @@
 
 import { Profile } from '../utils/dummyData';
 import { Edit, Settings } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 interface ProfileViewProps {
   profile: Profile;
@@ -8,15 +9,39 @@ interface ProfileViewProps {
 }
 
 const ProfileView = ({ profile, isEditable = false }: ProfileViewProps) => {
+  const { toast } = useToast();
+
+  const handleEdit = () => {
+    toast({
+      title: "Edit Profile",
+      description: "Edit profile functionality will be available soon.",
+    });
+  };
+
+  const handleSettings = () => {
+    toast({
+      title: "Settings",
+      description: "Settings functionality will be available soon.",
+    });
+  };
+
   return (
     <div className="p-4 animate-fade-in">
       <div className="relative mb-6">
         {isEditable && (
           <div className="absolute top-4 right-4 flex gap-2 z-10">
-            <button className="bg-island-light/80 p-2 rounded-full" aria-label="Edit profile">
+            <button 
+              className="bg-island-light/80 p-2 rounded-full hover:bg-island-light transition-colors" 
+              aria-label="Edit profile"
+              onClick={handleEdit}
+            >
               <Edit size={20} className="text-white" />
             </button>
-            <button className="bg-island-light/80 p-2 rounded-full" aria-label="Settings">
+            <button 
+              className="bg-island-light/80 p-2 rounded-full hover:bg-island-light transition-colors" 
+              aria-label="Settings"
+              onClick={handleSettings}
+            >
               <Settings size={20} className="text-white" />
             </button>
           </div>
