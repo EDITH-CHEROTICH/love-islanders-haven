@@ -1,27 +1,48 @@
 
+import { useState } from 'react';
 import { Profile } from '../utils/dummyData';
-import { Edit, Settings } from 'lucide-react';
+import { Edit, Settings, ShieldCheck } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import ProfileImageManager from './ProfileImageManager';
 
 interface ProfileViewProps {
   profile: Profile;
   isEditable?: boolean;
 }
 
-const ProfileView = ({ profile, isEditable = false }: ProfileViewProps) => {
+const ProfileView = ({ profile: initialProfile, isEditable = false }: ProfileViewProps) => {
+  const [profile, setProfile] = useState<Profile>(initialProfile);
+  const [isEditing, setIsEditing] = useState(false);
   const { toast } = useToast();
 
   const handleEdit = () => {
-    toast({
-      title: "Edit Profile",
-      description: "Edit profile functionality will be available soon.",
-    });
+    setIsEditing(!isEditing);
+    if (!isEditing) {
+      toast({
+        title: "Edit Mode",
+        description: "You can now edit your profile images and verification status.",
+      });
+    }
   };
 
   const handleSettings = () => {
     toast({
       title: "Settings",
       description: "Settings functionality will be available soon.",
+    });
+  };
+
+  const handleImagesChange = (newImages: string[]) => {
+    setProfile({
+      ...profile,
+      images: newImages
+    });
+  };
+
+  const handleVerificationRequest = () => {
+    setProfile({
+      ...profile,
+      verified: true
     });
   };
 
@@ -47,53 +68,71 @@ const ProfileView = ({ profile, isEditable = false }: ProfileViewProps) => {
           </div>
         )}
         
-        <div className="aspect-square overflow-hidden rounded-xl mb-4">
-          <img 
-            src={profile.images[0]} 
-            alt={profile.name} 
-            className="w-full h-full object-cover"
-          />
-        </div>
+        {!isEditing ? (
+          <div className="aspect-square overflow-hidden rounded-xl mb-4">
+            <img 
+              src={profile.images[0]} 
+              alt={profile.name} 
+              className="w-full h-full object-cover"
+            />
+          </div>
+        ) : (
+          <div className="mb-4">
+            <ProfileImageManager 
+              images={profile.images}
+              verified={profile.verified || false}
+              onImagesChange={handleImagesChange}
+              onVerificationRequest={handleVerificationRequest}
+            />
+          </div>
+        )}
         
         <div className="space-y-4">
-          <div>
+          <div className="flex items-center">
             <h1 className="text-2xl font-bold text-white">{profile.name}, {profile.age}</h1>
-            <p className="text-muted-foreground">{profile.location}</p>
+            {profile.verified && (
+              <ShieldCheck size={20} className="text-green-400 ml-2" />
+            )}
           </div>
+          <p className="text-muted-foreground">{profile.location}</p>
           
-          <div>
-            <h2 className="text-sm font-medium text-love mb-2">About</h2>
-            <p className="text-muted-foreground">{profile.bio}</p>
-          </div>
-          
-          <div>
-            <h2 className="text-sm font-medium text-love mb-2">Interests</h2>
-            <div className="flex flex-wrap gap-2">
-              {profile.interests.map((interest, i) => (
-                <span 
-                  key={i} 
-                  className="bg-love/10 text-love-light px-3 py-1 rounded-full text-sm"
-                >
-                  {interest}
-                </span>
-              ))}
-            </div>
-          </div>
-          
-          <div>
-            <h2 className="text-sm font-medium text-love mb-2">Photos</h2>
-            <div className="grid grid-cols-3 gap-2">
-              {profile.images.map((image, i) => (
-                <div key={i} className="aspect-square rounded-lg overflow-hidden">
-                  <img 
-                    src={image} 
-                    alt={`${profile.name} ${i+1}`}
-                    className="w-full h-full object-cover" 
-                  />
+          {!isEditing && (
+            <>
+              <div>
+                <h2 className="text-sm font-medium text-love mb-2">About</h2>
+                <p className="text-muted-foreground">{profile.bio}</p>
+              </div>
+              
+              <div>
+                <h2 className="text-sm font-medium text-love mb-2">Interests</h2>
+                <div className="flex flex-wrap gap-2">
+                  {profile.interests.map((interest, i) => (
+                    <span 
+                      key={i} 
+                      className="bg-love/10 text-love-light px-3 py-1 rounded-full text-sm"
+                    >
+                      {interest}
+                    </span>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </div>
+              </div>
+              
+              <div>
+                <h2 className="text-sm font-medium text-love mb-2">Photos</h2>
+                <div className="grid grid-cols-3 gap-2">
+                  {profile.images.map((image, i) => (
+                    <div key={i} className="aspect-square rounded-lg overflow-hidden">
+                      <img 
+                        src={image} 
+                        alt={`${profile.name} ${i+1}`}
+                        className="w-full h-full object-cover" 
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>

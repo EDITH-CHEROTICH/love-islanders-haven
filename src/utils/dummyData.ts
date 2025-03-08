@@ -7,6 +7,7 @@ export interface Profile {
   bio: string;
   images: string[];
   interests: string[];
+  verified?: boolean;
 }
 
 export const profiles: Profile[] = [
@@ -20,7 +21,8 @@ export const profiles: Profile[] = [
       'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=774&q=80',
       'https://images.unsplash.com/photo-1604072366595-e75dc92d6bdc?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=774&q=80'
     ],
-    interests: ['Yoga', 'Meditation', 'Traveling', 'Cooking']
+    interests: ['Yoga', 'Meditation', 'Traveling', 'Cooking'],
+    verified: true
   },
   {
     id: '2',
@@ -44,7 +46,8 @@ export const profiles: Profile[] = [
       'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=774&q=80',
       'https://images.unsplash.com/photo-1530785602389-07594beb8b73?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=774&q=80'
     ],
-    interests: ['Art', 'Jazz', 'Wine tasting', 'Reading']
+    interests: ['Art', 'Jazz', 'Wine tasting', 'Reading'],
+    verified: true
   },
   {
     id: '4',
@@ -113,5 +116,6 @@ export const userProfile: Profile = {
     'https://images.unsplash.com/photo-1517841905240-472988babdf9?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=774&q=80',
     'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=774&q=80'
   ],
-  interests: ['Technology', 'Coffee', 'Hiking', 'Movies', 'Travel']
+  interests: ['Technology', 'Coffee', 'Hiking', 'Movies', 'Travel'],
+  verified: false
 };

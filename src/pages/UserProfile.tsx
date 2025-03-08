@@ -1,10 +1,21 @@
 
+import { useState } from 'react';
 import Navbar from '../components/Navbar';
 import ProfileView from '../components/ProfileView';
 import { userProfile } from '../utils/dummyData';
 import { LogOut } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 const UserProfile = () => {
+  const { toast } = useToast();
+  
+  const handleLogout = () => {
+    toast({
+      title: "Logged Out",
+      description: "You have been logged out successfully.",
+    });
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-island-dark via-island to-island-dark pt-4 pb-20">
       <header className="text-center mb-6">
@@ -15,7 +26,10 @@ const UserProfile = () => {
         <ProfileView profile={userProfile} isEditable={true} />
         
         <div className="flex justify-center mt-6">
-          <button className="flex items-center gap-2 text-muted-foreground hover:text-love transition-colors">
+          <button 
+            className="flex items-center gap-2 text-muted-foreground hover:text-love transition-colors"
+            onClick={handleLogout}
+          >
             <LogOut size={16} />
             <span>Logout</span>
           </button>
