@@ -1,9 +1,10 @@
 
 import { useState } from 'react';
 import { Profile } from '../utils/dummyData';
-import { Edit, Settings, ShieldCheck, Heart } from 'lucide-react';
+import { Edit, Settings, ShieldCheck, Heart, Male, Female, Users } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import ProfileImageManager from './ProfileImageManager';
+import VideoUploader from './VideoUploader';
 
 interface ProfileViewProps {
   profile: Profile;
@@ -13,6 +14,7 @@ interface ProfileViewProps {
 const ProfileView = ({ profile: initialProfile, isEditable = false }: ProfileViewProps) => {
   const [profile, setProfile] = useState<Profile>(initialProfile);
   const [isEditing, setIsEditing] = useState(false);
+  const [activeTab, setActiveTab] = useState<'images' | 'videos'>('images');
   const { toast } = useToast();
 
   const handleEdit = () => {
@@ -20,7 +22,7 @@ const ProfileView = ({ profile: initialProfile, isEditable = false }: ProfileVie
     if (!isEditing) {
       toast({
         title: "Edit Mode",
-        description: "You can now edit your profile images, verification status, and relationship goals.",
+        description: "You can now edit your profile images, videos, verification status, and preferences.",
       });
     }
   };
@@ -36,6 +38,13 @@ const ProfileView = ({ profile: initialProfile, isEditable = false }: ProfileVie
     setProfile({
       ...profile,
       images: newImages
+    });
+  };
+
+  const handleVideosChange = (newVideos: string[]) => {
+    setProfile({
+      ...profile,
+      videos: newVideos || []
     });
   };
 
@@ -58,6 +67,18 @@ const ProfileView = ({ profile: initialProfile, isEditable = false }: ProfileVie
     });
   };
 
+  const handleGenderPreferenceChange = (preference: 'male' | 'female' | 'both') => {
+    setProfile({
+      ...profile,
+      genderPreference: preference
+    });
+    
+    toast({
+      title: "Preference Updated",
+      description: `You will now see ${getGenderPreferenceText(preference)}.`,
+    });
+  };
+
   const getGoalDisplayText = (goal?: 'long-term' | 'casual' | 'both') => {
     switch (goal) {
       case 'long-term':
@@ -68,6 +89,32 @@ const ProfileView = ({ profile: initialProfile, isEditable = false }: ProfileVie
         return 'Open to Both';
       default:
         return 'Not Specified';
+    }
+  };
+
+  const getGenderPreferenceText = (preference?: 'male' | 'female' | 'both') => {
+    switch (preference) {
+      case 'male':
+        return 'men';
+      case 'female':
+        return 'women';
+      case 'both':
+        return 'everyone';
+      default:
+        return 'not specified';
+    }
+  };
+
+  const getGenderIcon = (gender?: 'male' | 'female' | 'both' | 'other') => {
+    switch (gender) {
+      case 'male':
+        return <Male size={16} className="text-blue-400" />;
+      case 'female':
+        return <Female size={16} className="text-pink-400" />;
+      case 'both':
+      case 'other':
+      default:
+        return <Users size={16} className="text-purple-400" />;
     }
   };
 
@@ -103,12 +150,34 @@ const ProfileView = ({ profile: initialProfile, isEditable = false }: ProfileVie
           </div>
         ) : (
           <div className="mb-4">
-            <ProfileImageManager 
-              images={profile.images}
-              verified={profile.verified || false}
-              onImagesChange={handleImagesChange}
-              onVerificationRequest={handleVerificationRequest}
-            />
+            <div className="flex mb-4 border-b border-island-light">
+              <button
+                onClick={() => setActiveTab('images')}
+                className={`py-2 px-4 ${activeTab === 'images' ? 'text-love border-b-2 border-love' : 'text-muted-foreground'}`}
+              >
+                Images
+              </button>
+              <button
+                onClick={() => setActiveTab('videos')}
+                className={`py-2 px-4 ${activeTab === 'videos' ? 'text-love border-b-2 border-love' : 'text-muted-foreground'}`}
+              >
+                Videos
+              </button>
+            </div>
+            
+            {activeTab === 'images' ? (
+              <ProfileImageManager 
+                images={profile.images}
+                verified={profile.verified || false}
+                onImagesChange={handleImagesChange}
+                onVerificationRequest={handleVerificationRequest}
+              />
+            ) : (
+              <VideoUploader 
+                videos={profile.videos || []}
+                onVideosChange={handleVideosChange}
+              />
+            )}
           </div>
         )}
         
@@ -123,12 +192,26 @@ const ProfileView = ({ profile: initialProfile, isEditable = false }: ProfileVie
           
           {!isEditing ? (
             <>
-              {profile.relationshipGoal && (
-                <div className="flex items-center gap-2">
-                  <Heart size={16} className="text-love" />
-                  <span className="text-love-light">{getGoalDisplayText(profile.relationshipGoal)}</span>
-                </div>
-              )}
+              <div className="flex flex-wrap gap-2">
+                {profile.relationshipGoal && (
+                  <div className="flex items-center gap-1 bg-love/10 text-love-light px-3 py-1 rounded-full text-sm">
+                    <Heart size={16} />
+                    <span>{getGoalDisplayText(profile.relationshipGoal)}</span>
+                  </div>
+                )}
+                {profile.gender && (
+                  <div className="flex items-center gap-1 bg-blue-500/10 text-blue-300 px-3 py-1 rounded-full text-sm">
+                    {getGenderIcon(profile.gender)}
+                    <span>{profile.gender.charAt(0).toUpperCase() + profile.gender.slice(1)}</span>
+                  </div>
+                )}
+                {profile.genderPreference && (
+                  <div className="flex items-center gap-1 bg-purple-500/10 text-purple-300 px-3 py-1 rounded-full text-sm">
+                    {getGenderIcon(profile.genderPreference)}
+                    <span>Interested in {getGenderPreferenceText(profile.genderPreference)}</span>
+                  </div>
+                )}
+              </div>
               
               <div>
                 <h2 className="text-sm font-medium text-love mb-2">About</h2>
@@ -163,47 +246,108 @@ const ProfileView = ({ profile: initialProfile, isEditable = false }: ProfileVie
                   ))}
                 </div>
               </div>
+              
+              {profile.videos && profile.videos.length > 0 && (
+                <div>
+                  <h2 className="text-sm font-medium text-love mb-2">Videos</h2>
+                  <div className="grid grid-cols-2 gap-2">
+                    {profile.videos.map((video, i) => (
+                      <div key={i} className="aspect-video rounded-lg overflow-hidden">
+                        <video 
+                          src={video}
+                          controls
+                          className="w-full h-full object-cover" 
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </>
           ) : (
-            <div className="pt-4 border-t border-island-light">
-              <h3 className="text-sm font-medium text-love mb-4">What are you looking for?</h3>
+            <div className="space-y-6">
+              <div className="pt-4 border-t border-island-light">
+                <h3 className="text-sm font-medium text-love mb-4">What are you looking for?</h3>
+                
+                <div className="grid grid-cols-3 gap-3">
+                  <button
+                    onClick={() => handleRelationshipGoalChange('long-term')}
+                    className={`p-3 rounded-lg flex flex-col items-center text-center transition-colors ${
+                      profile.relationshipGoal === 'long-term' 
+                        ? 'bg-love text-white' 
+                        : 'bg-island-dark/80 hover:bg-island-dark text-muted-foreground hover:text-white'
+                    }`}
+                  >
+                    <Heart size={24} className={profile.relationshipGoal === 'long-term' ? 'text-white' : 'text-love'} />
+                    <span className="text-sm mt-2">Life-time Partner</span>
+                  </button>
+                  
+                  <button
+                    onClick={() => handleRelationshipGoalChange('casual')}
+                    className={`p-3 rounded-lg flex flex-col items-center text-center transition-colors ${
+                      profile.relationshipGoal === 'casual' 
+                        ? 'bg-love text-white' 
+                        : 'bg-island-dark/80 hover:bg-island-dark text-muted-foreground hover:text-white'
+                    }`}
+                  >
+                    <Heart size={24} className={profile.relationshipGoal === 'casual' ? 'text-white' : 'text-love'} />
+                    <span className="text-sm mt-2">Casual Fun</span>
+                  </button>
+                  
+                  <button
+                    onClick={() => handleRelationshipGoalChange('both')}
+                    className={`p-3 rounded-lg flex flex-col items-center text-center transition-colors ${
+                      profile.relationshipGoal === 'both' 
+                        ? 'bg-love text-white' 
+                        : 'bg-island-dark/80 hover:bg-island-dark text-muted-foreground hover:text-white'
+                    }`}
+                  >
+                    <Heart size={24} className={profile.relationshipGoal === 'both' ? 'text-white' : 'text-love'} />
+                    <span className="text-sm mt-2">Open to Both</span>
+                  </button>
+                </div>
+              </div>
               
-              <div className="grid grid-cols-3 gap-3">
-                <button
-                  onClick={() => handleRelationshipGoalChange('long-term')}
-                  className={`p-3 rounded-lg flex flex-col items-center text-center transition-colors ${
-                    profile.relationshipGoal === 'long-term' 
-                      ? 'bg-love text-white' 
-                      : 'bg-island-dark/80 hover:bg-island-dark text-muted-foreground hover:text-white'
-                  }`}
-                >
-                  <Heart size={24} className={profile.relationshipGoal === 'long-term' ? 'text-white' : 'text-love'} />
-                  <span className="text-sm mt-2">Life-time Partner</span>
-                </button>
+              <div className="pt-4 border-t border-island-light">
+                <h3 className="text-sm font-medium text-love mb-4">Who would you like to see?</h3>
                 
-                <button
-                  onClick={() => handleRelationshipGoalChange('casual')}
-                  className={`p-3 rounded-lg flex flex-col items-center text-center transition-colors ${
-                    profile.relationshipGoal === 'casual' 
-                      ? 'bg-love text-white' 
-                      : 'bg-island-dark/80 hover:bg-island-dark text-muted-foreground hover:text-white'
-                  }`}
-                >
-                  <Heart size={24} className={profile.relationshipGoal === 'casual' ? 'text-white' : 'text-love'} />
-                  <span className="text-sm mt-2">Casual Fun</span>
-                </button>
-                
-                <button
-                  onClick={() => handleRelationshipGoalChange('both')}
-                  className={`p-3 rounded-lg flex flex-col items-center text-center transition-colors ${
-                    profile.relationshipGoal === 'both' 
-                      ? 'bg-love text-white' 
-                      : 'bg-island-dark/80 hover:bg-island-dark text-muted-foreground hover:text-white'
-                  }`}
-                >
-                  <Heart size={24} className={profile.relationshipGoal === 'both' ? 'text-white' : 'text-love'} />
-                  <span className="text-sm mt-2">Open to Both</span>
-                </button>
+                <div className="grid grid-cols-3 gap-3">
+                  <button
+                    onClick={() => handleGenderPreferenceChange('male')}
+                    className={`p-3 rounded-lg flex flex-col items-center text-center transition-colors ${
+                      profile.genderPreference === 'male' 
+                        ? 'bg-love text-white' 
+                        : 'bg-island-dark/80 hover:bg-island-dark text-muted-foreground hover:text-white'
+                    }`}
+                  >
+                    <Male size={24} className={profile.genderPreference === 'male' ? 'text-white' : 'text-blue-400'} />
+                    <span className="text-sm mt-2">Men</span>
+                  </button>
+                  
+                  <button
+                    onClick={() => handleGenderPreferenceChange('female')}
+                    className={`p-3 rounded-lg flex flex-col items-center text-center transition-colors ${
+                      profile.genderPreference === 'female' 
+                        ? 'bg-love text-white' 
+                        : 'bg-island-dark/80 hover:bg-island-dark text-muted-foreground hover:text-white'
+                    }`}
+                  >
+                    <Female size={24} className={profile.genderPreference === 'female' ? 'text-white' : 'text-pink-400'} />
+                    <span className="text-sm mt-2">Women</span>
+                  </button>
+                  
+                  <button
+                    onClick={() => handleGenderPreferenceChange('both')}
+                    className={`p-3 rounded-lg flex flex-col items-center text-center transition-colors ${
+                      profile.genderPreference === 'both' 
+                        ? 'bg-love text-white' 
+                        : 'bg-island-dark/80 hover:bg-island-dark text-muted-foreground hover:text-white'
+                    }`}
+                  >
+                    <Users size={24} className={profile.genderPreference === 'both' ? 'text-white' : 'text-purple-400'} />
+                    <span className="text-sm mt-2">Everyone</span>
+                  </button>
+                </div>
               </div>
             </div>
           )}

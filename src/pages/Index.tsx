@@ -1,25 +1,75 @@
 
 import { useState, useEffect } from 'react';
-import { profiles } from '../utils/dummyData';
+import { profiles, Profile } from '../utils/dummyData';
 import ProfileCard from '../components/ProfileCard';
 import SwipeButtons from '../components/SwipeButtons';
+import ProfileSetup from '../components/ProfileSetup';
 import Navbar from '../components/Navbar';
 import { Heart } from 'lucide-react';
 import { toast } from 'sonner';
 
 const Index = () => {
-  const [currentProfiles, setCurrentProfiles] = useState(profiles);
-  const [lastSwipedProfile, setLastSwipedProfile] = useState(null);
+  const [currentProfiles, setCurrentProfiles] = useState<Profile[]>([]);
+  const [lastSwipedProfile, setLastSwipedProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isFirstTime, setIsFirstTime] = useState(true);
+  const [userPreferences, setUserPreferences] = useState<{
+    age: number;
+    genderPreference: 'male' | 'female' | 'both';
+    gender: 'male' | 'female' | 'other';
+  } | null>(null);
 
   useEffect(() => {
-    // Simulate loading
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 1000);
+    // Check if the user has already set up their preferences
+    const savedPreferences = localStorage.getItem('userPreferences');
     
-    return () => clearTimeout(timer);
+    if (savedPreferences) {
+      const parsedPreferences = JSON.parse(savedPreferences);
+      setUserPreferences(parsedPreferences);
+      setIsFirstTime(false);
+      
+      // Filter profiles based on gender preference
+      filterProfiles(parsedPreferences.genderPreference);
+    } else {
+      // Simulate loading for first-time users
+      const timer = setTimeout(() => {
+        setLoading(false);
+      }, 1000);
+      
+      return () => clearTimeout(timer);
+    }
   }, []);
+
+  const filterProfiles = (genderPreference: 'male' | 'female' | 'both') => {
+    let filteredProfiles = [...profiles];
+    
+    if (genderPreference !== 'both') {
+      filteredProfiles = filteredProfiles.filter(profile => 
+        profile.gender === genderPreference || !profile.gender
+      );
+    }
+    
+    setCurrentProfiles(filteredProfiles);
+    setLoading(false);
+  };
+
+  const handleProfileSetupComplete = (preferences: {
+    age: number;
+    genderPreference: 'male' | 'female' | 'both';
+    gender: 'male' | 'female' | 'other';
+  }) => {
+    if (preferences.age < 18) {
+      toast("You must be at least 18 years old to use this app");
+      return;
+    }
+    
+    setUserPreferences(preferences);
+    localStorage.setItem('userPreferences', JSON.stringify(preferences));
+    setIsFirstTime(false);
+    
+    // Filter profiles based on gender preference
+    filterProfiles(preferences.genderPreference);
+  };
 
   const handleSwipe = (direction: 'left' | 'right') => {
     if (currentProfiles.length === 0) return;
@@ -28,16 +78,18 @@ const Index = () => {
     const swipedProfile = newProfiles.shift();
     
     setCurrentProfiles(newProfiles);
-    setLastSwipedProfile(swipedProfile);
-    
-    if (direction === 'right') {
-      // Show match notification
-      toast(
-        <div className="flex items-center">
-          <Heart className="text-love mr-2 h-5 w-5" />
-          <span>You liked {swipedProfile?.name}!</span>
-        </div>
-      );
+    if (swipedProfile) {
+      setLastSwipedProfile(swipedProfile);
+      
+      if (direction === 'right') {
+        // Show match notification
+        toast(
+          <div className="flex items-center">
+            <Heart className="text-love mr-2 h-5 w-5" />
+            <span>You liked {swipedProfile.name}!</span>
+          </div>
+        );
+      }
     }
   };
   
@@ -51,6 +103,10 @@ const Index = () => {
         {loading ? (
           <div className="card-container flex items-center justify-center">
             <div className="loader w-12 h-12 border-4 border-love/20 border-t-love rounded-full animate-spin"></div>
+          </div>
+        ) : isFirstTime ? (
+          <div className="glass-card p-4 rounded-xl shadow-lg">
+            <ProfileSetup onComplete={handleProfileSetupComplete} />
           </div>
         ) : currentProfiles.length > 0 ? (
           <div className="relative">
@@ -72,7 +128,13 @@ const Index = () => {
               You've gone through all available profiles. Check back soon!
             </p>
             <button 
-              onClick={() => setCurrentProfiles(profiles)}
+              onClick={() => {
+                if (userPreferences) {
+                  filterProfiles(userPreferences.genderPreference);
+                } else {
+                  setCurrentProfiles(profiles);
+                }
+              }}
               className="bg-love hover:bg-love-dark text-white px-6 py-2 rounded-full transition-all"
             >
               Start Over

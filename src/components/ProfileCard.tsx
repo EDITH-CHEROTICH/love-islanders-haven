@@ -101,23 +101,30 @@ const ProfileCard = ({ profile, onSwipe }: ProfileCardProps) => {
           </div>
         )}
         
-        {currentImageIndex > 0 && (
-          <button 
-            onClick={handlePrevImage}
-            className="absolute top-1/2 left-2 -translate-y-1/2 bg-black/20 hover:bg-black/40 text-white w-8 h-8 rounded-full flex items-center justify-center transition-all"
-          >
-            <ChevronLeft size={20} />
-          </button>
-        )}
+        {/* Enhanced navigation controls */}
+        <div className="absolute inset-y-0 left-0 w-1/4 flex items-center justify-start">
+          {currentImageIndex > 0 && (
+            <button 
+              onClick={handlePrevImage}
+              className="ml-2 bg-black/20 hover:bg-black/40 text-white w-8 h-8 rounded-full flex items-center justify-center transition-colors"
+              aria-label="Previous image"
+            >
+              <ChevronLeft size={20} />
+            </button>
+          )}
+        </div>
         
-        {currentImageIndex < profile.images.length - 1 && (
-          <button 
-            onClick={handleNextImage}
-            className="absolute top-1/2 right-2 -translate-y-1/2 bg-black/20 hover:bg-black/40 text-white w-8 h-8 rounded-full flex items-center justify-center transition-all"
-          >
-            <ChevronRight size={20} />
-          </button>
-        )}
+        <div className="absolute inset-y-0 right-0 w-1/4 flex items-center justify-end">
+          {currentImageIndex < profile.images.length - 1 && (
+            <button 
+              onClick={handleNextImage}
+              className="mr-2 bg-black/20 hover:bg-black/40 text-white w-8 h-8 rounded-full flex items-center justify-center transition-colors"
+              aria-label="Next image"
+            >
+              <ChevronRight size={20} />
+            </button>
+          )}
+        </div>
         
         <div className="profile-info">
           <div className="flex items-center justify-between">
@@ -143,6 +150,34 @@ const ProfileCard = ({ profile, onSwipe }: ProfileCardProps) => {
                   </span>
                 ))}
               </div>
+              
+              {/* Display gender and preference if available */}
+              {profile.relationshipGoal && (
+                <div className="mt-2">
+                  <span className="text-xs bg-love/40 px-2 py-1 rounded-full text-white mr-2">
+                    {profile.relationshipGoal === 'long-term' ? 'Looking for: Life-time Partner' :
+                     profile.relationshipGoal === 'casual' ? 'Looking for: Casual Fun' : 
+                     'Open to Both'}
+                  </span>
+                </div>
+              )}
+              
+              {/* Show videos if available */}
+              {profile.videos && profile.videos.length > 0 && (
+                <div className="mt-3">
+                  <h3 className="text-sm font-semibold text-white/90 mb-2">Videos</h3>
+                  <div className="grid grid-cols-2 gap-2">
+                    {profile.videos.map((video, i) => (
+                      <video 
+                        key={i}
+                        src={video} 
+                        controls
+                        className="w-full rounded-lg" 
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>

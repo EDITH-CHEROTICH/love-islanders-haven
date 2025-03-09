@@ -8,6 +8,9 @@ export interface Profile {
   interests: string[];
   verified?: boolean;
   relationshipGoal?: 'long-term' | 'casual' | 'both';
+  videos?: string[];
+  gender?: 'male' | 'female' | 'other';
+  genderPreference?: 'male' | 'female' | 'both';
 }
 
 export const profiles: Profile[] = [
@@ -22,7 +25,10 @@ export const profiles: Profile[] = [
       'https://images.unsplash.com/photo-1604072366595-e75dc92d6bdc?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=774&q=80'
     ],
     interests: ['Yoga', 'Meditation', 'Traveling', 'Cooking'],
-    verified: true
+    verified: true,
+    videos: [],
+    gender: 'female',
+    genderPreference: 'both'
   },
   {
     id: '2',
@@ -34,7 +40,10 @@ export const profiles: Profile[] = [
       'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=774&q=80',
       'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80'
     ],
-    interests: ['Photography', 'Hiking', 'Movies', 'Coffee']
+    interests: ['Photography', 'Hiking', 'Movies', 'Coffee'],
+    videos: [],
+    gender: 'male',
+    genderPreference: 'female'
   },
   {
     id: '3',
@@ -47,7 +56,10 @@ export const profiles: Profile[] = [
       'https://images.unsplash.com/photo-1530785602389-07594beb8b73?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=774&q=80'
     ],
     interests: ['Art', 'Jazz', 'Wine tasting', 'Reading'],
-    verified: true
+    verified: true,
+    videos: [],
+    gender: 'female',
+    genderPreference: 'male'
   },
   {
     id: '4',
@@ -59,7 +71,10 @@ export const profiles: Profile[] = [
       'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=774&q=80',
       'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=774&q=80'
     ],
-    interests: ['Coding', 'Cooking', 'Guitar', 'Traveling']
+    interests: ['Coding', 'Cooking', 'Guitar', 'Traveling'],
+    videos: [],
+    gender: 'male',
+    genderPreference: 'female'
   },
   {
     id: '5',
@@ -71,7 +86,10 @@ export const profiles: Profile[] = [
       'https://images.unsplash.com/photo-1534528741775-53994a69daeb?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=928&q=80',
       'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=774&q=80'
     ],
-    interests: ['Live music', 'Dogs', 'Food', 'Outdoor activities']
+    interests: ['Live music', 'Dogs', 'Food', 'Outdoor activities'],
+    videos: [],
+    gender: 'female',
+    genderPreference: 'both'
   }
 ];
 
@@ -118,5 +136,8 @@ export const userProfile: Profile = {
   ],
   interests: ['Technology', 'Coffee', 'Hiking', 'Movies', 'Travel'],
   verified: false,
-  relationshipGoal: 'both'
+  relationshipGoal: 'both',
+  videos: [],
+  gender: 'male',
+  genderPreference: 'both'
 };
