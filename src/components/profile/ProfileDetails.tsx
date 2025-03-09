@@ -100,9 +100,9 @@ const ProfileDetails = ({ profile }: ProfileDetailsProps) => {
       <div>
         <h2 className="text-sm font-medium text-love mb-2">Personal Details</h2>
         <div className="grid grid-cols-2 gap-2">
-          {profile.birthday && (
+          {profile.dob && (
             <div className="flex items-center gap-1 text-muted-foreground">
-              <span className="text-sm">Born {format(new Date(profile.birthday), 'MMM d, yyyy')}</span>
+              <span className="text-sm">Born {format(new Date(profile.dob), 'MMM d, yyyy')}</span>
             </div>
           )}
           
