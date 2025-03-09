@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { Profile } from '../utils/dummyData';
 import { useToast } from '@/hooks/use-toast';
-import { Mars, Venus, Users } from 'lucide-react';
+import { User, Users, Heart } from 'lucide-react';
 
 interface ProfileSetupProps {
   onComplete: (preferences: {
@@ -78,7 +78,7 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
                   : 'bg-island-dark/80 hover:bg-island-dark text-muted-foreground hover:text-white'
               }`}
             >
-              <Mars size={24} className={gender === 'male' ? 'text-white' : 'text-love'} />
+              <User size={24} className={gender === 'male' ? 'text-white' : 'text-love'} />
               <span className="text-sm mt-2">Male</span>
             </button>
             
@@ -91,7 +91,7 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
                   : 'bg-island-dark/80 hover:bg-island-dark text-muted-foreground hover:text-white'
               }`}
             >
-              <Venus size={24} className={gender === 'female' ? 'text-white' : 'text-love'} />
+              <User size={24} className={gender === 'female' ? 'text-white' : 'text-love'} />
               <span className="text-sm mt-2">Female</span>
             </button>
             
@@ -124,7 +124,7 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
                   : 'bg-island-dark/80 hover:bg-island-dark text-muted-foreground hover:text-white'
               }`}
             >
-              <Mars size={24} className={genderPreference === 'male' ? 'text-white' : 'text-love'} />
+              <User size={24} className={genderPreference === 'male' ? 'text-white' : 'text-love'} />
               <span className="text-sm mt-2">Men</span>
             </button>
             
@@ -137,7 +137,7 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
                   : 'bg-island-dark/80 hover:bg-island-dark text-muted-foreground hover:text-white'
               }`}
             >
-              <Venus size={24} className={genderPreference === 'female' ? 'text-white' : 'text-love'} />
+              <User size={24} className={genderPreference === 'female' ? 'text-white' : 'text-love'} />
               <span className="text-sm mt-2">Women</span>
             </button>
             

@@ -1,6 +1,7 @@
+
 import { useState } from 'react';
 import { Profile } from '../utils/dummyData';
-import { Edit, Settings, ShieldCheck, Heart, Mars, Venus, Users } from 'lucide-react';
+import { Edit, Settings, ShieldCheck, Heart, User, Users } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import ProfileImageManager from './ProfileImageManager';
 import VideoUploader from './VideoUploader';
@@ -107,9 +108,9 @@ const ProfileView = ({ profile: initialProfile, isEditable = false }: ProfileVie
   const getGenderIcon = (gender?: 'male' | 'female' | 'both' | 'other') => {
     switch (gender) {
       case 'male':
-        return <Mars size={16} className="text-blue-400" />;
+        return <User size={16} className="text-blue-400" />;
       case 'female':
-        return <Venus size={16} className="text-pink-400" />;
+        return <User size={16} className="text-pink-400" />;
       case 'both':
       case 'other':
       default:
@@ -319,7 +320,7 @@ const ProfileView = ({ profile: initialProfile, isEditable = false }: ProfileVie
                         : 'bg-island-dark/80 hover:bg-island-dark text-muted-foreground hover:text-white'
                     }`}
                   >
-                    <Mars size={24} className={profile.genderPreference === 'male' ? 'text-white' : 'text-blue-400'} />
+                    <User size={24} className={profile.genderPreference === 'male' ? 'text-white' : 'text-blue-400'} />
                     <span className="text-sm mt-2">Men</span>
                   </button>
                   
@@ -331,7 +332,7 @@ const ProfileView = ({ profile: initialProfile, isEditable = false }: ProfileVie
                         : 'bg-island-dark/80 hover:bg-island-dark text-muted-foreground hover:text-white'
                     }`}
                   >
-                    <Venus size={24} className={profile.genderPreference === 'female' ? 'text-white' : 'text-pink-400'} />
+                    <User size={24} className={profile.genderPreference === 'female' ? 'text-white' : 'text-pink-400'} />
                     <span className="text-sm mt-2">Women</span>
                   </button>
                   
