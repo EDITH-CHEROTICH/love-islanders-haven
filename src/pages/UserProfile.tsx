@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import ProfileView from '../components/ProfileView';
 import { userProfile } from '../utils/dummyData';
@@ -8,12 +8,21 @@ import { useToast } from '@/hooks/use-toast';
 
 const UserProfile = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   
   const handleLogout = () => {
+    // Clear authentication state
+    localStorage.removeItem('isAuthenticated');
+    localStorage.removeItem('authMethod');
+    localStorage.removeItem('authContact');
+    
     toast({
       title: "Logged Out",
       description: "You have been logged out successfully.",
     });
+    
+    // Redirect to signup page
+    navigate('/signup');
   };
 
   return (
