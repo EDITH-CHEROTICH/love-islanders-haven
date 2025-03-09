@@ -4,6 +4,7 @@ import { profiles, Profile } from '../utils/dummyData';
 import ProfileCard from '../components/ProfileCard';
 import SwipeButtons from '../components/SwipeButtons';
 import ProfileSetup from '../components/ProfileSetup';
+import { ProfilePreferences } from '../components/ProfileSetup';
 import Navbar from '../components/Navbar';
 import { Heart } from 'lucide-react';
 import { toast } from 'sonner';
@@ -13,23 +14,30 @@ const Index = () => {
   const [lastSwipedProfile, setLastSwipedProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [isFirstTime, setIsFirstTime] = useState(true);
-  const [userPreferences, setUserPreferences] = useState<{
-    age: number;
-    genderPreference: 'male' | 'female' | 'both';
-    gender: 'male' | 'female' | 'other';
-  } | null>(null);
+  const [userPreferences, setUserPreferences] = useState<ProfilePreferences | null>(null);
 
   useEffect(() => {
     // Check if the user has already set up their preferences
     const savedPreferences = localStorage.getItem('userPreferences');
     
     if (savedPreferences) {
-      const parsedPreferences = JSON.parse(savedPreferences);
-      setUserPreferences(parsedPreferences);
-      setIsFirstTime(false);
-      
-      // Filter profiles based on gender preference
-      filterProfiles(parsedPreferences.genderPreference);
+      try {
+        const parsedPreferences = JSON.parse(savedPreferences);
+        
+        // Convert stored date string back to Date object
+        if (parsedPreferences.dob) {
+          parsedPreferences.dob = new Date(parsedPreferences.dob);
+        }
+        
+        setUserPreferences(parsedPreferences);
+        setIsFirstTime(false);
+        
+        // Filter profiles based on gender preference
+        filterProfiles(parsedPreferences.genderPreference);
+      } catch (error) {
+        console.error("Error parsing saved preferences:", error);
+        setLoading(false);
+      }
     } else {
       // Simulate loading for first-time users
       const timer = setTimeout(() => {
@@ -53,18 +61,22 @@ const Index = () => {
     setLoading(false);
   };
 
-  const handleProfileSetupComplete = (preferences: {
-    age: number;
-    genderPreference: 'male' | 'female' | 'both';
-    gender: 'male' | 'female' | 'other';
-  }) => {
+  const handleProfileSetupComplete = (preferences: ProfilePreferences) => {
     if (preferences.age < 18) {
       toast("You must be at least 18 years old to use this app");
       return;
     }
     
+    // Store preferences in state and localStorage
     setUserPreferences(preferences);
-    localStorage.setItem('userPreferences', JSON.stringify(preferences));
+    
+    // Need to stringify dates for localStorage
+    const preferencesToStore = {
+      ...preferences,
+      dob: preferences.dob.toISOString(),
+    };
+    
+    localStorage.setItem('userPreferences', JSON.stringify(preferencesToStore));
     setIsFirstTime(false);
     
     // Filter profiles based on gender preference

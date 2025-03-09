@@ -1,7 +1,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { Profile } from '../utils/dummyData';
-import { ChevronLeft, ChevronRight, Heart, Info } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Heart, Info, GraduationCap, Briefcase, Ruler } from 'lucide-react';
 
 interface ProfileCardProps {
   profile: Profile;
@@ -61,6 +61,16 @@ const ProfileCard = ({ profile, onSwipe }: ProfileCardProps) => {
   const toggleDetails = (e: React.MouseEvent) => {
     e.stopPropagation();
     setShowDetails(!showDetails);
+  };
+
+  const formatHeight = (profile: Profile) => {
+    if (!profile.height) return null;
+    
+    if (profile.heightUnit === 'ft') {
+      return `${profile.height} ft`;
+    } else {
+      return `${profile.heightCm} cm`;
+    }
   };
 
   const cardStyle = {
@@ -129,7 +139,10 @@ const ProfileCard = ({ profile, onSwipe }: ProfileCardProps) => {
         <div className="profile-info">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-xl font-bold text-white">{profile.name}, {profile.age}</h2>
+              <h2 className="text-xl font-bold text-white">
+                {profile.name}
+                {profile.showAge !== false && profile.age && `, ${profile.age}`}
+              </h2>
               <p className="text-sm text-white/80">{profile.location}</p>
             </div>
             <button 
@@ -140,9 +153,46 @@ const ProfileCard = ({ profile, onSwipe }: ProfileCardProps) => {
             </button>
           </div>
           
+          {/* Additional quick info badges */}
+          <div className="flex flex-wrap gap-2 mt-2">
+            {profile.occupation && (
+              <div className="flex items-center gap-1 bg-blue-500/20 text-blue-100 px-2 py-1 rounded-full text-xs">
+                <Briefcase size={12} />
+                <span>{profile.occupation}</span>
+              </div>
+            )}
+            
+            {profile.education && (
+              <div className="flex items-center gap-1 bg-purple-500/20 text-purple-100 px-2 py-1 rounded-full text-xs">
+                <GraduationCap size={12} />
+                <span>{profile.education}</span>
+              </div>
+            )}
+            
+            {profile.height && (
+              <div className="flex items-center gap-1 bg-green-500/20 text-green-100 px-2 py-1 rounded-full text-xs">
+                <Ruler size={12} />
+                <span>{formatHeight(profile)}</span>
+              </div>
+            )}
+          </div>
+          
           {showDetails && (
             <div className="mt-3 animate-slide-up">
               <p className="text-sm text-white/90 mb-2">{profile.bio}</p>
+              
+              {/* Display relationship goal if available */}
+              {profile.relationshipGoal && (
+                <div className="mt-2">
+                  <span className="text-xs bg-love/40 px-2 py-1 rounded-full text-white mr-2">
+                    {profile.relationshipGoal === 'long-term' ? 'Looking for: Life-time Partner' :
+                     profile.relationshipGoal === 'casual' ? 'Looking for: Casual Fun' : 
+                     'Open to Both'}
+                  </span>
+                </div>
+              )}
+              
+              {/* Display interests */}
               <div className="flex flex-wrap gap-2 mt-2">
                 {profile.interests.map((interest, index) => (
                   <span key={index} className="text-xs bg-love/40 px-2 py-1 rounded-full text-white">
@@ -151,14 +201,17 @@ const ProfileCard = ({ profile, onSwipe }: ProfileCardProps) => {
                 ))}
               </div>
               
-              {/* Display gender and preference if available */}
-              {profile.relationshipGoal && (
-                <div className="mt-2">
-                  <span className="text-xs bg-love/40 px-2 py-1 rounded-full text-white mr-2">
-                    {profile.relationshipGoal === 'long-term' ? 'Looking for: Life-time Partner' :
-                     profile.relationshipGoal === 'casual' ? 'Looking for: Casual Fun' : 
-                     'Open to Both'}
-                  </span>
+              {/* Children info */}
+              {profile.hasChildren && (
+                <div className="mt-2 text-xs text-white/90">
+                  Has {profile.childrenCount === 1 ? '1 child' : `${profile.childrenCount} children`}
+                </div>
+              )}
+              
+              {/* Pet info */}
+              {profile.hasPets && profile.petType && (
+                <div className="mt-1 text-xs text-white/90">
+                  Has {profile.petType.toLowerCase()}
                 </div>
               )}
               

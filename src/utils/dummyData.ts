@@ -11,6 +11,17 @@ export interface Profile {
   videos?: string[];
   gender?: 'male' | 'female' | 'other';
   genderPreference?: 'male' | 'female' | 'both';
+  dob?: Date;
+  showAge?: boolean;
+  education?: string;
+  height?: number;
+  heightCm?: number;
+  heightUnit?: 'ft' | 'm';
+  hasPets?: boolean;
+  petType?: string;
+  hasChildren?: boolean;
+  childrenCount?: number;
+  occupation?: string;
 }
 
 export const profiles: Profile[] = [
@@ -139,5 +150,14 @@ export const userProfile: Profile = {
   relationshipGoal: 'both',
   videos: [],
   gender: 'male',
-  genderPreference: 'both'
+  genderPreference: 'both',
+  dob: new Date(1994, 5, 15),
+  showAge: true,
+  education: 'Bachelor\'s Degree',
+  height: 5.9,
+  heightCm: 180,
+  heightUnit: 'ft',
+  hasPets: false,
+  hasChildren: false,
+  occupation: 'Technology'
 };

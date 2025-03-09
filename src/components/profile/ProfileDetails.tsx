@@ -1,6 +1,7 @@
 
-import { Heart, User, Users, ShieldCheck } from 'lucide-react';
+import { Heart, User, Users, ShieldCheck, Briefcase, GraduationCap, Ruler, Home, Baby } from 'lucide-react';
 import { Profile } from '../../utils/dummyData';
+import { format } from 'date-fns';
 
 interface ProfileDetailsProps {
   profile: Profile;
@@ -46,10 +47,23 @@ const ProfileDetails = ({ profile }: ProfileDetailsProps) => {
     }
   };
 
+  const formatHeight = (profile: Profile) => {
+    if (!profile.height) return null;
+    
+    if (profile.heightUnit === 'ft') {
+      return `${profile.height} ft (${profile.heightCm} cm)`;
+    } else {
+      return `${profile.heightCm} cm (${profile.height} ft)`;
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center">
-        <h1 className="text-2xl font-bold text-white">{profile.name}, {profile.age}</h1>
+        <h1 className="text-2xl font-bold text-white">
+          {profile.name}
+          {profile.showAge !== false && profile.age && `, ${profile.age}`}
+        </h1>
         {profile.verified && (
           <ShieldCheck size={20} className="text-green-400 ml-2" />
         )}
@@ -80,6 +94,57 @@ const ProfileDetails = ({ profile }: ProfileDetailsProps) => {
       <div>
         <h2 className="text-sm font-medium text-love mb-2">About</h2>
         <p className="text-muted-foreground">{profile.bio}</p>
+      </div>
+      
+      {/* Personal Details Section */}
+      <div>
+        <h2 className="text-sm font-medium text-love mb-2">Personal Details</h2>
+        <div className="grid grid-cols-2 gap-2">
+          {profile.birthday && (
+            <div className="flex items-center gap-1 text-muted-foreground">
+              <span className="text-sm">Born {format(new Date(profile.birthday), 'MMM d, yyyy')}</span>
+            </div>
+          )}
+          
+          {profile.height && (
+            <div className="flex items-center gap-1 text-muted-foreground">
+              <Ruler size={16} className="text-gray-400" />
+              <span className="text-sm">{formatHeight(profile)}</span>
+            </div>
+          )}
+          
+          {profile.education && (
+            <div className="flex items-center gap-1 text-muted-foreground">
+              <GraduationCap size={16} className="text-gray-400" />
+              <span className="text-sm">{profile.education}</span>
+            </div>
+          )}
+          
+          {profile.occupation && (
+            <div className="flex items-center gap-1 text-muted-foreground">
+              <Briefcase size={16} className="text-gray-400" />
+              <span className="text-sm">{profile.occupation}</span>
+            </div>
+          )}
+          
+          {profile.hasPets && profile.petType && (
+            <div className="flex items-center gap-1 text-muted-foreground">
+              <Home size={16} className="text-gray-400" />
+              <span className="text-sm">{profile.petType} owner</span>
+            </div>
+          )}
+          
+          {profile.hasChildren && (
+            <div className="flex items-center gap-1 text-muted-foreground">
+              <Baby size={16} className="text-gray-400" />
+              <span className="text-sm">
+                {profile.childrenCount === 1 
+                  ? '1 child' 
+                  : `${profile.childrenCount} children`}
+              </span>
+            </div>
+          )}
+        </div>
       </div>
       
       <div>
