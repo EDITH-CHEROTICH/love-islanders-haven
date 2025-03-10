@@ -9,7 +9,304 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      interests: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      likes: {
+        Row: {
+          created_at: string
+          id: string
+          liked_id: string | null
+          liker_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          liked_id?: string | null
+          liker_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          liked_id?: string | null
+          liker_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "likes_liked_id_fkey"
+            columns: ["liked_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "likes_liker_id_fkey"
+            columns: ["liker_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      matches: {
+        Row: {
+          id: string
+          matched_at: string
+          user1_id: string | null
+          user2_id: string | null
+        }
+        Insert: {
+          id?: string
+          matched_at?: string
+          user1_id?: string | null
+          user2_id?: string | null
+        }
+        Update: {
+          id?: string
+          matched_at?: string
+          user1_id?: string | null
+          user2_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "matches_user1_id_fkey"
+            columns: ["user1_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "matches_user2_id_fkey"
+            columns: ["user2_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      messages: {
+        Row: {
+          content: string
+          id: string
+          match_id: string | null
+          read: boolean | null
+          sender_id: string | null
+          sent_at: string
+        }
+        Insert: {
+          content: string
+          id?: string
+          match_id?: string | null
+          read?: boolean | null
+          sender_id?: string | null
+          sent_at?: string
+        }
+        Update: {
+          content?: string
+          id?: string
+          match_id?: string | null
+          read?: boolean | null
+          sender_id?: string | null
+          sent_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profile_images: {
+        Row: {
+          created_at: string
+          id: string
+          position: number
+          profile_id: string | null
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          position: number
+          profile_id?: string | null
+          url: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          position?: number
+          profile_id?: string | null
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profile_images_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profile_interests: {
+        Row: {
+          interest_id: string
+          profile_id: string
+        }
+        Insert: {
+          interest_id: string
+          profile_id: string
+        }
+        Update: {
+          interest_id?: string
+          profile_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profile_interests_interest_id_fkey"
+            columns: ["interest_id"]
+            isOneToOne: false
+            referencedRelation: "interests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profile_interests_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profile_videos: {
+        Row: {
+          created_at: string
+          id: string
+          profile_id: string | null
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          profile_id?: string | null
+          url: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          profile_id?: string | null
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profile_videos_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          age: number | null
+          bio: string | null
+          children_count: number | null
+          created_at: string
+          dob: string | null
+          education: string | null
+          gender: string | null
+          gender_preference: string | null
+          has_children: boolean | null
+          has_pets: boolean | null
+          height: number | null
+          height_cm: number | null
+          height_unit: string | null
+          id: string
+          location: string | null
+          name: string
+          occupation: string | null
+          pet_type: string | null
+          relationship_goal: string | null
+          show_age: boolean | null
+          updated_at: string
+          verified: boolean | null
+        }
+        Insert: {
+          age?: number | null
+          bio?: string | null
+          children_count?: number | null
+          created_at?: string
+          dob?: string | null
+          education?: string | null
+          gender?: string | null
+          gender_preference?: string | null
+          has_children?: boolean | null
+          has_pets?: boolean | null
+          height?: number | null
+          height_cm?: number | null
+          height_unit?: string | null
+          id: string
+          location?: string | null
+          name: string
+          occupation?: string | null
+          pet_type?: string | null
+          relationship_goal?: string | null
+          show_age?: boolean | null
+          updated_at?: string
+          verified?: boolean | null
+        }
+        Update: {
+          age?: number | null
+          bio?: string | null
+          children_count?: number | null
+          created_at?: string
+          dob?: string | null
+          education?: string | null
+          gender?: string | null
+          gender_preference?: string | null
+          has_children?: boolean | null
+          has_pets?: boolean | null
+          height?: number | null
+          height_cm?: number | null
+          height_unit?: string | null
+          id?: string
+          location?: string | null
+          name?: string
+          occupation?: string | null
+          pet_type?: string | null
+          relationship_goal?: string | null
+          show_age?: boolean | null
+          updated_at?: string
+          verified?: boolean | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

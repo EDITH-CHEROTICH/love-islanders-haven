@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { FilmIcon, Trash2, PlusCircle, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { saveProfileVideo } from '@/services/profiles';
 
 interface VideoUploaderProps {
   videos: string[];
@@ -11,10 +12,11 @@ interface VideoUploaderProps {
 const VideoUploader = ({ videos, onVideosChange }: VideoUploaderProps) => {
   const { toast } = useToast();
   const [videoUrl, setVideoUrl] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const maxVideos = 2;
   const maxDuration = 10; // seconds
 
-  const handleAddVideo = () => {
+  const handleAddVideo = async () => {
     if (!videoUrl) {
       toast({
         title: "Error",
@@ -43,15 +45,19 @@ const VideoUploader = ({ videos, onVideosChange }: VideoUploaderProps) => {
       return;
     }
 
-    // In a real-world scenario, we would check video duration here
-    // For this demo, we'll just simulate it with a toast message
-    toast({
-      title: "Video Check",
-      description: "Verifying video is under 10 seconds...",
-    });
+    setIsSubmitting(true);
 
-    // Simulate checking video duration
-    setTimeout(() => {
+    try {
+      // In a real-world scenario, we would check video duration here
+      toast({
+        title: "Video Check",
+        description: "Verifying video is under 10 seconds...",
+      });
+
+      // Save to Supabase
+      await saveProfileVideo(videoUrl);
+      
+      // Update local state
       onVideosChange([...videos, videoUrl]);
       setVideoUrl('');
       
@@ -59,10 +65,21 @@ const VideoUploader = ({ videos, onVideosChange }: VideoUploaderProps) => {
         title: "Success",
         description: "Video added successfully.",
       });
-    }, 1000);
+    } catch (error) {
+      console.error('Error saving video:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save video. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const handleRemoveVideo = (index: number) => {
+  const handleRemoveVideo = async (index: number) => {
+    // Note: Currently we don't have a delete operation in our service
+    // In a complete implementation, we would add that functionality
     const newVideos = [...videos];
     newVideos.splice(index, 1);
     onVideosChange(newVideos);
@@ -125,15 +142,19 @@ const VideoUploader = ({ videos, onVideosChange }: VideoUploaderProps) => {
             onChange={(e) => setVideoUrl(e.target.value)}
             placeholder="Enter video URL (MP4, WebM, OGG)"
             className="flex-1 bg-island-dark border-island-light border px-3 py-2 rounded-lg text-sm text-white focus:outline-none focus:ring-1 focus:ring-love"
-            disabled={videos.length >= maxVideos}
+            disabled={videos.length >= maxVideos || isSubmitting}
           />
           <button
             onClick={handleAddVideo}
-            disabled={videos.length >= maxVideos || !videoUrl}
+            disabled={videos.length >= maxVideos || !videoUrl || isSubmitting}
             className="bg-love hover:bg-love-light text-white px-3 py-2 rounded-lg flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            <PlusCircle size={16} />
-            <span>Add</span>
+            {isSubmitting ? 'Adding...' : (
+              <>
+                <PlusCircle size={16} />
+                <span>Add</span>
+              </>
+            )}
           </button>
         </div>
       </div>

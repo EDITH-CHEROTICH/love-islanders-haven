@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { User, Users, Heart, Calendar } from 'lucide-react';
@@ -18,6 +17,7 @@ import {
   SelectValue 
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
+import { createOrUpdateProfile } from '@/services/profiles';
 
 export interface ProfilePreferences {
   age: number;
@@ -82,6 +82,8 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
     childrenCount: 0
   });
   const { toast } = useToast();
+  const [name, setName] = useState<string>("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const calculateAge = (birthday: Date): number => {
     const ageDifMs = Date.now() - birthday.getTime();
@@ -146,7 +148,7 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (preferences.age < 18) {
@@ -157,13 +159,37 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
       });
       return;
     }
+
+    if (!name.trim()) {
+      toast({
+        title: "Name Required",
+        description: "Please enter your name to continue",
+        variant: "destructive",
+      });
+      return;
+    }
     
-    onComplete(preferences);
+    setIsSubmitting(true);
     
-    toast({
-      title: "Profile Setup Complete",
-      description: "Your preferences have been saved",
-    });
+    try {
+      await createOrUpdateProfile(preferences, name);
+      
+      toast({
+        title: "Profile Setup Complete",
+        description: "Your preferences have been saved",
+      });
+      
+      onComplete(preferences);
+    } catch (error) {
+      console.error('Error saving profile:', error);
+      toast({
+        title: "Error",
+        description: "There was a problem saving your profile. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleNextTab = () => {
@@ -192,6 +218,18 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
         
         {/* Basic Info Tab */}
         <TabsContent value="basic" className="space-y-4">
+          <div className="space-y-2">
+            <Label className="text-white">Your Name</Label>
+            <Input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Enter your name"
+              className="w-full"
+              required
+            />
+          </div>
+          
           <div className="space-y-2">
             <Label className="text-white">When were you born?</Label>
             <Popover>
@@ -530,8 +568,9 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
           type="button"
           onClick={handleNextTab}
           className="bg-love hover:bg-love-light text-white px-6 ml-auto"
+          disabled={isSubmitting}
         >
-          {activeTab === "lifestyle" ? "Complete" : "Next"}
+          {activeTab === "lifestyle" ? (isSubmitting ? "Saving..." : "Complete") : "Next"}
         </Button>
       </div>
     </div>

@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { Image, Plus, Trash2, ShieldCheck, ShieldAlert } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { saveProfileImage } from '@/services/profiles';
 
 interface ProfileImageManagerProps {
   images: string[];
@@ -18,10 +19,11 @@ const ProfileImageManager = ({
 }: ProfileImageManagerProps) => {
   const { toast } = useToast();
   const [newImageUrl, setNewImageUrl] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const maxImages = 6;
   const minImages = 2;
 
-  const handleAddImage = () => {
+  const handleAddImage = async () => {
     if (!newImageUrl) {
       toast({
         title: "Error",
@@ -50,13 +52,30 @@ const ProfileImageManager = ({
       return;
     }
 
-    onImagesChange([...images, newImageUrl]);
-    setNewImageUrl('');
-    
-    toast({
-      title: "Success",
-      description: "Image added successfully.",
-    });
+    setIsSubmitting(true);
+
+    try {
+      // Save to Supabase - position is the current length of the images array
+      await saveProfileImage(newImageUrl, images.length);
+      
+      // Update local state
+      onImagesChange([...images, newImageUrl]);
+      setNewImageUrl('');
+      
+      toast({
+        title: "Success",
+        description: "Image added successfully.",
+      });
+    } catch (error) {
+      console.error('Error saving image:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save image. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleRemoveImage = (index: number) => {
@@ -69,6 +88,8 @@ const ProfileImageManager = ({
       return;
     }
 
+    // Note: Currently we don't have a delete operation in our service
+    // In a complete implementation, we would add that functionality
     const newImages = [...images];
     newImages.splice(index, 1);
     onImagesChange(newImages);
@@ -132,14 +153,19 @@ const ProfileImageManager = ({
             onChange={(e) => setNewImageUrl(e.target.value)}
             placeholder="Enter image URL"
             className="flex-1 bg-island-dark border-island-light border px-3 py-2 rounded-lg text-sm text-white focus:outline-none focus:ring-1 focus:ring-love"
+            disabled={isSubmitting}
           />
           <button
             onClick={handleAddImage}
-            disabled={images.length >= maxImages}
+            disabled={images.length >= maxImages || !newImageUrl || isSubmitting}
             className="bg-love hover:bg-love-light text-white px-3 py-2 rounded-lg flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            <Plus size={16} />
-            <span>Add</span>
+            {isSubmitting ? 'Adding...' : (
+              <>
+                <Plus size={16} />
+                <span>Add</span>
+              </>
+            )}
           </button>
         </div>
         
