@@ -12,30 +12,33 @@ import Verify from "./pages/Verify";
 import NotFound from "./pages/NotFound";
 import AICompanionChat from "./pages/AICompanionChat";
 import AuthGuard from "./components/AuthGuard";
+import { AuthProvider } from "./context/AuthContext";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <Toaster />
-      <Sonner position="top-center" theme="dark" closeButton />
-      <BrowserRouter>
-        <Routes>
-          {/* Auth routes - accessible without authentication */}
-          <Route path="/signup" element={<SignUp />} />
-          <Route path="/verify" element={<Verify />} />
-          
-          {/* Protected routes - require authentication */}
-          <Route path="/" element={<AuthGuard><Index /></AuthGuard>} />
-          <Route path="/matches" element={<AuthGuard><Matches /></AuthGuard>} />
-          <Route path="/profile" element={<AuthGuard><UserProfile /></AuthGuard>} />
-          <Route path="/ai-companion" element={<AuthGuard><AICompanionChat /></AuthGuard>} />
-          
-          {/* 404 route */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
+      <AuthProvider>
+        <Toaster />
+        <Sonner position="top-center" theme="dark" closeButton />
+        <BrowserRouter>
+          <Routes>
+            {/* Auth routes - accessible without authentication */}
+            <Route path="/signup" element={<SignUp />} />
+            <Route path="/verify" element={<Verify />} />
+            
+            {/* Protected routes - require authentication */}
+            <Route path="/" element={<AuthGuard><Index /></AuthGuard>} />
+            <Route path="/matches" element={<AuthGuard><Matches /></AuthGuard>} />
+            <Route path="/profile" element={<AuthGuard><UserProfile /></AuthGuard>} />
+            <Route path="/ai-companion" element={<AuthGuard><AICompanionChat /></AuthGuard>} />
+            
+            {/* 404 route */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );
