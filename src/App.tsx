@@ -24,6 +24,7 @@ const App = () => (
         <Routes>
           {/* Auth routes - accessible without authentication */}
           <Route path="/signup" element={<SignUp />} />
+          <Route path="/login" element={<SignUp />} />
           <Route path="/verify" element={<Verify />} />
           
           {/* Protected routes - require authentication */}
