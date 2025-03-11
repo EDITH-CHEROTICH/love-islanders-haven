@@ -20,42 +20,16 @@ const AICompanion: React.FC = () => {
   const { user } = useAuth();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Load chat history when component mounts
+  // Add welcome message when component mounts
   useEffect(() => {
-    const loadChatHistory = async () => {
-      if (!user) return;
-
-      try {
-        const { data, error } = await supabase
-          .from('ai_chat_history')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: true });
-
-        if (error) throw error;
-
-        const formattedMessages = data.map((msg): ChatMessage => ({
-          id: msg.id,
-          role: msg.role as 'user' | 'assistant',
-          content: msg.message_content,
-          timestamp: new Date(msg.created_at)
-        }));
-
-        setMessages(formattedMessages);
-      } catch (error) {
-        console.error('Error loading chat history:', error);
-        toast({
-          title: "Failed to load chat history",
-          description: "Please try refreshing the page.",
-          variant: "destructive"
-        });
-      }
+    const welcomeMessage: ChatMessage = {
+      id: 'welcome',
+      role: 'assistant',
+      content: "Hi there! I'm Isla, your personal companion. I'm here to chat, listen, and keep you company. How are you feeling today?",
+      timestamp: new Date()
     };
-
-    if (user) {
-      loadChatHistory();
-    }
-  }, [user, toast]);
+    setMessages([welcomeMessage]);
+  }, []);
 
   // Scroll to bottom whenever messages change
   useEffect(() => {
@@ -63,7 +37,7 @@ const AICompanion: React.FC = () => {
   }, [messages]);
 
   const sendMessage = async (messageText: string) => {
-    if (!messageText.trim() || !user) return;
+    if (!messageText.trim()) return;
 
     // Create a new user message
     const userMessage: ChatMessage = {
@@ -78,17 +52,6 @@ const AICompanion: React.FC = () => {
     setIsLoading(true);
 
     try {
-      // Store user message in database
-      const { error: insertError } = await supabase
-        .from('ai_chat_history')
-        .insert({
-          user_id: user.id,
-          message_content: messageText,
-          role: 'user'
-        });
-
-      if (insertError) throw insertError;
-
       // Format conversation history for the API
       const conversationHistory = messages.map(msg => ({
         role: msg.role,
@@ -100,22 +63,11 @@ const AICompanion: React.FC = () => {
         body: {
           message: messageText,
           conversationHistory,
-          userId: user.id
+          userId: user?.id
         }
       });
 
       if (error) throw error;
-
-      // Store AI response in database
-      const { error: aiInsertError } = await supabase
-        .from('ai_chat_history')
-        .insert({
-          user_id: user.id,
-          message_content: data.response,
-          role: 'assistant'
-        });
-
-      if (aiInsertError) throw aiInsertError;
 
       // Add AI response to chat
       const aiMessage: ChatMessage = {
