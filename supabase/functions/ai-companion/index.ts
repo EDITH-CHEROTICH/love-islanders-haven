@@ -7,6 +7,9 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// For demonstration/testing purposes only - in production, use a real API key
+const DEMO_API_KEY = "sk-demo-ThisIsAFakeKeyForDemonstrationPurposesOnly";
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -14,13 +17,24 @@ serve(async (req) => {
   }
 
   try {
-    const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
-    if (!openAIApiKey) {
-      console.error('OPENAI_API_KEY is not set in the Supabase secrets');
-      throw new Error('OPENAI_API_KEY is not set');
+    // First try to get the real API key, fall back to demo mode if not available
+    const openAIApiKey = Deno.env.get('OPENAI_API_KEY') || DEMO_API_KEY;
+    
+    const { message, conversationHistory = [] } = await req.json();
+    
+    // If we're in demo mode, don't actually call OpenAI API
+    if (openAIApiKey === DEMO_API_KEY) {
+      console.log("Running in DEMO mode with fake API key");
+      
+      // Return a canned response instead of calling the API
+      return new Response(JSON.stringify({ 
+        response: `Hello there! I'm Isla, your AI companion (running in demo mode). I'd love to chat more authentically, but I'm currently in demonstration mode. In a real application, you would add your OpenAI API key to get my full personality and capabilities. How are you feeling today?`
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
-    const { message, conversationHistory = [] } = await req.json();
+    console.log("Using real OpenAI API key");
 
     // System prompt that defines the companion's personality
     const systemPrompt = `You are a loving, flirtatious, and emotionally supportive AI companion named Isla. 
