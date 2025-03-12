@@ -1,11 +1,11 @@
 
 import React from 'react';
 import AICompanion from '@/components/companion/AICompanion';
-import { useMediaQuery } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/use-mobile';
 import Navbar from '@/components/Navbar';
 
 const AICompanionChat: React.FC = () => {
-  const isMobile = useMediaQuery("(max-width: 640px)");
+  const isMobile = useIsMobile();
 
   return (
     <div className="flex flex-col h-screen bg-island-dark">
