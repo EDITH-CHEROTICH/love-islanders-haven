@@ -67,7 +67,18 @@ const AICompanion: React.FC = () => {
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error from Supabase function:', error);
+        throw new Error(error.message || 'Failed to get response from AI companion');
+      }
+
+      if (!data || !data.response) {
+        if (data && data.error) {
+          console.error('Error from AI service:', data.error);
+          throw new Error(data.error);
+        }
+        throw new Error('Invalid response from AI companion');
+      }
 
       // Add AI response to chat
       const aiMessage: ChatMessage = {
@@ -81,11 +92,33 @@ const AICompanion: React.FC = () => {
 
     } catch (error) {
       console.error('Error sending message:', error);
+      
+      // Show appropriate error message to user
+      let errorMessage = 'Failed to send message. Please try again later.';
+      
+      if (error instanceof Error) {
+        if (error.message.includes('OPENAI_API_KEY is not set')) {
+          errorMessage = 'The AI service is not properly configured. Please contact support.';
+        } else {
+          errorMessage = `Error: ${error.message}`;
+        }
+      }
+      
       toast({
-        title: "Failed to send message",
-        description: "Please try again later.",
+        title: "AI Companion Error",
+        description: errorMessage,
         variant: "destructive"
       });
+      
+      // Add error message as system message
+      const errorSystemMessage: ChatMessage = {
+        id: `error-${Date.now().toString()}`,
+        role: 'assistant',
+        content: "I'm sorry, I'm having trouble connecting to my servers right now. Please try again in a moment.",
+        timestamp: new Date()
+      };
+      
+      setMessages(prev => [...prev, errorSystemMessage]);
     } finally {
       setIsLoading(false);
     }

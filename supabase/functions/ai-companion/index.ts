@@ -16,6 +16,7 @@ serve(async (req) => {
   try {
     const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
     if (!openAIApiKey) {
+      console.error('OPENAI_API_KEY is not set in the Supabase secrets');
       throw new Error('OPENAI_API_KEY is not set');
     }
 
@@ -43,6 +44,8 @@ serve(async (req) => {
       { role: "user", content: message }
     ];
 
+    console.log("Calling OpenAI API with conversation history...");
+    
     // Call OpenAI API
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
