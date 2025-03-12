@@ -11,6 +11,7 @@ import SignUp from "./pages/SignUp";
 import Verify from "./pages/Verify";
 import NotFound from "./pages/NotFound";
 import AICompanionChat from "./pages/AICompanionChat";
+import Settings from "./pages/Settings";
 import AuthGuard from "./components/AuthGuard";
 
 const queryClient = new QueryClient();
@@ -32,6 +33,7 @@ const App = () => (
           <Route path="/matches" element={<AuthGuard><Matches /></AuthGuard>} />
           <Route path="/profile" element={<AuthGuard><UserProfile /></AuthGuard>} />
           <Route path="/ai-companion" element={<AuthGuard><AICompanionChat /></AuthGuard>} />
+          <Route path="/settings" element={<AuthGuard><Settings /></AuthGuard>} />
           
           {/* 404 route */}
           <Route path="*" element={<NotFound />} />
