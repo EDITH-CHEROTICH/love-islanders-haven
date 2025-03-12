@@ -19,9 +19,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isLocalAuth, setIsLocalAuth] = useState(false);
 
   useEffect(() => {
-    // Get current session
+    // Check for localStorage authentication first
+    const localAuth = localStorage.getItem('isAuthenticated');
+    
+    if (localAuth === 'true') {
+      setIsLocalAuth(true);
+      setLoading(false);
+      return;
+    }
+
+    // If no localStorage auth, check Supabase
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
@@ -53,6 +63,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signOut = async () => {
+    localStorage.removeItem('isAuthenticated');
+    localStorage.removeItem('authMethod');
+    localStorage.removeItem('authContact');
+    setIsLocalAuth(false);
+    
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
   };
@@ -64,7 +79,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     signIn,
     signUp,
     signOut,
-    isAuthenticated: !!user
+    isAuthenticated: !!user || isLocalAuth
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
