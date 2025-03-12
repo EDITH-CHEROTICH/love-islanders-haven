@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Heart, User, MessageCircle } from 'lucide-react';
+import { Heart, User, MessageCircle, Bot } from 'lucide-react';
 
 const Navbar = () => {
   const location = useLocation();
@@ -28,6 +28,14 @@ const Navbar = () => {
         >
           <MessageCircle className="w-6 h-6" />
           <span className="text-xs mt-1">Matches</span>
+        </Link>
+        
+        <Link 
+          to="/ai-companion" 
+          className={`flex flex-col items-center justify-center transition-all duration-300 ${isActivePath('/ai-companion') ? 'text-love scale-110' : 'text-muted-foreground'}`}
+        >
+          <Bot className="w-6 h-6" />
+          <span className="text-xs mt-1">Isla AI</span>
         </Link>
         
         <Link 
