@@ -19,7 +19,7 @@ const MatchPreferences = () => {
             <Slider 
               defaultValue={[ageRange[0], ageRange[1]]} 
               min={18} 
-              max={99} 
+              max={85} 
               step={1}
               onValueChange={(values) => setAgeRange([values[0], values[1]])}
               className="mt-6"
