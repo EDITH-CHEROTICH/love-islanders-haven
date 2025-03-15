@@ -1,52 +1,70 @@
 
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Heart, User, MessageCircle, Bot } from 'lucide-react';
+import { Heart, User, MessageCircle, Bot, Settings } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const Navbar = () => {
   const location = useLocation();
-  const [isActive, setIsActive] = useState(false);
+  const isMobile = useIsMobile();
   
   const isActivePath = (path: string) => {
     return location.pathname === path;
   };
 
   return (
-    <nav className="fixed bottom-0 left-0 w-full h-16 bg-island-light backdrop-blur-lg border-t border-love/10 z-50 animate-fade-in">
+    <nav className={`fixed bottom-0 left-0 w-full ${isMobile ? 'h-16' : 'h-18'} bg-island-light backdrop-blur-lg border-t border-love/10 z-50 animate-fade-in`}>
       <div className="container h-full max-w-md mx-auto px-4 flex justify-around items-center">
-        <Link 
-          to="/" 
-          className={`flex flex-col items-center justify-center transition-all duration-300 ${isActivePath('/') ? 'text-love scale-110' : 'text-muted-foreground'}`}
-        >
-          <Heart className={`w-6 h-6 ${isActivePath('/') ? 'fill-love' : ''}`} />
-          <span className="text-xs mt-1">Discover</span>
-        </Link>
-        
-        <Link 
-          to="/matches" 
-          className={`flex flex-col items-center justify-center transition-all duration-300 ${isActivePath('/matches') ? 'text-love scale-110' : 'text-muted-foreground'}`}
-        >
-          <MessageCircle className="w-6 h-6" />
-          <span className="text-xs mt-1">Matches</span>
-        </Link>
-        
-        <Link 
-          to="/ai-companion" 
-          className={`flex flex-col items-center justify-center transition-all duration-300 ${isActivePath('/ai-companion') ? 'text-love scale-110' : 'text-muted-foreground'}`}
-        >
-          <Bot className="w-6 h-6" />
-          <span className="text-xs mt-1">Isla AI</span>
-        </Link>
-        
-        <Link 
-          to="/profile" 
-          className={`flex flex-col items-center justify-center transition-all duration-300 ${isActivePath('/profile') ? 'text-love scale-110' : 'text-muted-foreground'}`}
-        >
-          <User className="w-6 h-6" />
-          <span className="text-xs mt-1">Profile</span>
-        </Link>
+        <SafeAreaSpacer position="bottom">
+          <div className="flex justify-around items-center w-full">
+            <NavItem path="/" icon={<Heart />} label="Discover" isActive={isActivePath('/')} />
+            <NavItem path="/matches" icon={<MessageCircle />} label="Matches" isActive={isActivePath('/matches')} />
+            <NavItem path="/ai-companion" icon={<Bot />} label="Isla AI" isActive={isActivePath('/ai-companion')} />
+            <NavItem path="/profile" icon={<User />} label="Profile" isActive={isActivePath('/profile')} />
+            <NavItem path="/settings" icon={<Settings />} label="Settings" isActive={isActivePath('/settings')} />
+          </div>
+        </SafeAreaSpacer>
       </div>
     </nav>
+  );
+};
+
+interface NavItemProps {
+  path: string;
+  icon: React.ReactNode;
+  label: string;
+  isActive: boolean;
+}
+
+const NavItem = ({ path, icon, label, isActive }: NavItemProps) => (
+  <Link 
+    to={path} 
+    className={`flex flex-col items-center justify-center transition-all duration-300 ${isActive ? 'text-love scale-110' : 'text-muted-foreground'}`}
+  >
+    <div className={`w-6 h-6 ${isActive ? 'text-love' : ''}`}>
+      {icon}
+    </div>
+    <span className="text-xs mt-1">{label}</span>
+  </Link>
+);
+
+interface SafeAreaSpacerProps {
+  children: React.ReactNode;
+  position: 'top' | 'bottom' | 'left' | 'right';
+}
+
+const SafeAreaSpacer = ({ children, position }: SafeAreaSpacerProps) => {
+  const padding = `padding-${position === 'top' || position === 'bottom' ? position : position === 'left' ? 'left' : 'right'}`;
+  
+  return (
+    <div 
+      className={`w-full flex justify-center items-center`} 
+      style={{ 
+        [`${padding}`]: `env(safe-area-inset-${position}, 0px)` 
+      }}
+    >
+      {children}
+    </div>
   );
 };
 
