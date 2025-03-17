@@ -1,4 +1,3 @@
-
 import { UserSettings } from './types';
 
 // Initialize settings with default values
@@ -12,6 +11,7 @@ export const defaultSettings: UserSettings = {
   match_preferences: {
     ageRange: [18, 100],
     distance: 50,
+    distanceUnit: 'km',
     dealBreakers: {
       smoking: false,
       children: false,

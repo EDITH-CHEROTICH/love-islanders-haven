@@ -15,6 +15,7 @@ export interface PrivacySettings {
 export interface MatchPreferences {
   ageRange?: [number, number];
   distance?: number;
+  distanceUnit?: 'km' | 'mi';
   dealBreakers?: {
     smoking?: boolean;
     children?: boolean;
