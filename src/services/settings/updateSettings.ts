@@ -34,11 +34,12 @@ export const updateSettingsCategory = async <T extends keyof UserSettings>(
     // If we're updating a category with nested objects, make sure we merge properly
     let finalSettings = settings;
     if (existingSettings && typeof settings === 'object' && settings !== null) {
-      // Deep merge for nested objects
+      // Deep merge for nested objects using type assertion to help TypeScript understand
+      const existingCategorySettings = existingSettings[category as string] as unknown as UserSettings[T];
       finalSettings = {
-        ...existingSettings[category],
+        ...existingCategorySettings,
         ...settings
-      } as UserSettings[T];
+      };
       
       console.log(`Merged settings for ${category}:`, finalSettings);
     }
