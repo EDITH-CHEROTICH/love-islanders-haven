@@ -1,5 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
+import { Json } from "@/integrations/supabase/types";
 
 // Types for all settings categories
 export interface AccountSettings {
@@ -121,6 +122,15 @@ export const defaultSettings: UserSettings = {
   }
 };
 
+// Helper function to safely merge settings with defaults
+const safelyMergeSettings = <T>(defaults: T, data: Json | null): T => {
+  if (!data) return { ...defaults };
+  
+  // Convert Json to object we can work with
+  const dataObj = typeof data === 'object' ? data : {};
+  return { ...defaults, ...dataObj as Partial<T> };
+};
+
 // Fetch user settings from Supabase
 export const fetchUserSettings = async (): Promise<UserSettings> => {
   try {
@@ -149,14 +159,14 @@ export const fetchUserSettings = async (): Promise<UserSettings> => {
     
     // Safely merge with defaults to ensure all fields are present
     return {
-      account_settings: { ...defaultSettings.account_settings, ...(data.account_settings || {}) },
-      privacy_settings: { ...defaultSettings.privacy_settings, ...(data.privacy_settings || {}) },
-      match_preferences: { ...defaultSettings.match_preferences, ...(data.match_preferences || {}) },
-      communication_settings: { ...defaultSettings.communication_settings, ...(data.communication_settings || {}) },
-      ai_companion_settings: { ...defaultSettings.ai_companion_settings, ...(data.ai_companion_settings || {}) },
-      accessibility_settings: { ...defaultSettings.accessibility_settings, ...(data.accessibility_settings || {}) },
-      security_settings: { ...defaultSettings.security_settings, ...(data.security_settings || {}) },
-      app_customization: { ...defaultSettings.app_customization, ...(data.app_customization || {}) }
+      account_settings: safelyMergeSettings(defaultSettings.account_settings, data.account_settings),
+      privacy_settings: safelyMergeSettings(defaultSettings.privacy_settings, data.privacy_settings),
+      match_preferences: safelyMergeSettings(defaultSettings.match_preferences, data.match_preferences),
+      communication_settings: safelyMergeSettings(defaultSettings.communication_settings, data.communication_settings),
+      ai_companion_settings: safelyMergeSettings(defaultSettings.ai_companion_settings, data.ai_companion_settings),
+      accessibility_settings: safelyMergeSettings(defaultSettings.accessibility_settings, data.accessibility_settings),
+      security_settings: safelyMergeSettings(defaultSettings.security_settings, data.security_settings),
+      app_customization: safelyMergeSettings(defaultSettings.app_customization, data.app_customization)
     };
   } catch (error) {
     console.error('Error in fetchUserSettings:', error);
@@ -179,7 +189,7 @@ export const updateSettingsCategory = async <T extends keyof UserSettings>(
     const { error } = await supabase
       .from('user_settings')
       .update({ 
-        [category]: settings,
+        [category]: settings as Json,
         updated_at: new Date().toISOString()
       })
       .eq('id', user.user.id);
@@ -209,14 +219,14 @@ export const saveUserSettings = async (settings: UserSettings): Promise<boolean>
       .from('user_settings')
       .upsert({
         id: user.user.id,
-        account_settings: settings.account_settings,
-        privacy_settings: settings.privacy_settings,
-        match_preferences: settings.match_preferences,
-        communication_settings: settings.communication_settings,
-        ai_companion_settings: settings.ai_companion_settings,
-        accessibility_settings: settings.accessibility_settings,
-        security_settings: settings.security_settings,
-        app_customization: settings.app_customization,
+        account_settings: settings.account_settings as Json,
+        privacy_settings: settings.privacy_settings as Json,
+        match_preferences: settings.match_preferences as Json,
+        communication_settings: settings.communication_settings as Json,
+        ai_companion_settings: settings.ai_companion_settings as Json,
+        accessibility_settings: settings.accessibility_settings as Json,
+        security_settings: settings.security_settings as Json,
+        app_customization: settings.app_customization as Json,
         updated_at: new Date().toISOString()
       }, { onConflict: 'id' });
     
