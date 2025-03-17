@@ -10,6 +10,9 @@ export interface PrivacySettings {
   profileVisibility?: 'everyone' | 'matches' | 'none';
   shareLocation?: boolean;
   showDistance?: boolean;
+  locationPrecision?: 'exact' | 'approximate' | 'city';
+  shareActivityStatus?: boolean;
+  lastActiveVisibility?: boolean;
 }
 
 export interface MatchPreferences {

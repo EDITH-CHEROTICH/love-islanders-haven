@@ -1,3 +1,4 @@
+
 import { UserSettings } from './types';
 
 // Initialize settings with default values
@@ -6,7 +7,10 @@ export const defaultSettings: UserSettings = {
   privacy_settings: {
     profileVisibility: 'everyone',
     shareLocation: false,
-    showDistance: true
+    showDistance: true,
+    locationPrecision: 'approximate',
+    shareActivityStatus: true,
+    lastActiveVisibility: true
   },
   match_preferences: {
     ageRange: [18, 100],

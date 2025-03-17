@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { Shield, MapPin, UserX, FileText } from 'lucide-react';
+import { Shield, MapPin, UserX, FileText, Activity } from 'lucide-react';
 import SettingsSection from './SettingsSection';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -76,7 +76,7 @@ const PrivacySettings = () => {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <MapPin size={16} className="text-muted-foreground" />
-                <Label htmlFor="share-location" className="cursor-pointer">Share your precise location</Label>
+                <Label htmlFor="share-location" className="cursor-pointer">Share your location</Label>
               </div>
               <Switch 
                 id="share-location" 
@@ -84,6 +84,7 @@ const PrivacySettings = () => {
                 onCheckedChange={(checked) => handleChange('shareLocation', checked)}
               />
             </div>
+            
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <MapPin size={16} className="text-muted-foreground" />
@@ -93,6 +94,52 @@ const PrivacySettings = () => {
                 id="show-distance" 
                 checked={localSettings.showDistance ?? true}
                 onCheckedChange={(checked) => handleChange('showDistance', checked)}
+              />
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <Label htmlFor="location-precision" className="cursor-pointer">Location precision</Label>
+              <Select 
+                value={localSettings.locationPrecision ?? 'approximate'}
+                onValueChange={(value) => handleChange('locationPrecision', value as PrivacySettingsType['locationPrecision'])}
+              >
+                <SelectTrigger className="w-32 bg-island-light/20 border-island-light">
+                  <SelectValue placeholder="Select" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="exact">Exact</SelectItem>
+                  <SelectItem value="approximate">Approximate</SelectItem>
+                  <SelectItem value="city">City only</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </div>
+        
+        <div className="space-y-4 pt-4 border-t border-island-light/30">
+          <h4 className="text-sm font-medium text-love">Activity Status</h4>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Activity size={16} className="text-muted-foreground" />
+                <Label htmlFor="share-activity" className="cursor-pointer">Share your activity status</Label>
+              </div>
+              <Switch 
+                id="share-activity" 
+                checked={localSettings.shareActivityStatus ?? true}
+                onCheckedChange={(checked) => handleChange('shareActivityStatus', checked)}
+              />
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Activity size={16} className="text-muted-foreground" />
+                <Label htmlFor="last-active" className="cursor-pointer">Show when you were last active</Label>
+              </div>
+              <Switch 
+                id="last-active" 
+                checked={localSettings.lastActiveVisibility ?? true}
+                onCheckedChange={(checked) => handleChange('lastActiveVisibility', checked)}
               />
             </div>
           </div>
