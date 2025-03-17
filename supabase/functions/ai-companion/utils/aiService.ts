@@ -19,7 +19,7 @@ export async function generateAIResponse(genAIClient, MODEL_NAME, systemPrompt, 
       history: historyWithSystemPrompt,
       generationConfig: {
         temperature: 0.8,
-        maxOutputTokens: 500,
+        maxOutputTokens: 800,
       },
     });
 
@@ -30,7 +30,7 @@ export async function generateAIResponse(genAIClient, MODEL_NAME, systemPrompt, 
     return aiResponse;
   } catch (error) {
     console.error("Error generating AI response:", error);
-    throw error;
+    throw new Error(`Failed to generate AI response: ${error.message}`);
   }
 }
 
@@ -51,7 +51,7 @@ export async function generateRecommendation(model, userStreakActivity) {
     return recommendationText;
   } catch (error) {
     console.error("Error generating recommendation:", error);
-    throw error;
+    throw new Error(`Failed to generate recommendation: ${error.message}`);
   }
 }
 

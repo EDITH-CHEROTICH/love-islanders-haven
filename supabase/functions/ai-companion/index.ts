@@ -41,9 +41,6 @@ const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
 const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// For demonstration/testing purposes only - in production, use a real API key
-const DEMO_API_KEY = "demo-key-for-testing";
-
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -52,14 +49,8 @@ serve(async (req) => {
 
   try {
     // Check if we have valid API credentials
-    const googleAIKey = API_KEY || DEMO_API_KEY;
-    const isDemo = googleAIKey === DEMO_API_KEY;
-    
-    const { message, conversationHistory = [], userId } = await req.json();
-    
-    // If we're in demo mode, don't actually call Gemini API
-    if (isDemo) {
-      console.log("Running in DEMO mode with fake API key");
+    if (!API_KEY) {
+      console.log("No Google AI API key found in environment variables");
       
       // Return a canned response instead of calling the API
       return new Response(JSON.stringify({ 
@@ -69,7 +60,8 @@ serve(async (req) => {
       });
     }
 
-    console.log("Using real Google AI API key");
+    console.log("Using Google AI API key");
+    const { message, conversationHistory = [], userId } = await req.json();
 
     // Fetch user profile and settings if userId is provided
     let userProfile = null;
@@ -117,11 +109,8 @@ serve(async (req) => {
     }
 
     // Initialize the Google GenAI client
-    const genAIClient = genAI(googleAIKey);
+    const genAIClient = genAI(API_KEY);
     
-    // Get the model
-    const model = genAIClient.getGenerativeModel({ model: MODEL_NAME });
-
     // Prepare the chat history for Gemini
     const chatHistory = recentConversation.length > 0 
       ? recentConversation 
@@ -133,46 +122,64 @@ serve(async (req) => {
     // Create system prompt
     const systemPrompt = prepareSystemPrompt(userMemoryContext);
 
-    // Generate AI response
-    const aiResponse = await generateAIResponse(
-      genAIClient, 
-      MODEL_NAME, 
-      systemPrompt, 
-      chatHistory, 
-      message
-    );
+    try {
+      // Generate AI response
+      const aiResponse = await generateAIResponse(
+        genAIClient, 
+        MODEL_NAME, 
+        systemPrompt, 
+        chatHistory, 
+        message
+      );
 
-    // If userId is provided, save the assistant's response to the database
-    if (userId) {
-      try {
-        await saveAssistantResponse(supabase, userId, aiResponse, 'chat');
-        
-        // Check if we should generate a recommendation
-        const shouldRecommend = shouldGenerateRecommendation(recentConversation);
-        
-        // If we should generate a recommendation and we have streak data
-        if (shouldRecommend && userStreakActivity && userStreakActivity.length > 0) {
-          try {
-            // Generate a recommendation
-            const recommendationText = await generateRecommendation(model, userStreakActivity);
-            
-            // Save the recommendation as a separate message
-            await saveAssistantResponse(supabase, userId, recommendationText, 'recommendation');
-          } catch (recError) {
-            console.error("Error generating recommendation:", recError);
+      // If userId is provided, save the assistant's response to the database
+      if (userId) {
+        try {
+          await saveAssistantResponse(supabase, userId, aiResponse, 'chat');
+          
+          // Check if we should generate a recommendation
+          const shouldRecommend = shouldGenerateRecommendation(recentConversation);
+          
+          // If we should generate a recommendation and we have streak data
+          if (shouldRecommend && userStreakActivity && userStreakActivity.length > 0) {
+            try {
+              // Get the model
+              const model = genAIClient.getGenerativeModel({ model: MODEL_NAME });
+              
+              // Generate a recommendation
+              const recommendationText = await generateRecommendation(model, userStreakActivity);
+              
+              // Save the recommendation as a separate message
+              await saveAssistantResponse(supabase, userId, recommendationText, 'recommendation');
+            } catch (recError) {
+              console.error("Error generating recommendation:", recError);
+            }
           }
+        } catch (error) {
+          console.error("Error saving assistant response:", error);
         }
-      } catch (error) {
-        console.error("Error saving assistant response:", error);
       }
-    }
 
-    return new Response(JSON.stringify({ response: aiResponse }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+      return new Response(JSON.stringify({ response: aiResponse }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    } catch (aiError) {
+      console.error("AI generation error:", aiError);
+      return new Response(JSON.stringify({ 
+        error: "AI generation failed", 
+        message: aiError.message,
+        response: "I'm sorry, I encountered an error while processing your request. Please try again in a moment."
+      }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
   } catch (error) {
     console.error("Error:", error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ 
+      error: error.message,
+      response: "I'm sorry, I encountered an unexpected error. Please try again later."
+    }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

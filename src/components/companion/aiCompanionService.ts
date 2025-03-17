@@ -37,29 +37,34 @@ export const sendAIMessage = async (
   conversationHistory: Array<{ role: string; content: string }>,
   userId?: string
 ) => {
-  // Call the Supabase Edge Function
-  const { data, error } = await supabase.functions.invoke('ai-companion', {
-    body: {
-      message: messageText,
-      conversationHistory,
-      userId // Pass the user ID to enable personalization
+  try {
+    // Call the Supabase Edge Function
+    const { data, error } = await supabase.functions.invoke('ai-companion', {
+      body: {
+        message: messageText,
+        conversationHistory,
+        userId // Pass the user ID to enable personalization
+      }
+    });
+
+    if (error) {
+      console.error('Error from Supabase function:', error);
+      throw new Error(error.message || 'Failed to get response from AI companion');
     }
-  });
 
-  if (error) {
-    console.error('Error from Supabase function:', error);
-    throw new Error(error.message || 'Failed to get response from AI companion');
-  }
-
-  if (!data || !data.response) {
-    if (data && data.error) {
-      console.error('Error from AI service:', data.error);
-      throw new Error(data.error);
+    if (!data || !data.response) {
+      if (data && data.error) {
+        console.error('Error from AI service:', data.error);
+        throw new Error(data.error);
+      }
+      throw new Error('Invalid response from AI companion');
     }
-    throw new Error('Invalid response from AI companion');
-  }
 
-  return data.response;
+    return data.response;
+  } catch (error) {
+    console.error('Error in sendAIMessage:', error);
+    throw error;
+  }
 };
 
 export const fetchRecommendations = async (userId: string, timestamp: Date) => {
