@@ -85,6 +85,12 @@ const AICompanion: React.FC = () => {
       // Send message to AI service
       const aiResponse = await sendAIMessage(messageText, conversationHistory, user?.id);
 
+      // Check if this is a demo response
+      if (aiResponse.includes("running in demo mode")) {
+        // Post a message to notify the parent component
+        window.postMessage({ type: 'ai-companion-demo-mode' }, '*');
+      }
+
       // Add AI response to chat
       const aiMessage: ChatMessage = {
         id: Date.now().toString(),
