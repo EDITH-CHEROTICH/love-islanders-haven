@@ -33,6 +33,38 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_conversation_embeddings: {
+        Row: {
+          created_at: string
+          embedding: string | null
+          id: string
+          message_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          embedding?: string | null
+          id?: string
+          message_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          embedding?: string | null
+          id?: string
+          message_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_conversation_embeddings_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "ai_chat_history"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       interests: {
         Row: {
           created_at: string

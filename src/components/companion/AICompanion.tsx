@@ -16,20 +16,62 @@ type ChatMessage = {
 const AICompanion: React.FC = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
   const { toast } = useToast();
   const { user } = useAuth();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Add welcome message when component mounts
+  // Fetch past conversation history when component mounts
   useEffect(() => {
-    const welcomeMessage: ChatMessage = {
-      id: 'welcome',
-      role: 'assistant',
-      content: "Hi there! I'm Isla, your personal companion. I'm here to chat, listen, and keep you company. How are you feeling today?",
-      timestamp: new Date()
+    const fetchChatHistory = async () => {
+      if (!user?.id) {
+        setInitialLoading(false);
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase
+          .from('ai_chat_history')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: true });
+
+        if (error) {
+          console.error('Error fetching chat history:', error);
+          toast({
+            title: "Couldn't load conversation history",
+            description: error.message,
+            variant: "destructive"
+          });
+        } else if (data && data.length > 0) {
+          // Convert database records to chat messages
+          const historyMessages = data.map((item) => ({
+            id: item.id,
+            role: item.role as 'user' | 'assistant',
+            content: item.message_content,
+            timestamp: new Date(item.created_at)
+          }));
+          
+          setMessages(historyMessages);
+        } else {
+          // Add welcome message if no history exists
+          const welcomeMessage: ChatMessage = {
+            id: 'welcome',
+            role: 'assistant',
+            content: "Hi there! I'm Isla, your personal companion. I'm here to chat, listen, and keep you company. How are you feeling today?",
+            timestamp: new Date()
+          };
+          setMessages([welcomeMessage]);
+        }
+      } catch (error) {
+        console.error('Error:', error);
+      } finally {
+        setInitialLoading(false);
+      }
     };
-    setMessages([welcomeMessage]);
-  }, []);
+
+    fetchChatHistory();
+  }, [user?.id, toast]);
 
   // Scroll to bottom whenever messages change
   useEffect(() => {
@@ -63,7 +105,7 @@ const AICompanion: React.FC = () => {
         body: {
           message: messageText,
           conversationHistory,
-          userId: user?.id
+          userId: user?.id  // Pass the user ID if available
         }
       });
 
@@ -97,7 +139,7 @@ const AICompanion: React.FC = () => {
       let errorMessage = 'Failed to send message. Please try again later.';
       
       if (error instanceof Error) {
-        if (error.message.includes('OPENAI_API_KEY is not set')) {
+        if (error.message.includes('API key is not set')) {
           errorMessage = 'The AI service is not properly configured. Please contact support.';
         } else {
           errorMessage = `Error: ${error.message}`;
@@ -123,6 +165,25 @@ const AICompanion: React.FC = () => {
       setIsLoading(false);
     }
   };
+
+  if (initialLoading) {
+    return (
+      <div className="flex flex-col h-full max-h-[calc(100vh-76px)] bg-island-dark text-white">
+        <div className="p-3 bg-island text-center border-b border-island-light">
+          <h2 className="text-lg font-semibold text-white">Chat with Isla</h2>
+        </div>
+        <div className="flex-1 flex items-center justify-center">
+          <div className="animate-pulse flex space-x-4">
+            <div className="h-12 w-12 bg-island-light rounded-full"></div>
+            <div className="space-y-2">
+              <div className="h-4 bg-island-light rounded w-36"></div>
+              <div className="h-4 bg-island-light rounded w-24"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-full max-h-[calc(100vh-76px)] bg-island-dark text-white">

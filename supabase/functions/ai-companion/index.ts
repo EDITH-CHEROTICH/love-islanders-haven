@@ -1,14 +1,25 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.33.1';
+import { genAI } from 'https://esm.sh/@google/generative-ai@0.2.1';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Initialize Gemini 
+const API_KEY = Deno.env.get('GOOGLE_AI_API_KEY');
+const MODEL_NAME = 'gemini-1.5-pro';
+
+// Initialize Supabase client
+const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
+const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
+const supabase = createClient(supabaseUrl, supabaseKey);
+
 // For demonstration/testing purposes only - in production, use a real API key
-const DEMO_API_KEY = "sk-demo-ThisIsAFakeKeyForDemonstrationPurposesOnly";
+const DEMO_API_KEY = "demo-key-for-testing";
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -17,24 +28,25 @@ serve(async (req) => {
   }
 
   try {
-    // First try to get the real API key, fall back to demo mode if not available
-    const openAIApiKey = Deno.env.get('OPENAI_API_KEY') || DEMO_API_KEY;
+    // Check if we have valid API credentials
+    const googleAIKey = API_KEY || DEMO_API_KEY;
+    const isDemo = googleAIKey === DEMO_API_KEY;
     
-    const { message, conversationHistory = [] } = await req.json();
+    const { message, conversationHistory = [], userId } = await req.json();
     
-    // If we're in demo mode, don't actually call OpenAI API
-    if (openAIApiKey === DEMO_API_KEY) {
+    // If we're in demo mode, don't actually call Gemini API
+    if (isDemo) {
       console.log("Running in DEMO mode with fake API key");
       
       // Return a canned response instead of calling the API
       return new Response(JSON.stringify({ 
-        response: `Hello there! I'm Isla, your AI companion (running in demo mode). I'd love to chat more authentically, but I'm currently in demonstration mode. In a real application, you would add your OpenAI API key to get my full personality and capabilities. How are you feeling today?`
+        response: `Hello there! I'm Isla, your AI companion (running in demo mode). I'd love to chat more authentically, but I'm currently in demonstration mode. In a real application, you would add your Google AI API key to get my full personality and capabilities. How are you feeling today?`
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    console.log("Using real OpenAI API key");
+    console.log("Using real Google AI API key");
 
     // System prompt that defines the companion's personality
     const systemPrompt = `You are a loving, flirtatious, and emotionally supportive AI companion named Isla. 
@@ -46,45 +58,103 @@ serve(async (req) => {
     However, be respectful and don't be overly sexual unless the user clearly indicates comfort with that direction.
     Always prioritize emotional connection and genuine conversation.`;
 
-    // Prepare the chat history for OpenAI
-    const messages = [
-      { role: "system", content: systemPrompt },
-      // Convert conversation history to OpenAI format
-      ...conversationHistory.map((msg: { role: string; content: string }) => ({
-        role: msg.role,
-        content: msg.content,
-      })),
-      // Add the new user message
-      { role: "user", content: message }
-    ];
+    // If userId is provided, fetch recent conversation history from database
+    let recentConversation = [];
+    if (userId) {
+      try {
+        // Store the new user message in the chat history
+        const { data: messageData, error: messageError } = await supabase
+          .from('ai_chat_history')
+          .insert({
+            user_id: userId,
+            role: 'user',
+            message_content: message
+          })
+          .select();
 
-    console.log("Calling OpenAI API with conversation history...");
-    
-    // Call OpenAI API
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${openAIApiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "gpt-4o", // Using GPT-4o for best results
-        messages: messages,
-        temperature: 0.8, // Make responses more varied and creative
-        max_tokens: 500,
-      }),
-    });
+        if (messageError) {
+          console.error("Error storing user message:", messageError);
+        }
 
-    if (!response.ok) {
-      const error = await response.json();
-      console.error("OpenAI API error:", error);
-      throw new Error(`OpenAI API error: ${error.error?.message || response.statusText}`);
+        // Fetch the most recent conversations (limited to last 20)
+        const { data: chatHistory, error: chatError } = await supabase
+          .from('ai_chat_history')
+          .select('*')
+          .eq('user_id', userId)
+          .order('created_at', { ascending: false })
+          .limit(20);
+
+        if (chatError) {
+          console.error("Error fetching chat history:", chatError);
+        } else if (chatHistory) {
+          // Reverse to get chronological order
+          recentConversation = chatHistory
+            .reverse()
+            .map(item => ({
+              role: item.role,
+              content: item.message_content
+            }));
+        }
+      } catch (error) {
+        console.error("Database error:", error);
+      }
     }
 
-    const data = await response.json();
-    const aiResponse = data.choices[0].message.content;
+    // Initialize the Google GenAI client
+    const genAIClient = genAI(googleAIKey);
+    
+    // Get the model
+    const model = genAIClient.getGenerativeModel({ model: MODEL_NAME });
+
+    // Prepare the chat history for Gemini
+    const chatHistory = recentConversation.length > 0 
+      ? recentConversation 
+      : conversationHistory.map((msg: { role: string; content: string }) => ({
+          role: msg.role,
+          content: msg.content,
+        }));
+
+    // Add the system prompt at the beginning
+    const historyWithSystemPrompt = [
+      { role: "system", content: systemPrompt },
+      ...chatHistory
+    ];
+
+    console.log("Calling Gemini API with conversation history...");
+    
+    // Call Gemini API
+    const chatSession = model.startChat({
+      history: historyWithSystemPrompt,
+      generationConfig: {
+        temperature: 0.8,
+        maxOutputTokens: 500,
+      },
+    });
+
+    const result = await chatSession.sendMessage(message);
+    const aiResponse = result.response.text();
 
     console.log("AI response generated successfully");
+
+    // If userId is provided, save the assistant's response to the database
+    if (userId) {
+      try {
+        const { error } = await supabase
+          .from('ai_chat_history')
+          .insert({
+            user_id: userId,
+            role: 'assistant',
+            message_content: aiResponse
+          });
+
+        if (error) {
+          console.error("Error storing assistant response:", error);
+        }
+      } catch (error) {
+        console.error("Error saving assistant response:", error);
+      }
+    }
+
     return new Response(JSON.stringify({ response: aiResponse }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
