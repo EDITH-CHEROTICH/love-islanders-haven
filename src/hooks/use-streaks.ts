@@ -44,8 +44,10 @@ export const useStreaks = () => {
       setLoading(true);
       
       // Fetch streak posts from Supabase
+      // Note: After running the SQL migrations, we should now have a streaks table
+      // We're using any type to bypass TypeScript checking until types are regenerated
       const { data: streaksData, error } = await supabase
-        .from('streaks')
+        .from('streaks' as any)
         .select(`
           id,
           user_id,
@@ -69,7 +71,7 @@ export const useStreaks = () => {
       if (!streaksData) throw new Error("No data returned from streaks query");
 
       // Transform the data to match our StreakPost type
-      const transformedPosts: StreakPost[] = (streaksData as StreakData[]).map(streak => ({
+      const transformedPosts: StreakPost[] = (streaksData as any[]).map(streak => ({
         id: streak.id,
         user_id: streak.user_id,
         content: streak.content,
@@ -93,8 +95,8 @@ export const useStreaks = () => {
       // Also fetch top streaks - users with highest streak counts
       const { data: topStreaksData, error: topStreaksError } = await supabase
         .from('profiles')
-        .select('id, name, streak_count:streaks(streak_count)')
-        .order('streak_count', { ascending: false })
+        .select('id, name, streak_count:streaks(streak_count)' as any)
+        .order('streak_count' as any, { ascending: false })
         .limit(3);
         
       if (topStreaksError) throw topStreaksError;
@@ -113,7 +115,7 @@ export const useStreaks = () => {
           streak_count?: Array<{ streak_count: number }>;
         }
         
-        const transformedTopStreaks: TopStreak[] = (topStreaksData as ProfileWithStreak[])
+        const transformedTopStreaks: TopStreak[] = (topStreaksData as any[])
           .map(profile => ({
             name: profile.name,
             count: profile.streak_count?.[0]?.streak_count || 0
@@ -199,7 +201,7 @@ export const useStreaks = () => {
       today.setHours(0, 0, 0, 0);
       
       const { data, error } = await supabase
-        .from('streaks')
+        .from('streaks' as any)
         .select('id, streak_count, created_at')
         .eq('user_id', user.id)
         .gte('created_at', today.toISOString())
@@ -212,15 +214,12 @@ export const useStreaks = () => {
       
       // Get user's current streak count
       if (data && data.length > 0) {
-        // Type assertion for the streak data
-        interface StreakCountData {
-          streak_count: number;
-        }
-        setUserStreakCount((data[0] as StreakCountData).streak_count || 0);
+        // Get the streak count from the first data item
+        setUserStreakCount((data[0] as any).streak_count || 0);
       } else {
         // Get the latest streak
         const { data: latestStreak, error: latestError } = await supabase
-          .from('streaks')
+          .from('streaks' as any)
           .select('streak_count')
           .eq('user_id', user.id)
           .order('created_at', { ascending: false })
@@ -228,12 +227,9 @@ export const useStreaks = () => {
           
         if (latestError) throw latestError;
         
-        interface StreakCountData {
-          streak_count: number;
-        }
-        
+        // Get the streak count or default to 0
         setUserStreakCount(latestStreak && latestStreak.length > 0 ? 
-          (latestStreak[0] as StreakCountData).streak_count : 0);
+          (latestStreak[0] as any).streak_count : 0);
       }
     } catch (error) {
       console.error("Error checking user streak:", error);
@@ -259,7 +255,7 @@ export const useStreaks = () => {
       
       // Insert the new streak post into Supabase
       const { data, error } = await supabase
-        .from('streaks')
+        .from('streaks' as any)
         .insert({
           id: uuidv4(),
           user_id: user.id,
@@ -285,16 +281,7 @@ export const useStreaks = () => {
       
       // Add the new post to the list
       if (data && data.length > 0) {
-        interface NewStreakData {
-          id: string;
-          user_id: string;
-          content: string;
-          caption: string | null;
-          created_at: string;
-          streak_count: number;
-        }
-        
-        const streakData = data[0] as NewStreakData;
+        const streakData = data[0] as any;
         
         const newPost: StreakPost = {
           id: streakData.id,
@@ -337,7 +324,7 @@ export const useStreaks = () => {
     try {
       // Check if user already liked this post
       const { data: existingLike, error: checkError } = await supabase
-        .from('streak_likes')
+        .from('streak_likes' as any)
         .select('id')
         .eq('streak_id', postId)
         .eq('user_id', user.id)
@@ -352,7 +339,7 @@ export const useStreaks = () => {
       
       // Add a new like
       const { error } = await supabase
-        .from('streak_likes')
+        .from('streak_likes' as any)
         .insert({
           streak_id: postId,
           user_id: user.id
