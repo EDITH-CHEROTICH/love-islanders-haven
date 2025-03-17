@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,6 +5,7 @@ import { Heart, MessageCircle, Flame, User, Music, PlayCircle, PauseCircle } fro
 import { Separator } from "@/components/ui/separator";
 import { formatDistanceToNow } from "date-fns";
 import { StreakPost as StreakPostType } from "./types";
+import { useAudioPlayer } from "@/hooks/use-audio-player";
 
 interface StreakPostProps {
   post: StreakPostType;

@@ -1,9 +1,8 @@
-
 import { Music, Search, X, PlayCircle, PauseCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { SongOption } from "./types";
-import useAudioPlayer from "@/hooks/use-audio-player";
+import { useAudioPlayer } from "@/hooks/use-audio-player";
 
 interface SongSearchSectionProps {
   showSongInput: boolean;
