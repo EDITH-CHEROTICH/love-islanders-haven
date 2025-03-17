@@ -17,7 +17,8 @@ interface StreakPostFormProps {
 }
 
 const StreakPostForm = ({ onSubmit, onCancel }: StreakPostFormProps) => {
-  const [content, setContent] = useState<string>("/placeholder.svg"); // For demo purposes, using placeholder
+  // Instead of placeholder.svg, use a real demo image
+  const [content, setContent] = useState<string>("https://images.unsplash.com/photo-1721322800607-8c38375eef04?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&q=80");
   const [caption, setCaption] = useState<string>("");
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -38,7 +39,7 @@ const StreakPostForm = ({ onSubmit, onCancel }: StreakPostFormProps) => {
       const reader = new FileReader();
       reader.onload = () => {
         setPreviewUrl(reader.result as string);
-        setContent("/placeholder.svg"); // In real implementation, this would be the URL from storage
+        setContent("https://images.unsplash.com/photo-1721322800607-8c38375eef04?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&q=80"); // Demo image URL
         setIsUploading(false);
       };
       reader.readAsDataURL(file);

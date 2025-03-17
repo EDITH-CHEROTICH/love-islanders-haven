@@ -16,6 +16,9 @@ const ImageUploadSection = ({
   onImageSelect,
   onClearPreview,
 }: ImageUploadSectionProps) => {
+  // Demo image to show when there's no preview
+  const demoImage = "https://images.unsplash.com/photo-1721322800607-8c38375eef04?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&q=80";
+  
   return (
     <div className="border-2 border-dashed border-muted-foreground/25 rounded-md overflow-hidden relative">
       {previewUrl ? (
@@ -39,6 +42,13 @@ const ImageUploadSection = ({
           <p className="text-center text-muted-foreground mb-2">
             Snap a photo for your streak
           </p>
+          <div className="w-full max-w-[200px] mb-4">
+            <img 
+              src={demoImage} 
+              alt="Demo Image" 
+              className="w-full rounded-md opacity-70"
+            />
+          </div>
           <Button 
             type="button"
             variant="outline"

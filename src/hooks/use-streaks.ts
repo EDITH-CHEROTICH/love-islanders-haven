@@ -24,44 +24,63 @@ export const useStreaks = () => {
     try {
       setLoading(true);
       // This would be replaced with an actual API call to fetch streak posts
-      // For now, we'll use dummy data
+      // For now, we'll use dummy data with real images
       const dummyPosts: StreakPost[] = [
         {
           id: "1",
           user_id: "user1",
-          content: "/placeholder.svg",
-          caption: "Day 5 of my fitness journey! 💪",
+          content: "https://images.unsplash.com/photo-1582562124811-c09040d0a901?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&q=80",
+          caption: "Day 5 of my fitness journey! 💪 Feeling stronger every day.",
           created_at: new Date().toISOString(),
           streak_count: 5,
           likes_count: 12,
           comments_count: 3,
           user_name: "Alex Smith",
+          user_profile_image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=774&q=80",
           song: {
             title: "Eye of the Tiger",
             artist: "Survivor",
-            album_art: "/placeholder.svg"
+            album_art: "https://images.unsplash.com/photo-1459305272254-33a7d593a851?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=100&q=80"
           }
         },
         {
           id: "2",
           user_id: "user2",
-          content: "/placeholder.svg",
-          caption: "Beautiful sunset today!",
-          created_at: new Date().toISOString(),
+          content: "https://images.unsplash.com/photo-1493962853295-0fd70327578a?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&q=80",
+          caption: "Beautiful sunset today! Day 10 of sharing my daily moments.",
+          created_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(), // yesterday
           streak_count: 10,
           likes_count: 25,
           comments_count: 5,
           user_name: "Jamie Taylor",
+          user_profile_image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=774&q=80",
         },
+        {
+          id: "3",
+          user_id: "user3",
+          content: "https://images.unsplash.com/photo-1466721591366-2d5fba72006d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&q=80",
+          caption: "Exploring the wilderness! Day 15 streak and counting.",
+          created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
+          streak_count: 15,
+          likes_count: 34,
+          comments_count: 7,
+          user_name: "Jordan Lee",
+          user_profile_image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=774&q=80",
+          song: {
+            title: "Born to Be Wild",
+            artist: "Steppenwolf",
+            album_art: "https://images.unsplash.com/photo-1614149162883-504ce46d75d8?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=100&q=80"
+          }
+        }
       ];
       
       setPosts(dummyPosts);
       
       // Also fetch top streaks
       setTopStreaks([
-        { name: "Jamie Taylor", count: 30 },
+        { name: "Jordan Lee", count: 30 },
         { name: "Alex Smith", count: 21 },
-        { name: "Jordan Lee", count: 15 }
+        { name: "Jamie Taylor", count: 15 }
       ]);
 
     } catch (error) {
