@@ -30,12 +30,7 @@ const MatchPreferences = () => {
         };
         setLocalSettings(newSettings);
         
-        const success = await updateSettings('match_preferences', newSettings);
-        if (!success) {
-          toast.error('Failed to update age range preferences');
-        } else {
-          toast.success('Age range updated successfully');
-        }
+        await updateSettings('match_preferences', newSettings);
       } catch (error) {
         console.error('Error updating age range:', error);
         toast.error('Failed to update preferences');
@@ -52,12 +47,7 @@ const MatchPreferences = () => {
         const newSettings = { ...localSettings, distance: values[0] };
         setLocalSettings(newSettings);
         
-        const success = await updateSettings('match_preferences', newSettings);
-        if (!success) {
-          toast.error('Failed to update distance preferences');
-        } else {
-          toast.success('Distance updated successfully');
-        }
+        await updateSettings('match_preferences', newSettings);
       } catch (error) {
         console.error('Error updating distance:', error);
         toast.error('Failed to update preferences');
@@ -71,15 +61,15 @@ const MatchPreferences = () => {
     try {
       setIsUpdating(true);
       // Create a deep copy of the current settings to avoid mutation issues
-      const dealBreakers = { ...(localSettings.dealBreakers || {}) };
-      
-      // Update the specific deal breaker
-      dealBreakers[key] = checked;
+      const dealBreakers = { 
+        ...localSettings.dealBreakers,
+        [key]: checked
+      };
       
       // Create a new settings object with the updated deal breakers
       const newSettings = { 
         ...localSettings, 
-        dealBreakers: dealBreakers 
+        dealBreakers
       };
       
       // Update local state first for responsive UI
@@ -87,20 +77,10 @@ const MatchPreferences = () => {
       
       // Persist to database
       console.log(`Updating deal breaker ${key} to ${checked}`, newSettings);
-      const success = await updateSettings('match_preferences', newSettings);
-      
-      if (!success) {
-        toast.error('Failed to update deal breaker preferences');
-        // Revert local state on failure
-        setLocalSettings(settings.match_preferences);
-      } else {
-        toast.success(`Deal breaker "${key}" updated successfully`);
-      }
+      await updateSettings('match_preferences', newSettings);
     } catch (error) {
       console.error('Error updating deal breakers:', error);
       toast.error('Failed to update preferences');
-      // Revert local state on error
-      setLocalSettings(settings.match_preferences);
     } finally {
       setIsUpdating(false);
     }

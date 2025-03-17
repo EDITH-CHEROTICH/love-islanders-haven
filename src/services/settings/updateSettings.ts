@@ -10,10 +10,16 @@ export const updateSettingsCategory = async <T extends keyof UserSettings>(
 ): Promise<boolean> => {
   try {
     console.log(`Updating ${category} with:`, settings);
-    const { data: userData } = await supabase.auth.getUser();
+    const { data: userData, error: authError } = await supabase.auth.getUser();
+    
+    if (authError) {
+      console.error('Authentication error:', authError);
+      return false;
+    }
     
     if (!userData.user) {
-      throw new Error('Not authenticated');
+      console.log('No authenticated user found');
+      return false;
     }
     
     const userId = userData.user.id;
