@@ -10,7 +10,7 @@ export const defaultSettings: UserSettings = {
     showDistance: true
   },
   match_preferences: {
-    ageRange: [18, 40],
+    ageRange: [18, 100],
     distance: 50,
     dealBreakers: {
       smoking: false,
