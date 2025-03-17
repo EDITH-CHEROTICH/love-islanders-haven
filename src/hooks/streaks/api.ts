@@ -25,7 +25,7 @@ export const fetchStreakPosts = async () => {
       profiles(name)
     `)
     .order('created_at', { ascending: false })
-    .limit(10);
+    .limit(10) as any;
 
   if (error) throw error;
   
@@ -38,7 +38,7 @@ export const fetchTopStreaks = async () => {
     .from('profiles')
     .select('id, name, streak_count:streaks(streak_count)')
     .order('streak_count', { ascending: false })
-    .limit(3);
+    .limit(3) as any;
     
   if (error) throw error;
   
@@ -56,7 +56,7 @@ export const checkUserDailyPost = async (userId: string) => {
     .eq('user_id', userId)
     .gte('created_at', today.toISOString())
     .order('created_at', { ascending: false })
-    .limit(1);
+    .limit(1) as any;
     
   if (error) throw error;
   
@@ -73,7 +73,7 @@ export const getUserLatestStreakCount = async (userId: string) => {
     .select('streak_count')
     .eq('user_id', userId)
     .order('created_at', { ascending: false })
-    .limit(1);
+    .limit(1) as any;
     
   if (error) throw error;
   
@@ -101,7 +101,7 @@ export const createStreakPost = async (
       song_album_art: song?.album_art || null,
       song_preview_url: song?.preview_url || null
     })
-    .select();
+    .select() as any;
     
   if (error) throw error;
   
@@ -116,7 +116,7 @@ export const likeStreakPost = async (userId: string, postId: string) => {
     .select('id')
     .eq('streak_id', postId)
     .eq('user_id', userId)
-    .maybeSingle();
+    .maybeSingle() as any;
     
   if (checkError) throw checkError;
   
@@ -130,7 +130,7 @@ export const likeStreakPost = async (userId: string, postId: string) => {
     .insert({
       streak_id: postId,
       user_id: userId
-    });
+    }) as any;
     
   if (error) throw error;
   

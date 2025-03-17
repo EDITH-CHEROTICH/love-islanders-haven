@@ -28,12 +28,12 @@ export const useStreaks = () => {
 
   useEffect(() => {
     if (isAuthenticated) {
-      fetchStreakPosts();
+      fetchPosts();
       checkUserStreak();
     }
   }, [isAuthenticated]);
 
-  const fetchStreakPosts = async () => {
+  const fetchPosts = async () => {
     try {
       setLoading(true);
       
