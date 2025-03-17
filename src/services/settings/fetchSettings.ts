@@ -21,6 +21,13 @@ export const fetchUserSettings = async (): Promise<UserSettings> => {
       .single();
     
     if (error) {
+      // If the error is that the row doesn't exist, create default settings
+      if (error.code === 'PGRST116') {
+        console.log('User settings not found, creating defaults');
+        await saveUserSettings(defaultSettings);
+        return defaultSettings;
+      }
+      
       console.error('Error fetching settings:', error);
       return defaultSettings;
     }

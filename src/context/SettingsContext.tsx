@@ -16,12 +16,13 @@ interface SettingsContextType {
   error: string | null;
   updateSettings: <T extends keyof UserSettings>(category: T, newSettings: UserSettings[T]) => Promise<boolean>;
   saveAllSettings: () => Promise<boolean>;
+  resetAllSettings: () => Promise<boolean>;
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
 
 export const SettingsProvider = ({ children }: { children: ReactNode }) => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const [settings, setSettings] = useState<UserSettings>(defaultSettings);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -100,7 +101,6 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
       const success = await saveUserSettings(settings);
       
       if (success) {
-        toast.success('All settings saved successfully');
         return true;
       } else {
         toast.error('Failed to save settings');
@@ -113,8 +113,43 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  // Reset all settings to default
+  const resetAllSettings = async (): Promise<boolean> => {
+    if (!isAuthenticated) {
+      toast.error('You must be logged in to reset settings');
+      return false;
+    }
+
+    try {
+      setSettings(defaultSettings);
+      const success = await saveUserSettings(defaultSettings);
+      
+      if (success) {
+        toast.success('All settings reset to default');
+        return true;
+      } else {
+        // Revert on failure
+        const revertedSettings = await fetchUserSettings();
+        setSettings(revertedSettings);
+        toast.error('Failed to reset settings');
+        return false;
+      }
+    } catch (err) {
+      console.error('Error resetting settings:', err);
+      toast.error('Failed to reset settings');
+      return false;
+    }
+  };
+
   return (
-    <SettingsContext.Provider value={{ settings, isLoading, error, updateSettings, saveAllSettings }}>
+    <SettingsContext.Provider value={{ 
+      settings, 
+      isLoading, 
+      error, 
+      updateSettings, 
+      saveAllSettings,
+      resetAllSettings 
+    }}>
       {children}
     </SettingsContext.Provider>
   );

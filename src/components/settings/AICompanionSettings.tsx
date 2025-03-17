@@ -1,5 +1,6 @@
 
-import { Bot, Clock } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Bot } from 'lucide-react';
 import SettingsSection from './SettingsSection';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
@@ -13,9 +14,38 @@ import {
 import { Slider } from '@/components/ui/slider';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { useSettings } from '@/context/SettingsContext';
+import { AICompanionSettings as AICompanionSettingsType } from '@/services/settings';
 
 const AICompanionSettings = () => {
+  const { settings, updateSettings } = useSettings();
+  const [localSettings, setLocalSettings] = useState<AICompanionSettingsType>(
+    settings.ai_companion_settings
+  );
+
+  useEffect(() => {
+    setLocalSettings(settings.ai_companion_settings);
+  }, [settings.ai_companion_settings]);
+
+  const handleChange = <K extends keyof AICompanionSettingsType>(
+    key: K, 
+    value: AICompanionSettingsType[K]
+  ) => {
+    const newSettings = { ...localSettings, [key]: value };
+    setLocalSettings(newSettings);
+    updateSettings('ai_companion_settings', newSettings);
+  };
+
   const handleResetPersonality = () => {
+    const defaultSettings: AICompanionSettingsType = {
+      conversationStyle: 'caring',
+      voiceTone: 'warm',
+      allowProactiveMessages: true,
+      messageFrequency: 3
+    };
+    
+    setLocalSettings(defaultSettings);
+    updateSettings('ai_companion_settings', defaultSettings);
     toast.success('AI personality has been reset to default');
   };
   
@@ -27,7 +57,10 @@ const AICompanionSettings = () => {
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <Label htmlFor="companion-style">Conversation Style</Label>
-              <Select defaultValue="caring">
+              <Select 
+                value={localSettings.conversationStyle ?? 'caring'}
+                onValueChange={(value) => handleChange('conversationStyle', value as AICompanionSettingsType['conversationStyle'])}
+              >
                 <SelectTrigger className="w-32 bg-island-light/20 border-island-light">
                   <SelectValue placeholder="Select" />
                 </SelectTrigger>
@@ -42,7 +75,10 @@ const AICompanionSettings = () => {
             
             <div className="flex items-center justify-between">
               <Label htmlFor="companion-voice">Voice Tone</Label>
-              <Select defaultValue="warm">
+              <Select 
+                value={localSettings.voiceTone ?? 'warm'}
+                onValueChange={(value) => handleChange('voiceTone', value as AICompanionSettingsType['voiceTone'])}
+              >
                 <SelectTrigger className="w-32 bg-island-light/20 border-island-light">
                   <SelectValue placeholder="Select" />
                 </SelectTrigger>
@@ -62,17 +98,22 @@ const AICompanionSettings = () => {
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <Label htmlFor="companion-initiative" className="cursor-pointer">Allow proactive messages</Label>
-              <Switch id="companion-initiative" defaultChecked />
+              <Switch 
+                id="companion-initiative" 
+                checked={localSettings.allowProactiveMessages ?? true}
+                onCheckedChange={(checked) => handleChange('allowProactiveMessages', checked)}
+              />
             </div>
             
             <div>
               <Label className="mb-2 block">Daily message frequency</Label>
               <div className="py-4 px-2">
                 <Slider 
-                  defaultValue={[3]} 
+                  value={[localSettings.messageFrequency ?? 3]} 
                   min={1} 
                   max={10} 
                   step={1}
+                  onValueChange={(values) => handleChange('messageFrequency', values[0])}
                   className="mt-6"
                 />
                 <div className="flex justify-between mt-2 text-sm text-muted-foreground">

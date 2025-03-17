@@ -1,4 +1,5 @@
 
+import { useState, useEffect } from 'react';
 import { Shield, MapPin, UserX, FileText } from 'lucide-react';
 import SettingsSection from './SettingsSection';
 import { Switch } from '@/components/ui/switch';
@@ -12,8 +13,28 @@ import {
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { useSettings } from '@/context/SettingsContext';
+import { PrivacySettings as PrivacySettingsType } from '@/services/settings';
 
 const PrivacySettings = () => {
+  const { settings, updateSettings } = useSettings();
+  const [localSettings, setLocalSettings] = useState<PrivacySettingsType>(
+    settings.privacy_settings
+  );
+
+  useEffect(() => {
+    setLocalSettings(settings.privacy_settings);
+  }, [settings.privacy_settings]);
+
+  const handleChange = <K extends keyof PrivacySettingsType>(
+    key: K, 
+    value: PrivacySettingsType[K]
+  ) => {
+    const newSettings = { ...localSettings, [key]: value };
+    setLocalSettings(newSettings);
+    updateSettings('privacy_settings', newSettings);
+  };
+
   const handleExportData = () => {
     toast.success('Your data export has been requested. You will receive an email with your data soon.');
   };
@@ -32,7 +53,10 @@ const PrivacySettings = () => {
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <Label htmlFor="profile-visibility" className="cursor-pointer">Who can see your profile?</Label>
-              <Select defaultValue="everyone">
+              <Select 
+                value={localSettings.profileVisibility ?? 'everyone'}
+                onValueChange={(value) => handleChange('profileVisibility', value as PrivacySettingsType['profileVisibility'])}
+              >
                 <SelectTrigger className="w-32 bg-island-light/20 border-island-light">
                   <SelectValue placeholder="Select" />
                 </SelectTrigger>
@@ -54,14 +78,22 @@ const PrivacySettings = () => {
                 <MapPin size={16} className="text-muted-foreground" />
                 <Label htmlFor="share-location" className="cursor-pointer">Share your precise location</Label>
               </div>
-              <Switch id="share-location" />
+              <Switch 
+                id="share-location" 
+                checked={localSettings.shareLocation ?? false}
+                onCheckedChange={(checked) => handleChange('shareLocation', checked)}
+              />
             </div>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <MapPin size={16} className="text-muted-foreground" />
                 <Label htmlFor="show-distance" className="cursor-pointer">Show distance to other users</Label>
               </div>
-              <Switch id="show-distance" defaultChecked />
+              <Switch 
+                id="show-distance" 
+                checked={localSettings.showDistance ?? true}
+                onCheckedChange={(checked) => handleChange('showDistance', checked)}
+              />
             </div>
           </div>
         </div>

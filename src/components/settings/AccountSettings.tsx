@@ -1,14 +1,22 @@
 
-import { User, Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { User, Eye, EyeOff } from 'lucide-react';
 import SettingsSection from './SettingsSection';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { useState } from 'react';
 import { toast } from 'sonner';
+import { useSettings } from '@/context/SettingsContext';
+import { AccountSettings as AccountSettingsType } from '@/services/settings';
+import { useAuth } from '@/context/AuthContext';
 
 const AccountSettings = () => {
-  const [email, setEmail] = useState('user@example.com');
+  const { settings, updateSettings } = useSettings();
+  const { user } = useAuth();
+  const [localSettings, setLocalSettings] = useState<AccountSettingsType>(
+    settings.account_settings
+  );
+  const [email, setEmail] = useState(user?.email || '');
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -16,15 +24,34 @@ const AccountSettings = () => {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  useEffect(() => {
+    setLocalSettings(settings.account_settings);
+    if (user?.email) {
+      setEmail(user.email);
+    }
+  }, [settings.account_settings, user?.email]);
+
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setEmail(e.target.value);
   };
 
-  const handleEmailSave = () => {
-    toast.success('Email updated successfully');
+  const handleEmailSave = async () => {
+    try {
+      // Update account_settings with new email
+      const newSettings = { ...localSettings, email: email };
+      setLocalSettings(newSettings);
+      await updateSettings('account_settings', newSettings);
+      
+      // Here you would also update the actual user email in Supabase Auth if needed
+      
+      toast.success('Email updated successfully');
+    } catch (error) {
+      console.error('Error updating email:', error);
+      toast.error('Failed to update email');
+    }
   };
 
-  const handlePasswordSave = () => {
+  const handlePasswordSave = async () => {
     if (newPassword !== confirmPassword) {
       toast.error('New passwords do not match');
       return;
@@ -33,10 +60,19 @@ const AccountSettings = () => {
       toast.error('Password must be at least 8 characters');
       return;
     }
-    toast.success('Password updated successfully');
-    setCurrentPassword('');
-    setNewPassword('');
-    setConfirmPassword('');
+    
+    try {
+      // Here you would update the user's password in Supabase Auth
+      // For now, just show success message
+      
+      toast.success('Password updated successfully');
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (error) {
+      console.error('Error updating password:', error);
+      toast.error('Failed to update password');
+    }
   };
 
   return (
