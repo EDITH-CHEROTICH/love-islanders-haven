@@ -1,10 +1,8 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
-import SettingsSection from '../components/settings/SettingsSection';
 import { Button } from '../components/ui/button';
-import { toast } from 'sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AccountSettings from '@/components/settings/AccountSettings';
 import PrivacySettings from '@/components/settings/PrivacySettings';
@@ -15,18 +13,29 @@ import AccessibilitySettings from '@/components/settings/AccessibilitySettings';
 import SecuritySettings from '@/components/settings/SecuritySettings';
 import AppCustomization from '@/components/settings/AppCustomization';
 import FeedbackSupport from '@/components/settings/FeedbackSupport';
+import { useSettings } from '@/context/SettingsContext';
+import { Loader2 } from 'lucide-react';
 
 const Settings = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('account');
+  const { settings, isLoading, saveAllSettings } = useSettings();
 
   const handleBack = () => {
     navigate('/profile');
   };
 
-  const handleSaveAll = () => {
-    toast.success('All settings saved successfully');
+  const handleSaveAll = async () => {
+    await saveAllSettings();
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-island-dark via-island to-island-dark flex items-center justify-center">
+        <Loader2 className="h-12 w-12 text-love animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-island-dark via-island to-island-dark">

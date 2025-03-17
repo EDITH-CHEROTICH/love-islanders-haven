@@ -331,6 +331,48 @@ export type Database = {
         }
         Relationships: []
       }
+      user_settings: {
+        Row: {
+          accessibility_settings: Json | null
+          account_settings: Json | null
+          ai_companion_settings: Json | null
+          app_customization: Json | null
+          communication_settings: Json | null
+          created_at: string
+          id: string
+          match_preferences: Json | null
+          privacy_settings: Json | null
+          security_settings: Json | null
+          updated_at: string
+        }
+        Insert: {
+          accessibility_settings?: Json | null
+          account_settings?: Json | null
+          ai_companion_settings?: Json | null
+          app_customization?: Json | null
+          communication_settings?: Json | null
+          created_at?: string
+          id: string
+          match_preferences?: Json | null
+          privacy_settings?: Json | null
+          security_settings?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          accessibility_settings?: Json | null
+          account_settings?: Json | null
+          ai_companion_settings?: Json | null
+          app_customization?: Json | null
+          communication_settings?: Json | null
+          created_at?: string
+          id?: string
+          match_preferences?: Json | null
+          privacy_settings?: Json | null
+          security_settings?: Json | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
