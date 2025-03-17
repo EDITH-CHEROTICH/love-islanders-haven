@@ -2,7 +2,7 @@
 import { Music, X, PlayCircle, PauseCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SongData } from "./types";
-import useAudioPlayer from "@/hooks/use-audio-player";
+import { useAudioPlayer } from "@/hooks/use-audio-player";
 
 interface SelectedSongDisplayProps {
   song: SongData | null;
@@ -10,9 +10,10 @@ interface SelectedSongDisplayProps {
 }
 
 const SelectedSongDisplay = ({ song, onRemoveSong }: SelectedSongDisplayProps) => {
-  const { isPlaying, currentAudioId, playAudio } = useAudioPlayer();
-
+  // No need to initialize the hook when song is null
   if (!song) return null;
+  
+  const { isPlaying, currentAudioId, playAudio } = useAudioPlayer();
   
   const handlePlayPause = () => {
     if (!song.preview_url) return;

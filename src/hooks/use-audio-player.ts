@@ -1,7 +1,19 @@
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, createContext, useContext } from "react";
 
-export const useAudioPlayer = () => {
+// Create a context for the audio player
+interface AudioPlayerContextType {
+  isPlaying: boolean;
+  currentAudioId: string | null;
+  volume: number;
+  playAudio: (id: string, url: string) => void;
+  stopAudio: () => void;
+  changeVolume: (volume: number) => void;
+}
+
+const AudioPlayerContext = createContext<AudioPlayerContextType | null>(null);
+
+export const AudioPlayerProvider = ({ children }: { children: React.ReactNode }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentAudioId, setCurrentAudioId] = useState<string | null>(null);
   const [volume, setVolume] = useState(0.5);
@@ -95,7 +107,7 @@ export const useAudioPlayer = () => {
     }
   };
 
-  return {
+  const value = {
     isPlaying,
     currentAudioId,
     volume,
@@ -103,6 +115,21 @@ export const useAudioPlayer = () => {
     stopAudio,
     changeVolume
   };
+
+  return (
+    <AudioPlayerContext.Provider value={value}>
+      {children}
+    </AudioPlayerContext.Provider>
+  );
+};
+
+// Hook to use the audio player context
+export const useAudioPlayer = () => {
+  const context = useContext(AudioPlayerContext);
+  if (!context) {
+    throw new Error("useAudioPlayer must be used within an AudioPlayerProvider");
+  }
+  return context;
 };
 
 export default useAudioPlayer;
