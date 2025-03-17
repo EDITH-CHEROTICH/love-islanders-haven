@@ -1,8 +1,9 @@
 
-import { Music, Search, X } from "lucide-react";
+import { Music, Search, X, PlayCircle, PauseCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { SongData, SongOption } from "./types";
+import { useState, useRef } from "react";
 
 interface SongSearchSectionProps {
   showSongInput: boolean;
@@ -23,7 +24,39 @@ const SongSearchSection = ({
   onSongSelect,
   onCancelSearch,
 }: SongSearchSectionProps) => {
+  const [playingSongId, setPlayingSongId] = useState<string | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
   if (!showSongInput) return null;
+  
+  const handlePlayPreview = (songId: string, previewUrl?: string) => {
+    if (!previewUrl) return;
+    
+    if (playingSongId === songId) {
+      // If the same song is clicked, pause it
+      audioRef.current?.pause();
+      setPlayingSongId(null);
+    } else {
+      // If a different song is clicked, stop the current one and play the new one
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+      
+      audioRef.current = new Audio(previewUrl);
+      audioRef.current.volume = 0.5;
+      
+      audioRef.current.play().catch(error => {
+        console.error("Error playing audio:", error);
+      });
+      
+      // Set up ended event to reset the playing state
+      audioRef.current.onended = () => {
+        setPlayingSongId(null);
+      };
+      
+      setPlayingSongId(songId);
+    }
+  };
   
   return (
     <div className="space-y-3 p-3 border rounded-md">
@@ -55,16 +88,38 @@ const SongSearchSection = ({
           {songOptions.map(option => (
             <div 
               key={option.id} 
-              className="flex items-center p-2 border rounded-md cursor-pointer hover:bg-muted"
-              onClick={() => onSongSelect(option.id)}
+              className="flex items-center justify-between p-2 border rounded-md cursor-pointer hover:bg-muted"
             >
-              <div className="h-10 w-10 bg-muted rounded-md flex items-center justify-center mr-3">
-                <Music size={16} />
+              <div 
+                className="flex items-center flex-1"
+                onClick={() => onSongSelect(option.id)}
+              >
+                <div className="h-10 w-10 bg-muted rounded-md flex items-center justify-center mr-3">
+                  <Music size={16} />
+                </div>
+                <div>
+                  <p className="font-medium text-sm">{option.title}</p>
+                  <p className="text-xs text-muted-foreground">{option.artist}</p>
+                </div>
               </div>
-              <div>
-                <p className="font-medium text-sm">{option.title}</p>
-                <p className="text-xs text-muted-foreground">{option.artist}</p>
-              </div>
+              {option.preview_url && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 flex-shrink-0"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handlePlayPreview(option.id, option.preview_url);
+                  }}
+                >
+                  {playingSongId === option.id ? (
+                    <PauseCircle className="h-5 w-5" />
+                  ) : (
+                    <PlayCircle className="h-5 w-5" />
+                  )}
+                </Button>
+              )}
             </div>
           ))}
         </div>
