@@ -2,7 +2,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.33.1';
-import { genAI } from 'https://esm.sh/@google/generative-ai@0.2.1';
+import { GoogleGenerativeAI } from "https://esm.sh/@google/generative-ai@0.2.1";
 
 // Import utility functions
 import { 
@@ -34,7 +34,7 @@ const corsHeaders = {
 
 // Initialize Gemini 
 const API_KEY = Deno.env.get('GOOGLE_AI_API_KEY');
-const MODEL_NAME = 'gemini-1.5-pro';
+const MODEL_NAME = 'gemini-1.5-flash';
 
 // Initialize Supabase client
 const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
@@ -49,7 +49,7 @@ serve(async (req) => {
 
   try {
     // Check if we have valid API credentials
-    if (!API_KEY) {
+    if (!API_KEY || API_KEY.trim() === '') {
       console.log("No Google AI API key found in environment variables");
       
       // Return a canned response instead of calling the API
@@ -60,8 +60,15 @@ serve(async (req) => {
       });
     }
 
-    console.log("Using Google AI API key");
+    console.log("Using Google AI API key:", API_KEY.substring(0, 5) + "...");
+    
+    // Initialize the Google GenAI client
+    const genAIClient = new GoogleGenerativeAI(API_KEY);
+    
     const { message, conversationHistory = [], userId } = await req.json();
+
+    console.log("Received request with message:", message);
+    console.log("Conversation history length:", conversationHistory.length);
 
     // Fetch user profile and settings if userId is provided
     let userProfile = null;
@@ -107,14 +114,11 @@ serve(async (req) => {
         console.error("Database error:", error);
       }
     }
-
-    // Initialize the Google GenAI client
-    const genAIClient = genAI(API_KEY);
     
     // Prepare the chat history for Gemini
     const chatHistory = recentConversation.length > 0 
       ? recentConversation 
-      : conversationHistory.map((msg: { role: string; content: string }) => ({
+      : conversationHistory.map((msg) => ({
           role: msg.role,
           content: msg.content,
         }));

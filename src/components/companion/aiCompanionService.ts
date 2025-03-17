@@ -38,12 +38,18 @@ export const sendAIMessage = async (
   userId?: string
 ) => {
   try {
+    console.log('Sending message to AI companion:', messageText);
+    console.log('With conversation history of length:', conversationHistory.length);
+    
     // Call the Supabase Edge Function
     const { data, error } = await supabase.functions.invoke('ai-companion', {
       body: {
         message: messageText,
         conversationHistory,
         userId // Pass the user ID to enable personalization
+      },
+      headers: {
+        'Content-Type': 'application/json'
       }
     });
 
