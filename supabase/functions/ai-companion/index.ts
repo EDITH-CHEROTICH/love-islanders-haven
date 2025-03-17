@@ -48,13 +48,48 @@ serve(async (req) => {
   }
 
   try {
-    // Check if we have valid API credentials
+    // Parse the request body
+    let requestBody;
+    try {
+      requestBody = await req.json();
+      console.log("Request body parsed successfully");
+    } catch (error) {
+      console.error("Error parsing request body:", error);
+      return new Response(JSON.stringify({ 
+        error: "Invalid request format", 
+        response: "I'm sorry, I couldn't process your request due to a formatting issue."
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    
+    const { message, conversationHistory = [], userId } = requestBody;
+
+    // Validate essential parameters
+    if (!message) {
+      console.error("Missing required parameter: message");
+      return new Response(JSON.stringify({ 
+        error: "Missing message parameter",
+        response: "I'm sorry, I couldn't process your request because the message was missing."
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    console.log("Received request with message:", message);
+    console.log("Conversation history length:", conversationHistory.length);
+    console.log("User ID:", userId ? "Provided" : "Not provided");
+
+    // Check for API key and initialize Gemini client
     if (!API_KEY || API_KEY.trim() === '') {
       console.log("No Google AI API key found in environment variables");
       
-      // Return a canned response instead of calling the API
+      // Return a demo response instead of calling the API
       return new Response(JSON.stringify({ 
-        response: getDemoResponse()
+        response: getDemoResponse(),
+        demo: true
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -65,11 +100,6 @@ serve(async (req) => {
     // Initialize the Google GenAI client
     const genAIClient = new GoogleGenerativeAI(API_KEY);
     
-    const { message, conversationHistory = [], userId } = await req.json();
-
-    console.log("Received request with message:", message);
-    console.log("Conversation history length:", conversationHistory.length);
-
     // Fetch user profile and settings if userId is provided
     let userProfile = null;
     let userSettings = null;
@@ -118,10 +148,7 @@ serve(async (req) => {
     // Prepare the chat history for Gemini
     const chatHistory = recentConversation.length > 0 
       ? recentConversation 
-      : conversationHistory.map((msg) => ({
-          role: msg.role,
-          content: msg.content,
-        }));
+      : conversationHistory;
 
     // Create system prompt
     const systemPrompt = prepareSystemPrompt(userMemoryContext);
@@ -170,8 +197,7 @@ serve(async (req) => {
     } catch (aiError) {
       console.error("AI generation error:", aiError);
       return new Response(JSON.stringify({ 
-        error: "AI generation failed", 
-        message: aiError.message,
+        error: aiError.message, 
         response: "I'm sorry, I encountered an error while processing your request. Please try again in a moment."
       }), {
         status: 500,

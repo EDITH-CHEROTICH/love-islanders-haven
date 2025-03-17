@@ -4,46 +4,62 @@
 export async function generateAIResponse(genAIClient, MODEL_NAME, systemPrompt, chatHistory, userMessage) {
   try {
     console.log("Calling Gemini API with conversation history...");
+    console.log("System prompt:", systemPrompt.substring(0, 50) + "...");
+    console.log("Chat history length:", chatHistory.length);
+    console.log("User message:", userMessage);
     
     // Get the model
     const model = genAIClient.getGenerativeModel({ model: MODEL_NAME });
 
-    // Format the history for Gemini API
+    // Format chat history for Gemini
+    // Note: Gemini expects 'user' and 'model' roles
     const formattedHistory = chatHistory.map(msg => ({
       role: msg.role === 'assistant' ? 'model' : 'user',
       parts: [{ text: msg.content }]
     }));
-
-    // Add the system prompt at the beginning if not already present
-    if (formattedHistory.length === 0 || formattedHistory[0].parts[0].text !== systemPrompt) {
-      formattedHistory.unshift({
-        role: 'user',
-        parts: [{ text: `${systemPrompt}` }]
-      });
-    }
-
-    console.log("Starting chat session with formatted history...");
     
-    // Start the chat session with the formatted history
-    const chatSession = model.startChat({
+    // System prompts need to be sent as user messages at the beginning
+    const chat = model.startChat({
       history: formattedHistory,
       generationConfig: {
-        temperature: 0.8,
+        temperature: 0.7,
         maxOutputTokens: 800,
       },
     });
 
-    console.log("Sending message to chat session...");
-    const result = await chatSession.sendMessage(userMessage);
+    // Add system prompt as first message if not present in history
+    let result;
+    if (chatHistory.length === 0) {
+      // First, send the system prompt
+      await chat.sendMessage(systemPrompt);
+      
+      // Then send the actual user message
+      result = await chat.sendMessage(userMessage);
+    } else {
+      // If we already have history, just send the new message
+      result = await chat.sendMessage(userMessage);
+    }
+    
+    // Extract the response text
     const aiResponse = result.response.text();
-
-    console.log("AI response generated successfully");
+    console.log("AI response generated successfully:", aiResponse.substring(0, 50) + "...");
+    
     return aiResponse;
   } catch (error) {
     console.error("Error generating AI response:", error.message);
     if (error.stack) {
       console.error("Stack trace:", error.stack);
     }
+    
+    // More specific error messages
+    if (error.message.includes("API key")) {
+      throw new Error(`API key issue: ${error.message}`);
+    } else if (error.message.includes("network")) {
+      throw new Error(`Network error: ${error.message}`);
+    } else if (error.message.includes("rate limit")) {
+      throw new Error(`Rate limit exceeded: ${error.message}`);
+    }
+    
     throw new Error(`Failed to generate AI response: ${error.message}`);
   }
 }
