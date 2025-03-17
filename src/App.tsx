@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Matches from "./pages/Matches";
+import Streaks from "./pages/Streaks";
 import UserProfile from "./pages/UserProfile";
 import SignUp from "./pages/SignUp";
 import Verify from "./pages/Verify";
@@ -55,6 +56,7 @@ const App = () => {
               {/* Protected routes - require authentication */}
               <Route path="/" element={<AuthGuard><Index /></AuthGuard>} />
               <Route path="/matches" element={<AuthGuard><Matches /></AuthGuard>} />
+              <Route path="/streaks" element={<AuthGuard><Streaks /></AuthGuard>} />
               <Route path="/profile" element={<AuthGuard><UserProfile /></AuthGuard>} />
               <Route path="/ai-companion" element={<AuthGuard><AICompanionChat /></AuthGuard>} />
               <Route path="/settings" element={<AuthGuard><Settings /></AuthGuard>} />

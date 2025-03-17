@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Heart, User, MessageCircle, Bot, Settings } from 'lucide-react';
+import { Heart, User, MessageCircle, Bot, Settings, Flame } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 const Navbar = () => {
@@ -19,6 +19,7 @@ const Navbar = () => {
           <div className="flex justify-around items-center w-full">
             <NavItem path="/" icon={<Heart />} label="Discover" isActive={isActivePath('/')} />
             <NavItem path="/matches" icon={<MessageCircle />} label="Matches" isActive={isActivePath('/matches')} />
+            <NavItem path="/streaks" icon={<Flame />} label="Streaks" isActive={isActivePath('/streaks')} />
             <NavItem path="/ai-companion" icon={<Bot />} label="Isla AI" isActive={isActivePath('/ai-companion')} />
             <NavItem path="/profile" icon={<User />} label="Profile" isActive={isActivePath('/profile')} />
             <NavItem path="/settings" icon={<Settings />} label="Settings" isActive={isActivePath('/settings')} />
