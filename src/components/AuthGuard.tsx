@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
@@ -11,6 +11,7 @@ interface AuthGuardProps {
 const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
   const { toast } = useToast();
+  const location = useLocation();
 
   if (loading) {
     return (
@@ -21,7 +22,16 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+    // Display a toast only when user is kicked out from a page, not on initial load
+    if (location.pathname !== '/login' && location.key) {
+      toast({
+        title: "Authentication required",
+        description: "Please log in to access this page",
+        variant: "destructive",
+      });
+    }
+    
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
   return <>{children}</>;

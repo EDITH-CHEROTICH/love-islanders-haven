@@ -44,7 +44,7 @@ const Login = () => {
         await signUp(values.email, values.password);
         toast({
           title: "Sign up successful",
-          description: "Welcome to our community!",
+          description: "Please check your email to verify your account.",
         });
       }
       navigate('/');
@@ -62,7 +62,11 @@ const Login = () => {
   const handleGoogleLogin = async () => {
     try {
       await signInWithGoogle();
-      // Note: This redirect is handled by Supabase OAuth flow
+      // Note: Redirect will be handled by Supabase OAuth flow
+      toast({
+        title: "Google authentication initiated",
+        description: "You'll be redirected to Google for authentication.",
+      });
     } catch (error: any) {
       toast({
         title: "Google authentication failed",
