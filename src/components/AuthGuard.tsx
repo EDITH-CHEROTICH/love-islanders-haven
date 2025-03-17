@@ -18,12 +18,42 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
   useEffect(() => {
     // Check if we have a hash fragment that could indicate a callback from OAuth
     const hash = window.location.hash;
-    if (hash && hash.includes('access_token') && isAuthenticated) {
-      // Clear the hash and navigate to the home page
-      window.history.replaceState(null, '', window.location.pathname);
-      navigate('/', { replace: true });
+    const url = new URL(window.location.href);
+    
+    // Check for OAuth error parameters
+    const error = url.searchParams.get('error');
+    const errorDescription = url.searchParams.get('error_description');
+    
+    if (error) {
+      toast({
+        title: "Authentication Error",
+        description: errorDescription || "There was a problem with authentication",
+        variant: "destructive",
+      });
+      
+      // Clean the URL of error parameters and redirect to login
+      url.searchParams.delete('error');
+      url.searchParams.delete('error_code');
+      url.searchParams.delete('error_description');
+      window.history.replaceState({}, document.title, url.toString());
+      
+      if (!isAuthenticated) {
+        navigate('/login', { replace: true });
+      }
     }
-  }, [isAuthenticated, navigate]);
+    // Handle successful authentication redirect
+    else if ((hash && hash.includes('access_token')) || isAuthenticated) {
+      // Clear the hash and navigate to the home page
+      if (hash) {
+        window.history.replaceState(null, '', window.location.pathname);
+      }
+      
+      // If we're not already on the main page, redirect there
+      if (location.pathname === '/login') {
+        navigate('/', { replace: true });
+      }
+    }
+  }, [isAuthenticated, navigate, location.pathname, toast]);
 
   if (loading) {
     return (

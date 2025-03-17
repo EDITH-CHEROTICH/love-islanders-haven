@@ -2,6 +2,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Session, User } from '@supabase/supabase-js';
+import { useToast } from '@/hooks/use-toast';
 
 interface AuthContextType {
   session: Session | null;
@@ -21,6 +22,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [isLocalAuth, setIsLocalAuth] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     // Check for localStorage authentication first
@@ -41,17 +43,39 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     // Listen for changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
+      (event, session) => {
+        console.log("Auth state changed:", event);
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
+        
+        // Handle auth error from URL
+        if (event === 'SIGNED_OUT') {
+          const url = new URL(window.location.href);
+          const error = url.searchParams.get('error');
+          const errorDescription = url.searchParams.get('error_description');
+          
+          if (error) {
+            toast({
+              title: "Authentication Error",
+              description: errorDescription || "There was a problem with authentication",
+              variant: "destructive",
+            });
+            
+            // Clean the URL of error parameters
+            url.searchParams.delete('error');
+            url.searchParams.delete('error_code');
+            url.searchParams.delete('error_description');
+            window.history.replaceState({}, document.title, url.toString());
+          }
+        }
       }
     );
 
     return () => {
       subscription.unsubscribe();
     };
-  }, []);
+  }, [toast]);
 
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -59,15 +83,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signInWithGoogle = async () => {
-    // Using the exact site URL as the redirect URL
     const currentUrl = window.location.origin;
+    
+    // Generate a random state parameter to prevent CSRF attacks
+    const stateParam = Math.random().toString(36).substring(2, 15);
+    localStorage.setItem('oauth_state', stateParam);
     
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: currentUrl,
+        redirectTo: `${currentUrl}/`,
         queryParams: {
           prompt: 'select_account',
+          state: stateParam
         }
       }
     });
@@ -90,6 +118,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     localStorage.removeItem('isAuthenticated');
     localStorage.removeItem('authMethod');
     localStorage.removeItem('authContact');
+    localStorage.removeItem('oauth_state');
     setIsLocalAuth(false);
     
     const { error } = await supabase.auth.signOut();
