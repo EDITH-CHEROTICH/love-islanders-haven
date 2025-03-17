@@ -40,14 +40,16 @@ export const updateSettingsCategory = async <T extends keyof UserSettings>(
     // If we're updating a category with nested objects, make sure we merge properly
     let finalSettings = settings;
     if (existingSettings && typeof settings === 'object' && settings !== null) {
-      // Deep merge for nested objects using type assertion to help TypeScript understand
-      const existingCategorySettings = existingSettings[category as string] as unknown as UserSettings[T];
-      finalSettings = {
-        ...existingCategorySettings,
-        ...settings
-      };
+      // Create a safe typed copy of the existing category settings
+      const existingCategorySettings = existingSettings[category as string] as unknown as Partial<UserSettings[T]>;
       
-      console.log(`Merged settings for ${category}:`, finalSettings);
+      if (existingCategorySettings) {
+        // For match_preferences, we want to do a full replacement not a merge
+        // since sliders directly set the full value range
+        finalSettings = { ...settings };
+      }
+      
+      console.log(`Final settings for ${category}:`, finalSettings);
     }
       
     if (!existingSettings) {

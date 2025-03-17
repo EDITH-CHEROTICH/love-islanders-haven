@@ -30,7 +30,10 @@ const MatchPreferences = () => {
         };
         setLocalSettings(newSettings);
         
-        await updateSettings('match_preferences', newSettings);
+        const success = await updateSettings('match_preferences', newSettings);
+        if (!success) {
+          toast.error('Failed to update age range');
+        }
       } catch (error) {
         console.error('Error updating age range:', error);
         toast.error('Failed to update preferences');
@@ -47,7 +50,10 @@ const MatchPreferences = () => {
         const newSettings = { ...localSettings, distance: values[0] };
         setLocalSettings(newSettings);
         
-        await updateSettings('match_preferences', newSettings);
+        const success = await updateSettings('match_preferences', newSettings);
+        if (!success) {
+          toast.error('Failed to update distance');
+        }
       } catch (error) {
         console.error('Error updating distance:', error);
         toast.error('Failed to update preferences');
@@ -77,7 +83,10 @@ const MatchPreferences = () => {
       
       // Persist to database
       console.log(`Updating deal breaker ${key} to ${checked}`, newSettings);
-      await updateSettings('match_preferences', newSettings);
+      const success = await updateSettings('match_preferences', newSettings);
+      if (!success) {
+        toast.error(`Failed to update ${key} preference`);
+      }
     } catch (error) {
       console.error('Error updating deal breakers:', error);
       toast.error('Failed to update preferences');
@@ -101,6 +110,13 @@ const MatchPreferences = () => {
               max={100} 
               step={1}
               disabled={isUpdating}
+              onValueChange={(values) => {
+                // Update local state immediately for responsive UI
+                setLocalSettings(prev => ({
+                  ...prev,
+                  ageRange: [values[0], values[1]] as [number, number]
+                }));
+              }}
               onValueCommit={handleAgeRangeChange}
               className="mt-6"
             />
@@ -120,6 +136,13 @@ const MatchPreferences = () => {
               max={100} 
               step={1}
               disabled={isUpdating}
+              onValueChange={(values) => {
+                // Update local state immediately for responsive UI
+                setLocalSettings(prev => ({
+                  ...prev,
+                  distance: values[0]
+                }));
+              }}
               onValueCommit={handleDistanceChange}
               className="mt-6"
             />
