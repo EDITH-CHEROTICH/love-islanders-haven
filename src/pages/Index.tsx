@@ -106,54 +106,56 @@ const Index = () => {
   };
   
   return (
-    <div className="min-h-screen bg-gradient-to-b from-island-dark via-island to-island-dark pt-4 pb-20">
-      <header className="text-center mb-4">
-        <h1 className="text-2xl font-bold text-gradient">Love Islanders</h1>
-      </header>
-      
-      <main className="container max-w-md mx-auto px-4">
-        {loading ? (
-          <div className="card-container flex items-center justify-center">
-            <div className="loader w-12 h-12 border-4 border-love/20 border-t-love rounded-full animate-spin"></div>
-          </div>
-        ) : isFirstTime ? (
-          <div className="glass-card p-4 rounded-xl shadow-lg">
-            <ProfileSetup onComplete={handleProfileSetupComplete} />
-          </div>
-        ) : currentProfiles.length > 0 ? (
-          <div className="relative">
-            <div className="card-container">
-              {currentProfiles.slice(0, 3).map((profile, index) => (
-                <ProfileCard 
-                  key={profile.id} 
-                  profile={profile} 
-                  onSwipe={handleSwipe} 
-                />
-              ))}
+    <div className="min-h-screen bg-gradient-to-b from-island-dark via-island to-island-dark">
+      <div className="page-container hide-scrollbar">
+        <header className="text-center pt-4 mb-4">
+          <h1 className="text-2xl font-bold text-gradient">Love Islanders</h1>
+        </header>
+        
+        <main className="container max-w-md mx-auto px-4 pb-20">
+          {loading ? (
+            <div className="card-container flex items-center justify-center">
+              <div className="loader w-12 h-12 border-4 border-love/20 border-t-love rounded-full animate-spin"></div>
             </div>
-            <SwipeButtons onSwipe={handleSwipe} />
-          </div>
-        ) : (
-          <div className="card-container glass-card flex flex-col items-center justify-center p-8 animate-fade-in">
-            <h2 className="text-xl font-semibold mb-2">No more profiles</h2>
-            <p className="text-center text-muted-foreground mb-4">
-              You've gone through all available profiles. Check back soon!
-            </p>
-            <button 
-              onClick={() => {
-                if (userPreferences) {
-                  filterProfiles(userPreferences.genderPreference);
-                } else {
-                  setCurrentProfiles(profiles);
-                }
-              }}
-              className="bg-love hover:bg-love-dark text-white px-6 py-2 rounded-full transition-all"
-            >
-              Start Over
-            </button>
-          </div>
-        )}
-      </main>
+          ) : isFirstTime ? (
+            <div className="glass-card p-4 rounded-xl shadow-lg">
+              <ProfileSetup onComplete={handleProfileSetupComplete} />
+            </div>
+          ) : currentProfiles.length > 0 ? (
+            <div className="relative">
+              <div className="card-container">
+                {currentProfiles.slice(0, 3).map((profile, index) => (
+                  <ProfileCard 
+                    key={profile.id} 
+                    profile={profile} 
+                    onSwipe={handleSwipe} 
+                  />
+                ))}
+              </div>
+              <SwipeButtons onSwipe={handleSwipe} />
+            </div>
+          ) : (
+            <div className="card-container glass-card flex flex-col items-center justify-center p-8 animate-fade-in">
+              <h2 className="text-xl font-semibold mb-2">No more profiles</h2>
+              <p className="text-center text-muted-foreground mb-4">
+                You've gone through all available profiles. Check back soon!
+              </p>
+              <button 
+                onClick={() => {
+                  if (userPreferences) {
+                    filterProfiles(userPreferences.genderPreference);
+                  } else {
+                    setCurrentProfiles(profiles);
+                  }
+                }}
+                className="bg-love hover:bg-love-dark text-white px-6 py-2 rounded-full transition-all"
+              >
+                Start Over
+              </button>
+            </div>
+          )}
+        </main>
+      </div>
       
       <Navbar />
     </div>

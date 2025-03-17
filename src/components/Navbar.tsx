@@ -15,13 +15,13 @@ const Navbar = () => {
     <nav className="fixed bottom-0 left-0 w-full h-16 bg-island-light backdrop-blur-lg border-t border-love/10 z-50">
       <div className="container h-full max-w-md mx-auto px-2 flex items-center">
         <SafeAreaSpacer position="bottom">
-          <div className="flex justify-around w-full">
-            <NavItem path="/" icon={<Heart />} label="Discover" isActive={isActivePath('/')} />
-            <NavItem path="/matches" icon={<MessageCircle />} label="Matches" isActive={isActivePath('/matches')} />
-            <NavItem path="/streaks" icon={<Flame />} label="Streaks" isActive={isActivePath('/streaks')} />
-            <NavItem path="/ai-companion" icon={<Bot />} label="Isla AI" isActive={isActivePath('/ai-companion')} />
-            <NavItem path="/profile" icon={<User />} label="Profile" isActive={isActivePath('/profile')} />
-            <NavItem path="/settings" icon={<Settings />} label="Settings" isActive={isActivePath('/settings')} />
+          <div className="flex justify-between w-full">
+            <NavItem path="/" icon={<Heart size={18} />} label="Discover" isActive={isActivePath('/')} />
+            <NavItem path="/matches" icon={<MessageCircle size={18} />} label="Matches" isActive={isActivePath('/matches')} />
+            <NavItem path="/streaks" icon={<Flame size={18} />} label="Streaks" isActive={isActivePath('/streaks')} />
+            <NavItem path="/ai-companion" icon={<Bot size={18} />} label="Isla AI" isActive={isActivePath('/ai-companion')} />
+            <NavItem path="/profile" icon={<User size={18} />} label="Profile" isActive={isActivePath('/profile')} />
+            <NavItem path="/settings" icon={<Settings size={18} />} label="Settings" isActive={isActivePath('/settings')} />
           </div>
         </SafeAreaSpacer>
       </div>
@@ -39,9 +39,9 @@ interface NavItemProps {
 const NavItem = ({ path, icon, label, isActive }: NavItemProps) => (
   <Link 
     to={path} 
-    className={`flex flex-col items-center justify-center px-1 transition-all duration-300 ${isActive ? 'text-love scale-110' : 'text-muted-foreground'}`}
+    className={`flex flex-col items-center justify-center px-2 transition-all duration-300 ${isActive ? 'text-love scale-110' : 'text-muted-foreground'}`}
   >
-    <div className={`w-5 h-5 ${isActive ? 'text-love' : ''}`}>
+    <div className={`${isActive ? 'text-love' : ''}`}>
       {icon}
     </div>
     <span className="text-[10px] mt-1">{label}</span>

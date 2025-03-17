@@ -97,10 +97,11 @@
   }
 
   .page-container {
-    height: calc(100vh - 70px);
+    height: calc(100vh - 16px);
     overflow-y: auto;
     width: 100%;
     padding-bottom: 80px;
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
   }
 }
 
