@@ -1,7 +1,8 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Session, User } from '@supabase/supabase-js';
+import { Session, User, Provider } from '@supabase/supabase-js';
+import { useToast } from "@/hooks/use-toast";
 
 interface AuthContextType {
   session: Session | null;
@@ -9,6 +10,7 @@ interface AuthContextType {
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string) => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
   isAuthenticated: boolean;
 }
@@ -20,6 +22,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [isLocalAuth, setIsLocalAuth] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     // Check for localStorage authentication first
@@ -53,13 +56,55 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) throw error;
+    try {
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+    } catch (error: any) {
+      toast({
+        title: "Sign In Failed",
+        description: error.message || "Failed to sign in. Please try again.",
+        variant: "destructive"
+      });
+      throw error;
+    }
   };
 
   const signUp = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signUp({ email, password });
-    if (error) throw error;
+    try {
+      const { error } = await supabase.auth.signUp({ email, password });
+      if (error) throw error;
+      
+      toast({
+        title: "Sign Up Successful",
+        description: "Please check your email for verification instructions.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Sign Up Failed",
+        description: error.message || "Failed to sign up. Please try again.",
+        variant: "destructive"
+      });
+      throw error;
+    }
+  };
+
+  const signInWithGoogle = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin,
+        }
+      });
+      if (error) throw error;
+    } catch (error: any) {
+      toast({
+        title: "Google Sign In Failed",
+        description: error.message || "Failed to sign in with Google. Please try again.",
+        variant: "destructive"
+      });
+      throw error;
+    }
   };
 
   const signOut = async () => {
@@ -68,8 +113,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     localStorage.removeItem('authContact');
     setIsLocalAuth(false);
     
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+    } catch (error: any) {
+      toast({
+        title: "Sign Out Failed",
+        description: error.message || "Failed to sign out. Please try again.",
+        variant: "destructive"
+      });
+      throw error;
+    }
   };
 
   const value = {
@@ -78,6 +132,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     loading,
     signIn,
     signUp,
+    signInWithGoogle,
     signOut,
     isAuthenticated: !!user || isLocalAuth
   };
