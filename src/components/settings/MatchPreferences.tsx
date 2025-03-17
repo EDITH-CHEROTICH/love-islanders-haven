@@ -5,10 +5,11 @@ import { useState, useEffect } from 'react';
 import { useSettings } from '@/context/SettingsContext';
 import { MatchPreferences as MatchPreferencesType } from '@/services/settings';
 
-// Import the new component sections
+// Import the component sections
 import AgeRangeSection from './match-preferences/AgeRangeSection';
 import DistanceSection from './match-preferences/DistanceSection';
 import DealBreakersSection from './match-preferences/DealBreakersSection';
+import InterestedAgeSection from './match-preferences/InterestedAgeSection';
 
 const MatchPreferences = () => {
   const { settings, updateSettings } = useSettings();
@@ -44,6 +45,12 @@ const MatchPreferences = () => {
         />
         
         <DealBreakersSection 
+          settings={localSettings} 
+          onSettingsChange={handleSettingsChange}
+          updateSettings={handleUpdateSettings}
+        />
+        
+        <InterestedAgeSection 
           settings={localSettings} 
           onSettingsChange={handleSettingsChange}
           updateSettings={handleUpdateSettings}

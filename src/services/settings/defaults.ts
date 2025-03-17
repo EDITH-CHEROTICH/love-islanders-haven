@@ -14,6 +14,7 @@ export const defaultSettings: UserSettings = {
   },
   match_preferences: {
     ageRange: [18, 100],
+    interestedAge: [25, 35], // Add default values
     distance: 50,
     distanceUnit: 'km',
     dealBreakers: {

@@ -17,6 +17,7 @@ export interface PrivacySettings {
 
 export interface MatchPreferences {
   ageRange?: [number, number];
+  interestedAge?: [number, number]; // Add the new field
   distance?: number;
   distanceUnit?: 'km' | 'mi';
   dealBreakers?: {
