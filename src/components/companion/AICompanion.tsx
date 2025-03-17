@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
+import { useSettings } from '@/context/SettingsContext';
 import { supabase } from '@/integrations/supabase/client';
 import Message from './Message';
 import ChatInput from './ChatInput';
@@ -19,6 +20,7 @@ const AICompanion: React.FC = () => {
   const [initialLoading, setInitialLoading] = useState(true);
   const { toast } = useToast();
   const { user } = useAuth();
+  const { settings } = useSettings();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Fetch past conversation history when component mounts
@@ -105,7 +107,7 @@ const AICompanion: React.FC = () => {
         body: {
           message: messageText,
           conversationHistory,
-          userId: user?.id  // Pass the user ID if available
+          userId: user?.id  // Pass the user ID to enable personalization
         }
       });
 
