@@ -147,16 +147,16 @@ export const fetchUserSettings = async (): Promise<UserSettings> => {
       return defaultSettings;
     }
     
-    // Merge with defaults to ensure all fields are present
+    // Safely merge with defaults to ensure all fields are present
     return {
-      account_settings: { ...defaultSettings.account_settings, ...data.account_settings },
-      privacy_settings: { ...defaultSettings.privacy_settings, ...data.privacy_settings },
-      match_preferences: { ...defaultSettings.match_preferences, ...data.match_preferences },
-      communication_settings: { ...defaultSettings.communication_settings, ...data.communication_settings },
-      ai_companion_settings: { ...defaultSettings.ai_companion_settings, ...data.ai_companion_settings },
-      accessibility_settings: { ...defaultSettings.accessibility_settings, ...data.accessibility_settings },
-      security_settings: { ...defaultSettings.security_settings, ...data.security_settings },
-      app_customization: { ...defaultSettings.app_customization, ...data.app_customization }
+      account_settings: { ...defaultSettings.account_settings, ...(data.account_settings || {}) },
+      privacy_settings: { ...defaultSettings.privacy_settings, ...(data.privacy_settings || {}) },
+      match_preferences: { ...defaultSettings.match_preferences, ...(data.match_preferences || {}) },
+      communication_settings: { ...defaultSettings.communication_settings, ...(data.communication_settings || {}) },
+      ai_companion_settings: { ...defaultSettings.ai_companion_settings, ...(data.ai_companion_settings || {}) },
+      accessibility_settings: { ...defaultSettings.accessibility_settings, ...(data.accessibility_settings || {}) },
+      security_settings: { ...defaultSettings.security_settings, ...(data.security_settings || {}) },
+      app_customization: { ...defaultSettings.app_customization, ...(data.app_customization || {}) }
     };
   } catch (error) {
     console.error('Error in fetchUserSettings:', error);
@@ -209,7 +209,14 @@ export const saveUserSettings = async (settings: UserSettings): Promise<boolean>
       .from('user_settings')
       .upsert({
         id: user.user.id,
-        ...settings,
+        account_settings: settings.account_settings,
+        privacy_settings: settings.privacy_settings,
+        match_preferences: settings.match_preferences,
+        communication_settings: settings.communication_settings,
+        ai_companion_settings: settings.ai_companion_settings,
+        accessibility_settings: settings.accessibility_settings,
+        security_settings: settings.security_settings,
+        app_customization: settings.app_customization,
         updated_at: new Date().toISOString()
       }, { onConflict: 'id' });
     
