@@ -1,8 +1,7 @@
-
 import { useState } from 'react';
 import { FilmIcon, Trash2, PlusCircle, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { saveProfileVideo } from '@/services/profiles';
+import { saveProfileVideo } from '@/services/profiles/media';
 
 interface VideoUploaderProps {
   videos: string[];

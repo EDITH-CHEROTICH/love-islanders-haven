@@ -17,7 +17,7 @@ import {
   SelectValue 
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { createOrUpdateProfile } from '@/services/profiles';
+import { createOrUpdateProfile } from '@/services/profiles/core';
 
 export interface ProfilePreferences {
   age: number;
