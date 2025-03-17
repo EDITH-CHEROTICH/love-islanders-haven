@@ -2,7 +2,7 @@
 import { Music, Search, X, PlayCircle, PauseCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { SongData, SongOption } from "./types";
+import { SongOption } from "./types";
 import { useState, useRef } from "react";
 
 interface SongSearchSectionProps {
