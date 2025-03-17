@@ -1,10 +1,12 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Camera, X } from "lucide-react";
+import { Camera, X, Music } from "lucide-react";
+import { SongData } from "./types";
+import { Input } from "@/components/ui/input";
 
 interface StreakPostFormProps {
-  onSubmit: (data: { content: string; caption?: string }) => void;
+  onSubmit: (data: { content: string; caption?: string; song?: SongData }) => void;
   onCancel: () => void;
 }
 
@@ -13,6 +15,8 @@ const StreakPostForm = ({ onSubmit, onCancel }: StreakPostFormProps) => {
   const [caption, setCaption] = useState<string>("");
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [showSongInput, setShowSongInput] = useState(false);
+  const [song, setSong] = useState<SongData | null>(null);
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -33,7 +37,39 @@ const StreakPostForm = ({ onSubmit, onCancel }: StreakPostFormProps) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit({ content, caption });
+    onSubmit({ 
+      content, 
+      caption,
+      song: song || undefined
+    });
+  };
+
+  const handleSongAdd = () => {
+    if (!showSongInput) {
+      setShowSongInput(true);
+      return;
+    }
+    
+    // In a real implementation, this would connect to a music API
+    // For demo purposes, we'll just use the entered values
+    if (songTitle && songArtist) {
+      setSong({
+        title: songTitle,
+        artist: songArtist,
+        album_art: "/placeholder.svg", // Placeholder for demo
+      });
+      setShowSongInput(false);
+    }
+  };
+
+  const [songTitle, setSongTitle] = useState("");
+  const [songArtist, setSongArtist] = useState("");
+
+  const removeSong = () => {
+    setSong(null);
+    setSongTitle("");
+    setSongArtist("");
+    setShowSongInput(false);
   };
 
   return (
@@ -90,6 +126,64 @@ const StreakPostForm = ({ onSubmit, onCancel }: StreakPostFormProps) => {
           placeholder="Add a caption to your streak post..."
         />
       </div>
+      
+      {!song && !showSongInput && (
+        <Button 
+          type="button" 
+          variant="outline" 
+          onClick={handleSongAdd}
+          className="flex items-center gap-2 w-full"
+        >
+          <Music size={16} />
+          <span>Add a song</span>
+        </Button>
+      )}
+
+      {showSongInput && (
+        <div className="space-y-3 p-3 border rounded-md">
+          <h3 className="text-sm font-medium flex items-center gap-2">
+            <Music size={16} />
+            <span>Add a song</span>
+          </h3>
+          <div className="space-y-2">
+            <Input
+              placeholder="Song title"
+              value={songTitle}
+              onChange={(e) => setSongTitle(e.target.value)}
+            />
+            <Input
+              placeholder="Artist"
+              value={songArtist}
+              onChange={(e) => setSongArtist(e.target.value)}
+            />
+          </div>
+          <div className="flex gap-2 justify-end">
+            <Button type="button" variant="outline" size="sm" onClick={() => setShowSongInput(false)}>
+              Cancel
+            </Button>
+            <Button type="button" size="sm" onClick={handleSongAdd} disabled={!songTitle || !songArtist}>
+              Add Song
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {song && (
+        <div className="flex items-center justify-between p-3 border rounded-md">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 bg-muted rounded-md flex items-center justify-center">
+              <Music size={16} />
+            </div>
+            <div>
+              <p className="font-medium text-sm">{song.title}</p>
+              <p className="text-xs text-muted-foreground">{song.artist}</p>
+            </div>
+          </div>
+          <Button type="button" variant="ghost" size="sm" onClick={removeSong}>
+            <X size={16} />
+          </Button>
+        </div>
+      )}
       
       <div className="flex gap-2 justify-end">
         <Button type="button" variant="outline" onClick={onCancel}>

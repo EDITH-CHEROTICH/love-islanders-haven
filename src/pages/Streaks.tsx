@@ -11,6 +11,7 @@ import TopStreaksCard from "@/components/streaks/TopStreaksCard";
 import StreaksList from "@/components/streaks/StreaksList";
 import LoginRequired from "@/components/streaks/LoginRequired";
 import Navbar from "@/components/Navbar";
+import { SongData } from "@/components/streaks/types";
 
 const Streaks = () => {
   const { isAuthenticated } = useAuth();
@@ -29,7 +30,7 @@ const Streaks = () => {
     setShowPostForm(true);
   };
 
-  const onPostSubmit = async (postData: { content: string; caption?: string }) => {
+  const onPostSubmit = async (postData: { content: string; caption?: string; song?: SongData }) => {
     const success = await handlePostSubmit(postData);
     if (success) {
       setShowPostForm(false);

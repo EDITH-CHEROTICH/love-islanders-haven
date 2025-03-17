@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Heart, MessageCircle, Flame, User } from "lucide-react";
+import { Heart, MessageCircle, Flame, User, Music, PlayCircle, PauseCircle } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { formatDistanceToNow } from "date-fns";
 import { StreakPost as StreakPostType } from "./types";
@@ -16,6 +16,7 @@ const StreakPost = ({ post, onLike }: StreakPostProps) => {
   const [liked, setLiked] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [commentText, setCommentText] = useState("");
+  const [isPlaying, setIsPlaying] = useState(false);
 
   const handleLike = () => {
     if (!liked) {
@@ -26,6 +27,11 @@ const StreakPost = ({ post, onLike }: StreakPostProps) => {
 
   const handleComment = () => {
     setShowComments(!showComments);
+  };
+
+  const togglePlayback = () => {
+    // In a real implementation, this would control audio playback
+    setIsPlaying(!isPlaying);
   };
 
   const timeAgo = formatDistanceToNow(new Date(post.created_at), { addSuffix: true });
@@ -65,6 +71,32 @@ const StreakPost = ({ post, onLike }: StreakPostProps) => {
         />
         <div className="p-4">
           {post.caption && <p className="mb-2">{post.caption}</p>}
+          
+          {post.song && (
+            <div className="mt-3 flex items-center justify-between border border-muted rounded-md p-2">
+              <div className="flex items-center gap-2">
+                <div className="bg-muted h-10 w-10 rounded-md flex items-center justify-center">
+                  <Music className="h-5 w-5 text-muted-foreground" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium">{post.song.title}</p>
+                  <p className="text-xs text-muted-foreground">{post.song.artist}</p>
+                </div>
+              </div>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-8 w-8"
+                onClick={togglePlayback}
+              >
+                {isPlaying ? (
+                  <PauseCircle className="h-6 w-6" />
+                ) : (
+                  <PlayCircle className="h-6 w-6" />
+                )}
+              </Button>
+            </div>
+          )}
         </div>
       </CardContent>
       <CardFooter className="px-4 py-2 flex justify-between">

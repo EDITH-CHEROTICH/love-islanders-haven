@@ -10,9 +10,17 @@ export interface StreakPost {
   comments_count: number;
   user_name: string;
   user_profile_image?: string;
+  song?: SongData;
 }
 
 export interface TopStreak {
   name: string;
   count: number;
+}
+
+export interface SongData {
+  title: string;
+  artist: string;
+  album_art?: string;
+  preview_url?: string;
 }

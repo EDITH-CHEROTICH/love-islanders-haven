@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { StreakPost, TopStreak } from "@/components/streaks/types";
+import { StreakPost, TopStreak, SongData } from "@/components/streaks/types";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 
@@ -36,6 +36,11 @@ export const useStreaks = () => {
           likes_count: 12,
           comments_count: 3,
           user_name: "Alex Smith",
+          song: {
+            title: "Eye of the Tiger",
+            artist: "Survivor",
+            album_art: "/placeholder.svg"
+          }
         },
         {
           id: "2",
@@ -82,7 +87,7 @@ export const useStreaks = () => {
     }
   };
 
-  const handlePostSubmit = async (postData: { content: string; caption?: string }) => {
+  const handlePostSubmit = async (postData: { content: string; caption?: string; song?: SongData }) => {
     try {
       // This would submit the post to the backend
       toast({
@@ -103,6 +108,7 @@ export const useStreaks = () => {
         likes_count: 0,
         comments_count: 0,
         user_name: "You",
+        song: postData.song
       };
       
       setPosts([newPost, ...posts]);
