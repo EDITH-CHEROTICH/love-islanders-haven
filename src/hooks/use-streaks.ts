@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import { StreakPost, TopStreak, SongData } from "@/components/streaks/types";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { v4 as uuidv4 } from 'uuid';
 
 export const useStreaks = () => {
   const { isAuthenticated, user } = useAuth();
@@ -23,8 +25,84 @@ export const useStreaks = () => {
   const fetchStreakPosts = async () => {
     try {
       setLoading(true);
-      // This would be replaced with an actual API call to fetch streak posts
-      // For now, we'll use dummy data with real images
+      
+      // Fetch streak posts from Supabase
+      const { data: streaksData, error } = await supabase
+        .from('streaks')
+        .select(`
+          id,
+          user_id,
+          content,
+          caption,
+          created_at,
+          streak_count,
+          likes_count,
+          comments_count,
+          song_title,
+          song_artist,
+          song_album_art,
+          song_preview_url,
+          profiles(name)
+        `)
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      if (error) throw error;
+
+      // Transform the data to match our StreakPost type
+      const transformedPosts: StreakPost[] = streaksData.map(streak => ({
+        id: streak.id,
+        user_id: streak.user_id,
+        content: streak.content,
+        caption: streak.caption || undefined,
+        created_at: streak.created_at,
+        streak_count: streak.streak_count,
+        likes_count: streak.likes_count,
+        comments_count: streak.comments_count,
+        user_name: streak.profiles?.name || "Unknown User",
+        user_profile_image: undefined, // We could fetch this from profile_images in the future
+        song: streak.song_title ? {
+          title: streak.song_title,
+          artist: streak.song_artist || "",
+          album_art: streak.song_album_art || undefined,
+          preview_url: streak.song_preview_url || undefined
+        } : undefined
+      }));
+      
+      setPosts(transformedPosts);
+      
+      // Also fetch top streaks - users with highest streak counts
+      const { data: topStreaksData, error: topStreaksError } = await supabase
+        .from('profiles')
+        .select('id, name, streak_count:streaks(streak_count)')
+        .order('streak_count', { ascending: false })
+        .limit(3);
+        
+      if (topStreaksError) throw topStreaksError;
+      
+      // If we don't have streak data yet, use dummy data for now
+      if (!topStreaksData || topStreaksData.length === 0) {
+        setTopStreaks([
+          { name: "Jordan Lee", count: 30 },
+          { name: "Alex Smith", count: 21 },
+          { name: "Jamie Taylor", count: 15 }
+        ]);
+      } else {
+        const transformedTopStreaks: TopStreak[] = topStreaksData.map(profile => ({
+          name: profile.name,
+          count: profile.streak_count?.[0]?.streak_count || 0
+        })).filter(streak => streak.count > 0);
+        
+        setTopStreaks(transformedTopStreaks.length > 0 ? transformedTopStreaks : [
+          { name: "Jordan Lee", count: 30 },
+          { name: "Alex Smith", count: 21 },
+          { name: "Jamie Taylor", count: 15 }
+        ]);
+      }
+
+    } catch (error) {
+      console.error("Error fetching streak posts:", error);
+      // If there's an error fetching data, use dummy data
       const dummyPosts: StreakPost[] = [
         {
           id: "1",
@@ -75,19 +153,9 @@ export const useStreaks = () => {
       ];
       
       setPosts(dummyPosts);
-      
-      // Also fetch top streaks
-      setTopStreaks([
-        { name: "Jordan Lee", count: 30 },
-        { name: "Alex Smith", count: 21 },
-        { name: "Jamie Taylor", count: 15 }
-      ]);
-
-    } catch (error) {
-      console.error("Error fetching streak posts:", error);
       toast({
         title: "Error",
-        description: "Failed to load streak posts. Please try again.",
+        description: "Failed to load streak posts. Using demo data instead.",
         variant: "destructive",
       });
     } finally {
@@ -96,41 +164,107 @@ export const useStreaks = () => {
   };
 
   const checkUserStreak = async () => {
+    if (!user?.id) return;
+    
     try {
-      // This would check if the user has posted today and get their streak count
-      // For now, just set dummy values
-      setHasPostedToday(false);
-      setUserStreakCount(7);
+      // Check if user has posted today
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      const { data, error } = await supabase
+        .from('streaks')
+        .select('id, streak_count, created_at')
+        .eq('user_id', user.id)
+        .gte('created_at', today.toISOString())
+        .order('created_at', { ascending: false })
+        .limit(1);
+        
+      if (error) throw error;
+      
+      setHasPostedToday(data && data.length > 0);
+      
+      // Get user's current streak count
+      if (data && data.length > 0) {
+        setUserStreakCount(data[0].streak_count || 0);
+      } else {
+        // Get the latest streak
+        const { data: latestStreak, error: latestError } = await supabase
+          .from('streaks')
+          .select('streak_count')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(1);
+          
+        if (latestError) throw latestError;
+        
+        setUserStreakCount(latestStreak && latestStreak.length > 0 ? latestStreak[0].streak_count : 0);
+      }
     } catch (error) {
       console.error("Error checking user streak:", error);
+      // Default values if there's an error
+      setHasPostedToday(false);
+      setUserStreakCount(0);
     }
   };
 
   const handlePostSubmit = async (postData: { content: string; caption?: string; song?: SongData }) => {
+    if (!user?.id) {
+      toast({
+        title: "Authentication required",
+        description: "Please log in to post streaks",
+        variant: "destructive",
+      });
+      return false;
+    }
+    
     try {
-      // This would submit the post to the backend
+      // Calculate the new streak count
+      const newStreakCount = userStreakCount + 1;
+      
+      // Insert the new streak post into Supabase
+      const { data, error } = await supabase
+        .from('streaks')
+        .insert({
+          id: uuidv4(),
+          user_id: user.id,
+          content: postData.content,
+          caption: postData.caption || null,
+          streak_count: newStreakCount,
+          song_title: postData.song?.title || null,
+          song_artist: postData.song?.artist || null,
+          song_album_art: postData.song?.album_art || null,
+          song_preview_url: postData.song?.preview_url || null
+        })
+        .select();
+        
+      if (error) throw error;
+      
       toast({
         title: "Success!",
         description: "Your streak post has been shared!",
       });
+      
       setHasPostedToday(true);
-      setUserStreakCount(userStreakCount + 1);
+      setUserStreakCount(newStreakCount);
       
       // Add the new post to the list
-      const newPost: StreakPost = {
-        id: Date.now().toString(),
-        user_id: user?.id || "",
-        content: postData.content,
-        caption: postData.caption,
-        created_at: new Date().toISOString(),
-        streak_count: userStreakCount + 1,
-        likes_count: 0,
-        comments_count: 0,
-        user_name: "You",
-        song: postData.song
-      };
+      if (data && data.length > 0) {
+        const newPost: StreakPost = {
+          id: data[0].id,
+          user_id: data[0].user_id,
+          content: data[0].content,
+          caption: data[0].caption || undefined,
+          created_at: data[0].created_at,
+          streak_count: data[0].streak_count,
+          likes_count: 0,
+          comments_count: 0,
+          user_name: user.email?.split('@')[0] || "You",
+          song: postData.song
+        };
+        
+        setPosts([newPost, ...posts]);
+      }
       
-      setPosts([newPost, ...posts]);
       return true;
     } catch (error) {
       console.error("Error creating streak post:", error);
@@ -143,13 +277,58 @@ export const useStreaks = () => {
     }
   };
 
-  const handleLikePost = (postId: string) => {
-    setPosts(posts.map(p => {
-      if (p.id === postId) {
-        return { ...p, likes_count: p.likes_count + 1 };
+  const handleLikePost = async (postId: string) => {
+    if (!user?.id) {
+      toast({
+        title: "Authentication required",
+        description: "Please log in to like posts",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    try {
+      // Check if user already liked this post
+      const { data: existingLike, error: checkError } = await supabase
+        .from('streak_likes')
+        .select('id')
+        .eq('streak_id', postId)
+        .eq('user_id', user.id)
+        .maybeSingle();
+        
+      if (checkError) throw checkError;
+      
+      if (existingLike) {
+        // User already liked this post, do nothing
+        return;
       }
-      return p;
-    }));
+      
+      // Add a new like
+      const { error } = await supabase
+        .from('streak_likes')
+        .insert({
+          streak_id: postId,
+          user_id: user.id
+        });
+        
+      if (error) throw error;
+      
+      // Update local state
+      setPosts(posts.map(p => {
+        if (p.id === postId) {
+          return { ...p, likes_count: p.likes_count + 1 };
+        }
+        return p;
+      }));
+      
+    } catch (error) {
+      console.error("Error liking post:", error);
+      toast({
+        title: "Error",
+        description: "Failed to like post. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   return {
