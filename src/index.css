@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -37,6 +38,7 @@
 
   * {
     @apply border-border;
+    scrollbar-width: none;
   }
 
   body {
