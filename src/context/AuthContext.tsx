@@ -59,17 +59,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signInWithGoogle = async () => {
+    // The redirect URL must match what's configured in your Supabase project and Google OAuth settings
+    const redirectUrl = `${window.location.origin}/`;
+    
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/`,
+        redirectTo: redirectUrl,
+        // Use minimal query parameters to reduce complications
         queryParams: {
-          access_type: 'offline',
-          prompt: 'consent',
+          prompt: 'select_account', // This allows users to select accounts
         }
       }
     });
+    
     if (error) throw error;
+    
+    // We won't navigate here as Supabase OAuth flow handles the redirect
   };
 
   const signUp = async (email: string, password: string) => {
