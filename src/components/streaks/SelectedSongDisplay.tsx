@@ -20,6 +20,8 @@ const SelectedSongDisplay = ({ song, onRemoveSong }: SelectedSongDisplayProps) =
     playAudio('selected-song', song.preview_url);
   };
   
+  const isThisSongPlaying = currentAudioId === 'selected-song' && isPlaying;
+  
   return (
     <div className="flex items-center justify-between p-3 border rounded-md bg-black/5">
       <div className="flex items-center gap-3">
@@ -48,11 +50,23 @@ const SelectedSongDisplay = ({ song, onRemoveSong }: SelectedSongDisplayProps) =
       </div>
       <div className="flex items-center gap-2">
         {song.preview_url && (
-          <Button type="button" variant="ghost" size="sm" onClick={handlePlayPause}>
-            {currentAudioId === 'selected-song' && isPlaying ? (
-              <PauseCircle size={16} />
+          <Button 
+            type="button" 
+            variant="outline" 
+            size="sm" 
+            onClick={handlePlayPause}
+            className="flex items-center gap-1"
+          >
+            {isThisSongPlaying ? (
+              <>
+                <PauseCircle size={16} />
+                <span>Pause</span>
+              </>
             ) : (
-              <PlayCircle size={16} />
+              <>
+                <PlayCircle size={16} />
+                <span>Play</span>
+              </>
             )}
           </Button>
         )}
