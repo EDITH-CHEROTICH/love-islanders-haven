@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -8,6 +9,7 @@ import Matches from "./pages/Matches";
 import Streaks from "./pages/Streaks";
 import UserProfile from "./pages/UserProfile";
 import Verify from "./pages/Verify";
+import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import AICompanionChat from "./pages/AICompanionChat";
 import Settings from "./pages/Settings";
@@ -53,6 +55,7 @@ const App = () => {
                 <div className="mobile-app-container">
                   <Routes>
                     {/* Auth routes - accessible without authentication */}
+                    <Route path="/login" element={<Login />} />
                     <Route path="/verify" element={<Verify />} />
                     
                     {/* Protected routes - require authentication */}
