@@ -1,9 +1,17 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Camera, X, Music } from "lucide-react";
-import { SongData } from "./types";
+import { Camera, X, Music, Search } from "lucide-react";
+import { SongData, SongOption } from "./types";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
 
 interface StreakPostFormProps {
   onSubmit: (data: { content: string; caption?: string; song?: SongData }) => void;
@@ -17,6 +25,11 @@ const StreakPostForm = ({ onSubmit, onCancel }: StreakPostFormProps) => {
   const [isUploading, setIsUploading] = useState(false);
   const [showSongInput, setShowSongInput] = useState(false);
   const [song, setSong] = useState<SongData | null>(null);
+  const [songTitle, setSongTitle] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
+  const [songOptions, setSongOptions] = useState<SongOption[]>([]);
+  const [selectedSongId, setSelectedSongId] = useState<string>("");
+  const { toast } = useToast();
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -49,26 +62,90 @@ const StreakPostForm = ({ onSubmit, onCancel }: StreakPostFormProps) => {
       setShowSongInput(true);
       return;
     }
-    
-    // In a real implementation, this would connect to a music API
-    // For demo purposes, we'll just use the entered values
-    if (songTitle && songArtist) {
-      setSong({
-        title: songTitle,
-        artist: songArtist,
-        album_art: "/placeholder.svg", // Placeholder for demo
-      });
-      setShowSongInput(false);
-    }
   };
 
-  const [songTitle, setSongTitle] = useState("");
-  const [songArtist, setSongArtist] = useState("");
+  const searchSongs = (title: string) => {
+    if (!title.trim()) {
+      setSongOptions([]);
+      return;
+    }
+
+    setIsSearching(true);
+    
+    // In a real implementation, this would call a music API
+    // For demo purposes, we'll create some dummy results
+    setTimeout(() => {
+      const dummyResults: SongOption[] = [
+        {
+          id: "1",
+          title: title,
+          artist: "Taylor Swift",
+          album_art: "/placeholder.svg"
+        },
+        {
+          id: "2",
+          title: title,
+          artist: "Ed Sheeran",
+          album_art: "/placeholder.svg"
+        },
+        {
+          id: "3",
+          title: title,
+          artist: "Beyoncé",
+          album_art: "/placeholder.svg"
+        },
+        {
+          id: "4",
+          title: title,
+          artist: "Drake",
+          album_art: "/placeholder.svg"
+        },
+        {
+          id: "5",
+          title: title,
+          artist: "The Weeknd",
+          album_art: "/placeholder.svg"
+        }
+      ];
+      
+      setSongOptions(dummyResults);
+      setIsSearching(false);
+    }, 500);
+  };
+
+  // Debounce the search to avoid too many API calls
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (songTitle.trim()) {
+        searchSongs(songTitle);
+      }
+    }, 300);
+    
+    return () => clearTimeout(timeoutId);
+  }, [songTitle]);
+
+  const handleSongSelect = (id: string) => {
+    const selectedSong = songOptions.find(song => song.id === id);
+    if (selectedSong) {
+      setSong({
+        title: selectedSong.title,
+        artist: selectedSong.artist,
+        album_art: selectedSong.album_art,
+        preview_url: selectedSong.preview_url
+      });
+      setShowSongInput(false);
+      toast({
+        title: "Song added",
+        description: `${selectedSong.title} by ${selectedSong.artist} added to your post`,
+      });
+    }
+  };
 
   const removeSong = () => {
     setSong(null);
     setSongTitle("");
-    setSongArtist("");
+    setSongOptions([]);
+    setSelectedSongId("");
     setShowSongInput(false);
   };
 
@@ -143,26 +220,56 @@ const StreakPostForm = ({ onSubmit, onCancel }: StreakPostFormProps) => {
         <div className="space-y-3 p-3 border rounded-md">
           <h3 className="text-sm font-medium flex items-center gap-2">
             <Music size={16} />
-            <span>Add a song</span>
+            <span>Search for a song</span>
           </h3>
-          <div className="space-y-2">
+          
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+              <Search className="h-4 w-4 text-muted-foreground" />
+            </div>
             <Input
-              placeholder="Song title"
+              placeholder="Search for songs by title"
               value={songTitle}
               onChange={(e) => setSongTitle(e.target.value)}
-            />
-            <Input
-              placeholder="Artist"
-              value={songArtist}
-              onChange={(e) => setSongArtist(e.target.value)}
+              className="pl-10"
             />
           </div>
+          
+          {isSearching && (
+            <div className="text-center py-2 text-sm text-muted-foreground">
+              Searching...
+            </div>
+          )}
+          
+          {!isSearching && songOptions.length > 0 && (
+            <div className="mt-2 space-y-2">
+              {songOptions.map(option => (
+                <div 
+                  key={option.id} 
+                  className="flex items-center p-2 border rounded-md cursor-pointer hover:bg-muted"
+                  onClick={() => handleSongSelect(option.id)}
+                >
+                  <div className="h-10 w-10 bg-muted rounded-md flex items-center justify-center mr-3">
+                    <Music size={16} />
+                  </div>
+                  <div>
+                    <p className="font-medium text-sm">{option.title}</p>
+                    <p className="text-xs text-muted-foreground">{option.artist}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          
+          {!isSearching && songTitle.trim() && songOptions.length === 0 && (
+            <div className="text-center py-2 text-sm text-muted-foreground">
+              No songs found. Try a different search term.
+            </div>
+          )}
+          
           <div className="flex gap-2 justify-end">
             <Button type="button" variant="outline" size="sm" onClick={() => setShowSongInput(false)}>
               Cancel
-            </Button>
-            <Button type="button" size="sm" onClick={handleSongAdd} disabled={!songTitle || !songArtist}>
-              Add Song
             </Button>
           </div>
         </div>

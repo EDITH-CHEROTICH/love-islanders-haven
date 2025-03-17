@@ -24,3 +24,11 @@ export interface SongData {
   album_art?: string;
   preview_url?: string;
 }
+
+export interface SongOption {
+  id: string;
+  title: string;
+  artist: string;
+  album_art?: string;
+  preview_url?: string;
+}
