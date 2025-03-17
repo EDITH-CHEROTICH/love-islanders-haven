@@ -62,7 +62,7 @@ const MatchPreferences = () => {
                 localSettings.ageRange?.[1] ?? 40
               ]} 
               min={18} 
-              max={85} 
+              max={100} 
               step={1}
               onValueChange={handleAgeRangeChange}
               className="mt-6"
