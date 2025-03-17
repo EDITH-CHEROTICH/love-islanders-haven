@@ -10,6 +10,7 @@ import UserStreakCard from "@/components/streaks/UserStreakCard";
 import TopStreaksCard from "@/components/streaks/TopStreaksCard";
 import StreaksList from "@/components/streaks/StreaksList";
 import LoginRequired from "@/components/streaks/LoginRequired";
+import { Link } from "react-router-dom";
 
 const Streaks = () => {
   const { isAuthenticated } = useAuth();
@@ -40,7 +41,7 @@ const Streaks = () => {
   }
 
   return (
-    <div className="container max-w-md mx-auto px-4 pb-20 pt-4">
+    <div className="container max-w-md mx-auto px-4 pb-20 pt-4 h-full overflow-y-auto">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Streaks</h1>
         {!showPostForm && !hasPostedToday && (

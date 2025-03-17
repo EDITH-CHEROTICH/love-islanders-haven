@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -41,7 +40,7 @@
   }
 
   body {
-    @apply bg-island-dark text-foreground antialiased overflow-x-hidden;
+    @apply bg-island-dark text-foreground antialiased;
     font-feature-settings: "ss01", "ss02", "cv01", "cv02", "cv03";
   }
   
@@ -50,7 +49,6 @@
     height: 100%;
     margin: 0;
     padding: 0;
-    overflow: hidden;
   }
   
   .mobile-app-container {
@@ -58,8 +56,8 @@
     flex-direction: column;
     height: 100vh;
     width: 100vw;
-    overflow: hidden;
     position: relative;
+    overflow-y: auto;
   }
   
   /* Safe area handling for mobile notches, etc. */
