@@ -6,12 +6,14 @@ import { useSettings } from '@/context/SettingsContext';
 import { supabase } from '@/integrations/supabase/client';
 import Message from './Message';
 import ChatInput from './ChatInput';
+import { LightBulbIcon } from 'lucide-react';
 
 type ChatMessage = {
   id: string;
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
+  type?: 'chat' | 'recommendation';
 };
 
 const AICompanion: React.FC = () => {
@@ -51,7 +53,8 @@ const AICompanion: React.FC = () => {
             id: item.id,
             role: item.role as 'user' | 'assistant',
             content: item.message_content,
-            timestamp: new Date(item.created_at)
+            timestamp: new Date(item.created_at),
+            type: item.message_type || 'chat'
           }));
           
           setMessages(historyMessages);
@@ -60,8 +63,9 @@ const AICompanion: React.FC = () => {
           const welcomeMessage: ChatMessage = {
             id: 'welcome',
             role: 'assistant',
-            content: "Hi there! I'm Isla, your personal companion. I'm here to chat, listen, and keep you company. How are you feeling today?",
-            timestamp: new Date()
+            content: "Hi there! I'm Isla, your personal companion. I'm here to chat, listen, and keep you company. I can even give you suggestions for your streak posts based on your activity! How are you feeling today?",
+            timestamp: new Date(),
+            type: 'chat'
           };
           setMessages([welcomeMessage]);
         }
@@ -88,7 +92,8 @@ const AICompanion: React.FC = () => {
       id: Date.now().toString(),
       role: 'user',
       content: messageText,
-      timestamp: new Date()
+      timestamp: new Date(),
+      type: 'chat'
     };
 
     // Add user message to chat
@@ -129,10 +134,35 @@ const AICompanion: React.FC = () => {
         id: Date.now().toString(),
         role: 'assistant',
         content: data.response,
-        timestamp: new Date()
+        timestamp: new Date(),
+        type: 'chat'
       };
 
       setMessages(prev => [...prev, aiMessage]);
+
+      // After receiving the AI response, check for any new recommendations
+      if (user?.id) {
+        const { data: newMessages, error: fetchError } = await supabase
+          .from('ai_chat_history')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('message_type', 'recommendation')
+          .gt('created_at', aiMessage.timestamp.toISOString())
+          .order('created_at', { ascending: true });
+
+        if (!fetchError && newMessages && newMessages.length > 0) {
+          // Add recommendations to the chat
+          const recommendationMessages = newMessages.map((item) => ({
+            id: item.id,
+            role: 'assistant' as 'user' | 'assistant',
+            content: item.message_content,
+            timestamp: new Date(item.created_at),
+            type: 'recommendation'
+          }));
+          
+          setMessages(prev => [...prev, ...recommendationMessages]);
+        }
+      }
 
     } catch (error) {
       console.error('Error sending message:', error);
@@ -159,7 +189,8 @@ const AICompanion: React.FC = () => {
         id: `error-${Date.now().toString()}`,
         role: 'assistant',
         content: "I'm sorry, I'm having trouble connecting to my servers right now. Please try again in a moment.",
-        timestamp: new Date()
+        timestamp: new Date(),
+        type: 'chat'
       };
       
       setMessages(prev => [...prev, errorSystemMessage]);
@@ -195,12 +226,26 @@ const AICompanion: React.FC = () => {
 
       <div className="flex-1 overflow-y-auto p-4">
         {messages.map(message => (
-          <Message
-            key={message.id}
-            message={message.content}
-            isUser={message.role === 'user'}
-            timestamp={message.timestamp}
-          />
+          <div key={message.id} className="mb-4">
+            {message.type === 'recommendation' && (
+              <div className="flex justify-start mb-2">
+                <div className="bg-amber-700/30 rounded-lg p-3 max-w-[80%] flex items-start gap-2">
+                  <LightBulbIcon className="h-5 w-5 text-amber-400 mt-1 flex-shrink-0" />
+                  <div>
+                    <div className="text-amber-400 font-medium mb-1">Streak Suggestion</div>
+                    <div className="text-white">{message.content.replace('STREAK RECOMMENDATION:', '')}</div>
+                  </div>
+                </div>
+              </div>
+            )}
+            {message.type !== 'recommendation' && (
+              <Message
+                message={message.content}
+                isUser={message.role === 'user'}
+                timestamp={message.timestamp}
+              />
+            )}
+          </div>
         ))}
         <div ref={messagesEndRef} />
         

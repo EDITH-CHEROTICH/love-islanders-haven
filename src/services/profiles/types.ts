@@ -22,6 +22,15 @@ export interface SupabaseProfile {
   children_count?: number;
   relationship_goal?: 'long-term' | 'casual' | 'both';
   verified: boolean;
+  streak_count?: number;
   created_at: string;
   updated_at: string;
+}
+
+export interface UserStreakActivity {
+  streak_content: string;
+  streak_count: number;
+  likes_count: number;
+  created_at: string;
+  interests: string[];
 }

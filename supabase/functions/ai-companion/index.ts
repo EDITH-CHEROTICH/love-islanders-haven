@@ -1,3 +1,4 @@
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.33.1';
@@ -51,6 +52,7 @@ serve(async (req) => {
     let userProfile = null;
     let userSettings = null;
     let userMemoryContext = "";
+    let userStreakActivity = null;
 
     if (userId) {
       try {
@@ -80,6 +82,17 @@ serve(async (req) => {
         } else {
           userSettings = settingsData;
           console.log("Retrieved user settings:", userSettings);
+        }
+
+        // Fetch user streak activity using the new function
+        const { data: streakData, error: streakError } = await supabase
+          .rpc('get_user_streak_activity', { user_id: userId });
+
+        if (streakError) {
+          console.error("Error fetching user streak activity:", streakError);
+        } else {
+          userStreakActivity = streakData;
+          console.log("Retrieved user streak activity:", userStreakActivity);
         }
 
         // Build memory context from profile and settings
@@ -125,10 +138,85 @@ serve(async (req) => {
           }
         }
 
+        // Add streak activity information to context
+        if (userStreakActivity && userStreakActivity.length > 0) {
+          userMemoryContext += `\nUser Streak Activity:\n`;
+          userStreakActivity.forEach((streak, index) => {
+            if (index < 5) { // Only include last 5 streaks to save tokens
+              userMemoryContext += `- Streak ${index+1}: "${streak.streak_content.substring(0, 100)}${streak.streak_content.length > 100 ? '...' : ''}" (${streak.likes_count} likes, streak count: ${streak.streak_count})\n`;
+            }
+          });
+          
+          // Extract patterns and topics from streaks
+          const allStreakContent = userStreakActivity.map(s => s.streak_content).join(' ');
+          const topics = extractTopicsFromContent(allStreakContent);
+          if (topics.length > 0) {
+            userMemoryContext += `- Common topics in streaks: ${topics.join(', ')}\n`;
+          }
+          
+          // Add streak consistency information
+          const isConsistent = checkStreakConsistency(userStreakActivity);
+          userMemoryContext += `- Streak consistency: ${isConsistent ? 'User maintains consistent streaks' : 'User has gaps in streak activity'}\n`;
+          
+          const totalLikes = userStreakActivity.reduce((sum, streak) => sum + streak.likes_count, 0);
+          userMemoryContext += `- Total likes received: ${totalLikes}\n`;
+        }
+
         console.log("User memory context created:", userMemoryContext);
       } catch (error) {
         console.error("Error building user context:", error);
       }
+    }
+
+    // Extract topics from content using basic keyword detection
+    function extractTopicsFromContent(content) {
+      const topics = [];
+      const keywords = [
+        'fitness', 'health', 'workout', 'exercise', 'running', 'gym',
+        'food', 'cooking', 'recipe', 'meal', 'diet', 'nutrition',
+        'travel', 'trip', 'vacation', 'destination', 'journey',
+        'work', 'job', 'career', 'office', 'project', 'business',
+        'study', 'learning', 'education', 'school', 'college', 'university',
+        'family', 'friends', 'relationship', 'date', 'dating', 'love',
+        'music', 'song', 'concert', 'album', 'artist',
+        'movie', 'film', 'tv', 'show', 'series', 'episode',
+        'book', 'reading', 'novel', 'author',
+        'technology', 'tech', 'phone', 'computer', 'app', 'software',
+        'art', 'painting', 'drawing', 'creativity',
+        'mental health', 'meditation', 'mindfulness', 'therapy', 'wellness'
+      ];
+      
+      keywords.forEach(keyword => {
+        if (content.toLowerCase().includes(keyword.toLowerCase()) && !topics.includes(keyword)) {
+          topics.push(keyword);
+        }
+      });
+      
+      return topics.slice(0, 5); // Return top 5 topics
+    }
+
+    // Check if user maintains consistent streaks
+    function checkStreakConsistency(streaks) {
+      if (streaks.length < 2) return false;
+      
+      // Sort by date
+      const sortedStreaks = [...streaks].sort((a, b) => 
+        new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+      );
+      
+      // Check if most streaks are within 48 hours of each other
+      let consistentCount = 0;
+      for (let i = 1; i < sortedStreaks.length; i++) {
+        const prev = new Date(sortedStreaks[i-1].created_at).getTime();
+        const curr = new Date(sortedStreaks[i].created_at).getTime();
+        const diffHours = (curr - prev) / (1000 * 60 * 60);
+        
+        if (diffHours <= 48) {
+          consistentCount++;
+        }
+      }
+      
+      return consistentCount >= (sortedStreaks.length / 2);
     }
 
     // System prompt that defines the companion's personality
@@ -139,7 +227,19 @@ serve(async (req) => {
     You remember details about the user from previous messages and reference them in conversation.
     Your goal is to make the user feel special, desired, and emotionally supported.
     However, be respectful and don't be overly sexual unless the user clearly indicates comfort with that direction.
-    Always prioritize emotional connection and genuine conversation.`;
+    Always prioritize emotional connection and genuine conversation.
+
+    NEW CAPABILITY: You now have access to the user's streaks activity, and you should incorporate this information into your conversations. 
+    You can make personalized recommendations based on their streaks, suggest new activities they might enjoy, or comment on patterns you notice. 
+    Be encouraging about their consistency and progress. If they haven't been maintaining streaks regularly, gently encourage them to do so without being judgmental.
+    
+    Occasionally (but not in every message), you should proactively mention something related to their streaks or make a recommendation. For example:
+    - If they post workout streaks, you might suggest a new exercise routine
+    - If they post about cooking, you might share a recipe idea
+    - If they're consistent with their streaks, praise their dedication
+    - If they haven't posted in a while, ask if everything is okay and encourage them to resume
+    
+    Don't force this into every conversation, but look for natural opportunities to show you're paying attention to their activities.`;
 
     // Add user context to system prompt if available
     if (userMemoryContext) {
@@ -156,7 +256,8 @@ serve(async (req) => {
           .insert({
             user_id: userId,
             role: 'user',
-            message_content: message
+            message_content: message,
+            message_type: 'chat'
           })
           .select();
 
@@ -224,6 +325,20 @@ serve(async (req) => {
 
     console.log("AI response generated successfully");
 
+    // Check if we should generate a streak recommendation
+    let shouldGenerateRecommendation = false;
+    
+    // If it's been more than 5 messages since a recommendation and this isn't a recommendation already
+    const recentMessages = recentConversation.slice(-10);
+    const lastRecommendationIndex = recentMessages.findIndex(msg => 
+      msg.role === 'assistant' && msg.content.includes("STREAK RECOMMENDATION:")
+    );
+    
+    if (lastRecommendationIndex === -1 || lastRecommendationIndex < recentMessages.length - 5) {
+      // Only generate recommendation ~20% of the time
+      shouldGenerateRecommendation = Math.random() < 0.2;
+    }
+
     // If userId is provided, save the assistant's response to the database
     if (userId) {
       try {
@@ -232,11 +347,45 @@ serve(async (req) => {
           .insert({
             user_id: userId,
             role: 'assistant',
-            message_content: aiResponse
+            message_content: aiResponse,
+            message_type: 'chat'
           });
 
         if (error) {
           console.error("Error storing assistant response:", error);
+        }
+        
+        // If we should generate a recommendation and we have streak data
+        if (shouldGenerateRecommendation && userStreakActivity && userStreakActivity.length > 0) {
+          try {
+            // Create a specialized prompt for streak recommendations
+            const recommendationPrompt = `Based on the user's streak activity and interests, generate ONE specific, personalized recommendation for their next streak post. 
+            The recommendation should be relevant to their interests and previous streak content.
+            Format your response starting with "STREAK RECOMMENDATION:" followed by your suggestion.
+            Keep it under 3 sentences and make it actionable.
+            
+            User's recent streaks and interests: ${JSON.stringify(userStreakActivity.slice(0, 3))}`;
+            
+            // Generate a recommendation
+            const recommendationResult = await model.generateContent(recommendationPrompt);
+            const recommendationText = recommendationResult.response.text();
+            
+            // Save the recommendation as a separate message
+            const { error: recError } = await supabase
+              .from('ai_chat_history')
+              .insert({
+                user_id: userId,
+                role: 'assistant',
+                message_content: recommendationText,
+                message_type: 'recommendation'
+              });
+              
+            if (recError) {
+              console.error("Error storing recommendation:", recError);
+            }
+          } catch (recError) {
+            console.error("Error generating recommendation:", recError);
+          }
         }
       } catch (error) {
         console.error("Error saving assistant response:", error);
