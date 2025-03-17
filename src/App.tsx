@@ -7,7 +7,6 @@ import Index from "./pages/Index";
 import Matches from "./pages/Matches";
 import Streaks from "./pages/Streaks";
 import UserProfile from "./pages/UserProfile";
-import SignUp from "./pages/SignUp";
 import Verify from "./pages/Verify";
 import NotFound from "./pages/NotFound";
 import AICompanionChat from "./pages/AICompanionChat";
@@ -54,8 +53,6 @@ const App = () => {
                 <div className="mobile-app-container">
                   <Routes>
                     {/* Auth routes - accessible without authentication */}
-                    <Route path="/signup" element={<SignUp />} />
-                    <Route path="/login" element={<SignUp />} />
                     <Route path="/verify" element={<Verify />} />
                     
                     {/* Protected routes - require authentication */}
