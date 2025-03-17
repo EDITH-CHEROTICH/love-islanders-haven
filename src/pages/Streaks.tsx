@@ -12,6 +12,7 @@ import StreaksList from "@/components/streaks/StreaksList";
 import LoginRequired from "@/components/streaks/LoginRequired";
 import Navbar from "@/components/Navbar";
 import { SongData } from "@/components/streaks/types";
+import { AudioPlayerProvider } from "@/hooks/use-audio-player";
 
 const Streaks = () => {
   const { isAuthenticated } = useAuth();
@@ -42,52 +43,54 @@ const Streaks = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-island-dark via-island to-island-dark">
-      <div className="page-container hide-scrollbar">
-        <div className="container max-w-md mx-auto px-4 pt-4">
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-bold">Streaks</h1>
-            {!showPostForm && !hasPostedToday && (
-              <Button onClick={handleCreatePost} className="flex items-center gap-2">
-                <Camera size={18} />
-                <span>Post</span>
-              </Button>
+    <AudioPlayerProvider>
+      <div className="min-h-screen bg-gradient-to-b from-island-dark via-island to-island-dark">
+        <div className="page-container hide-scrollbar">
+          <div className="container max-w-md mx-auto px-4 pt-4">
+            <div className="flex justify-between items-center mb-6">
+              <h1 className="text-2xl font-bold">Streaks</h1>
+              {!showPostForm && !hasPostedToday && (
+                <Button onClick={handleCreatePost} className="flex items-center gap-2">
+                  <Camera size={18} />
+                  <span>Post</span>
+                </Button>
+              )}
+            </div>
+
+            {showPostForm && (
+              <Card className="mb-6">
+                <CardHeader>
+                  <CardTitle>Create Streak Post</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <StreakPostForm 
+                    onSubmit={onPostSubmit} 
+                    onCancel={() => setShowPostForm(false)} 
+                  />
+                </CardContent>
+              </Card>
             )}
-          </div>
 
-          {showPostForm && (
-            <Card className="mb-6">
-              <CardHeader>
-                <CardTitle>Create Streak Post</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <StreakPostForm 
-                  onSubmit={onPostSubmit} 
-                  onCancel={() => setShowPostForm(false)} 
-                />
-              </CardContent>
-            </Card>
-          )}
+            <div className="grid grid-cols-1 gap-4 mb-6">
+              <UserStreakCard 
+                streakCount={userStreakCount} 
+                hasPostedToday={hasPostedToday} 
+              />
+              <TopStreaksCard topStreaks={topStreaks} />
+            </div>
 
-          <div className="grid grid-cols-1 gap-4 mb-6">
-            <UserStreakCard 
-              streakCount={userStreakCount} 
-              hasPostedToday={hasPostedToday} 
+            <h2 className="text-xl font-semibold mb-4">Recent Posts</h2>
+            
+            <StreaksList 
+              loading={loading} 
+              posts={posts} 
+              onLike={handleLikePost} 
             />
-            <TopStreaksCard topStreaks={topStreaks} />
           </div>
-
-          <h2 className="text-xl font-semibold mb-4">Recent Posts</h2>
-          
-          <StreaksList 
-            loading={loading} 
-            posts={posts} 
-            onLike={handleLikePost} 
-          />
         </div>
+        <Navbar />
       </div>
-      <Navbar />
-    </div>
+    </AudioPlayerProvider>
   );
 };
 
