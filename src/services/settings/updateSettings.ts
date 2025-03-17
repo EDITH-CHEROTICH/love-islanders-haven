@@ -9,6 +9,7 @@ export const updateSettingsCategory = async <T extends keyof UserSettings>(
   settings: UserSettings[T]
 ): Promise<boolean> => {
   try {
+    console.log(`Updating ${category} with:`, settings);
     const { data: userData } = await supabase.auth.getUser();
     
     if (!userData.user) {
@@ -18,14 +19,20 @@ export const updateSettingsCategory = async <T extends keyof UserSettings>(
     const userId = userData.user.id;
     
     // First check if a settings record exists
-    const { data: existingSettings } = await supabase
+    const { data: existingSettings, error: fetchError } = await supabase
       .from('user_settings')
       .select('id')
       .eq('id', userId)
       .single();
       
+    if (fetchError && fetchError.code !== 'PGRST116') {
+      console.error(`Error checking settings for ${category}:`, fetchError);
+      return false;
+    }
+      
     if (!existingSettings) {
       // If no settings exist, create a new record with defaults
+      console.log(`Creating new settings record for ${category}`);
       const { error: insertError } = await supabase
         .from('user_settings')
         .insert({
@@ -40,6 +47,7 @@ export const updateSettingsCategory = async <T extends keyof UserSettings>(
       }
     } else {
       // Update existing settings
+      console.log(`Updating existing settings for ${category}`);
       const { error: updateError } = await supabase
         .from('user_settings')
         .update({ 
@@ -54,6 +62,7 @@ export const updateSettingsCategory = async <T extends keyof UserSettings>(
       }
     }
     
+    console.log(`Successfully updated ${category}`);
     return true;
   } catch (error) {
     console.error(`Error in updateSettingsCategory for ${category}:`, error);

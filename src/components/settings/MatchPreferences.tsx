@@ -33,6 +33,8 @@ const MatchPreferences = () => {
         const success = await updateSettings('match_preferences', newSettings);
         if (!success) {
           toast.error('Failed to update age range preferences');
+        } else {
+          toast.success('Age range updated successfully');
         }
       } catch (error) {
         console.error('Error updating age range:', error);
@@ -44,20 +46,24 @@ const MatchPreferences = () => {
   };
 
   const handleDistanceChange = async (values: number[]) => {
-    try {
-      setIsUpdating(true);
-      const newSettings = { ...localSettings, distance: values[0] };
-      setLocalSettings(newSettings);
-      
-      const success = await updateSettings('match_preferences', newSettings);
-      if (!success) {
-        toast.error('Failed to update distance preferences');
+    if (values.length > 0) {
+      try {
+        setIsUpdating(true);
+        const newSettings = { ...localSettings, distance: values[0] };
+        setLocalSettings(newSettings);
+        
+        const success = await updateSettings('match_preferences', newSettings);
+        if (!success) {
+          toast.error('Failed to update distance preferences');
+        } else {
+          toast.success('Distance updated successfully');
+        }
+      } catch (error) {
+        console.error('Error updating distance:', error);
+        toast.error('Failed to update preferences');
+      } finally {
+        setIsUpdating(false);
       }
-    } catch (error) {
-      console.error('Error updating distance:', error);
-      toast.error('Failed to update preferences');
-    } finally {
-      setIsUpdating(false);
     }
   };
 
@@ -99,7 +105,7 @@ const MatchPreferences = () => {
             <Slider 
               value={[
                 localSettings.ageRange?.[0] ?? 18, 
-                localSettings.ageRange?.[1] ?? 40
+                localSettings.ageRange?.[1] ?? 100
               ]} 
               min={18} 
               max={100} 
@@ -110,7 +116,7 @@ const MatchPreferences = () => {
             />
             <div className="flex justify-between mt-2 text-sm text-muted-foreground">
               <span>{localSettings.ageRange?.[0] ?? 18} years</span>
-              <span>{localSettings.ageRange?.[1] ?? 40} years</span>
+              <span>{localSettings.ageRange?.[1] ?? 100} years</span>
             </div>
           </div>
         </div>

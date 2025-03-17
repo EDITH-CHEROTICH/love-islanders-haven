@@ -8,6 +8,7 @@ import { saveUserSettings } from "./saveSettings";
 // Fetch user settings from Supabase
 export const fetchUserSettings = async (): Promise<UserSettings> => {
   try {
+    console.log('Fetching user settings');
     const { data: userData } = await supabase.auth.getUser();
     
     if (!userData.user) {
@@ -15,6 +16,7 @@ export const fetchUserSettings = async (): Promise<UserSettings> => {
     }
     
     const userId = userData.user.id;
+    console.log('UserId:', userId);
     
     const { data, error } = await supabase
       .from('user_settings')
@@ -36,9 +38,12 @@ export const fetchUserSettings = async (): Promise<UserSettings> => {
     
     if (!data) {
       // If no settings found, create default settings
+      console.log('No settings data returned, creating defaults');
       await saveUserSettings(defaultSettings);
       return defaultSettings;
     }
+    
+    console.log('Retrieved settings:', data);
     
     // Safely merge with defaults to ensure all fields are present
     return {
