@@ -3,7 +3,7 @@ import { Music, Search, X, PlayCircle, PauseCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { SongOption } from "./types";
-import { useState, useRef } from "react";
+import useAudioPlayer from "@/hooks/use-audio-player";
 
 interface SongSearchSectionProps {
   showSongInput: boolean;
@@ -24,38 +24,13 @@ const SongSearchSection = ({
   onSongSelect,
   onCancelSearch,
 }: SongSearchSectionProps) => {
-  const [playingSongId, setPlayingSongId] = useState<string | null>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const { isPlaying, currentAudioId, playAudio } = useAudioPlayer();
 
   if (!showSongInput) return null;
   
   const handlePlayPreview = (songId: string, previewUrl?: string) => {
     if (!previewUrl) return;
-    
-    if (playingSongId === songId) {
-      // If the same song is clicked, pause it
-      audioRef.current?.pause();
-      setPlayingSongId(null);
-    } else {
-      // If a different song is clicked, stop the current one and play the new one
-      if (audioRef.current) {
-        audioRef.current.pause();
-      }
-      
-      audioRef.current = new Audio(previewUrl);
-      audioRef.current.volume = 0.5;
-      
-      audioRef.current.play().catch(error => {
-        console.error("Error playing audio:", error);
-      });
-      
-      // Set up ended event to reset the playing state
-      audioRef.current.onended = () => {
-        setPlayingSongId(null);
-      };
-      
-      setPlayingSongId(songId);
-    }
+    playAudio(songId, previewUrl);
   };
   
   return (
@@ -113,7 +88,7 @@ const SongSearchSection = ({
                     handlePlayPreview(option.id, option.preview_url);
                   }}
                 >
-                  {playingSongId === option.id ? (
+                  {currentAudioId === option.id && isPlaying ? (
                     <PauseCircle className="h-5 w-5" />
                   ) : (
                     <PlayCircle className="h-5 w-5" />

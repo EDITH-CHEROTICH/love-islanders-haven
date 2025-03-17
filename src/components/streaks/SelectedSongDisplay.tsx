@@ -2,7 +2,7 @@
 import { Music, X, PlayCircle, PauseCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SongData } from "./types";
-import { useState, useRef, useEffect } from "react";
+import useAudioPlayer from "@/hooks/use-audio-player";
 
 interface SelectedSongDisplayProps {
   song: SongData | null;
@@ -10,44 +10,13 @@ interface SelectedSongDisplayProps {
 }
 
 const SelectedSongDisplay = ({ song, onRemoveSong }: SelectedSongDisplayProps) => {
-  const [isPlaying, setIsPlaying] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-
-  useEffect(() => {
-    // Cleanup function to stop audio when component unmounts
-    return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current = null;
-      }
-    };
-  }, []);
+  const { isPlaying, currentAudioId, playAudio } = useAudioPlayer();
 
   if (!song) return null;
   
   const handlePlayPause = () => {
     if (!song.preview_url) return;
-    
-    if (isPlaying) {
-      audioRef.current?.pause();
-      setIsPlaying(false);
-    } else {
-      if (!audioRef.current) {
-        audioRef.current = new Audio(song.preview_url);
-        audioRef.current.volume = 0.5;
-        
-        // Set up ended event to reset the playing state
-        audioRef.current.onended = () => {
-          setIsPlaying(false);
-        };
-      }
-      
-      audioRef.current.play().catch(error => {
-        console.error("Error playing audio:", error);
-      });
-      
-      setIsPlaying(true);
-    }
+    playAudio('selected-song', song.preview_url);
   };
   
   return (
@@ -64,7 +33,7 @@ const SelectedSongDisplay = ({ song, onRemoveSong }: SelectedSongDisplayProps) =
       <div className="flex items-center gap-2">
         {song.preview_url && (
           <Button type="button" variant="ghost" size="sm" onClick={handlePlayPause}>
-            {isPlaying ? (
+            {currentAudioId === 'selected-song' && isPlaying ? (
               <PauseCircle size={16} />
             ) : (
               <PlayCircle size={16} />
