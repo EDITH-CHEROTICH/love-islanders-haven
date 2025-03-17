@@ -14,6 +14,7 @@ export type Database = {
           created_at: string
           id: string
           message_content: string
+          message_type: string | null
           role: string
           user_id: string
         }
@@ -21,6 +22,7 @@ export type Database = {
           created_at?: string
           id?: string
           message_content: string
+          message_type?: string | null
           role: string
           user_id: string
         }
@@ -28,6 +30,7 @@ export type Database = {
           created_at?: string
           id?: string
           message_content?: string
+          message_type?: string | null
           role?: string
           user_id?: string
         }
@@ -487,7 +490,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_streak_activity: {
+        Args: {
+          user_id: string
+        }
+        Returns: {
+          streak_content: string
+          streak_count: number
+          likes_count: number
+          created_at: string
+          interests: string[]
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

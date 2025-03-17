@@ -6,7 +6,7 @@ import { useSettings } from '@/context/SettingsContext';
 import { supabase } from '@/integrations/supabase/client';
 import Message from './Message';
 import ChatInput from './ChatInput';
-import { LightBulbIcon } from 'lucide-react';
+import { Lightbulb } from 'lucide-react';
 
 type ChatMessage = {
   id: string;
@@ -54,7 +54,7 @@ const AICompanion: React.FC = () => {
             role: item.role as 'user' | 'assistant',
             content: item.message_content,
             timestamp: new Date(item.created_at),
-            type: item.message_type || 'chat'
+            type: (item.message_type as 'chat' | 'recommendation') || 'chat'
           }));
           
           setMessages(historyMessages);
@@ -152,12 +152,12 @@ const AICompanion: React.FC = () => {
 
         if (!fetchError && newMessages && newMessages.length > 0) {
           // Add recommendations to the chat
-          const recommendationMessages = newMessages.map((item) => ({
+          const recommendationMessages: ChatMessage[] = newMessages.map((item) => ({
             id: item.id,
-            role: 'assistant' as 'user' | 'assistant',
+            role: 'assistant' as const,
             content: item.message_content,
             timestamp: new Date(item.created_at),
-            type: 'recommendation'
+            type: 'recommendation' as const
           }));
           
           setMessages(prev => [...prev, ...recommendationMessages]);
@@ -230,7 +230,7 @@ const AICompanion: React.FC = () => {
             {message.type === 'recommendation' && (
               <div className="flex justify-start mb-2">
                 <div className="bg-amber-700/30 rounded-lg p-3 max-w-[80%] flex items-start gap-2">
-                  <LightBulbIcon className="h-5 w-5 text-amber-400 mt-1 flex-shrink-0" />
+                  <Lightbulb className="h-5 w-5 text-amber-400 mt-1 flex-shrink-0" />
                   <div>
                     <div className="text-amber-400 font-medium mb-1">Streak Suggestion</div>
                     <div className="text-white">{message.content.replace('STREAK RECOMMENDATION:', '')}</div>
