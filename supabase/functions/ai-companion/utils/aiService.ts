@@ -4,21 +4,21 @@
 export async function generateAIResponse(genAIClient, MODEL_NAME, systemPrompt, chatHistory, userMessage) {
   try {
     console.log("Calling Gemini API with conversation history...");
-    console.log("System prompt:", systemPrompt.substring(0, 50) + "...");
-    console.log("Chat history length:", chatHistory.length);
+    console.log("System prompt (first 50 chars):", systemPrompt?.substring(0, 50) + "...");
+    console.log("Chat history length:", chatHistory?.length || 0);
     console.log("User message:", userMessage);
     
     // Get the model
     const model = genAIClient.getGenerativeModel({ model: MODEL_NAME });
 
     // Format chat history for Gemini
-    // Note: Gemini expects 'user' and 'model' roles
+    // Gemini expects 'user' and 'model' roles
     const formattedHistory = chatHistory.map(msg => ({
       role: msg.role === 'assistant' ? 'model' : 'user',
       parts: [{ text: msg.content }]
     }));
     
-    // System prompts need to be sent as user messages at the beginning
+    // Start the chat with the formatted history
     const chat = model.startChat({
       history: formattedHistory,
       generationConfig: {
@@ -31,22 +31,27 @@ export async function generateAIResponse(genAIClient, MODEL_NAME, systemPrompt, 
     let result;
     if (chatHistory.length === 0) {
       // First, send the system prompt
+      console.log("Sending system prompt first");
       await chat.sendMessage(systemPrompt);
       
       // Then send the actual user message
+      console.log("Sending user message");
       result = await chat.sendMessage(userMessage);
     } else {
       // If we already have history, just send the new message
+      console.log("We have history, just sending the new message");
       result = await chat.sendMessage(userMessage);
     }
     
     // Extract the response text
     const aiResponse = result.response.text();
-    console.log("AI response generated successfully:", aiResponse.substring(0, 50) + "...");
+    console.log("AI response generated successfully (first 50 chars):", aiResponse?.substring(0, 50) + "...");
     
     return aiResponse;
   } catch (error) {
     console.error("Error generating AI response:", error.message);
+    console.error("Error details:", JSON.stringify(error, null, 2));
+    
     if (error.stack) {
       console.error("Stack trace:", error.stack);
     }

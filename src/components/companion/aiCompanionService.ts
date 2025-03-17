@@ -41,33 +41,35 @@ export const sendAIMessage = async (
     console.log('Sending message to AI companion:', messageText);
     console.log('With conversation history of length:', conversationHistory.length);
     
+    // Format the request payload
+    const payload = {
+      message: messageText,
+      conversationHistory,
+      userId
+    };
+    
+    console.log('Request payload:', JSON.stringify(payload));
+    
     // Call the Supabase Edge Function with retries
-    const maxRetries = 2;
+    const maxRetries = 3;
     let retryCount = 0;
     let lastError = null;
     
     while (retryCount <= maxRetries) {
       try {
         const { data, error } = await supabase.functions.invoke('ai-companion', {
-          body: {
-            message: messageText,
-            conversationHistory,
-            userId
-          },
-          headers: {
-            'Content-Type': 'application/json'
-          }
+          body: payload
         });
 
         if (error) {
           console.error(`Attempt ${retryCount + 1}: Error from Supabase function:`, error);
-          lastError = error;
+          lastError = new Error(error.message || 'Failed to get response from AI companion');
           retryCount++;
           if (retryCount <= maxRetries) {
             await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retrying
             continue;
           }
-          throw new Error(error.message || 'Failed to get response from AI companion');
+          throw lastError;
         }
 
         if (!data) {
@@ -94,6 +96,12 @@ export const sendAIMessage = async (
         
         // Success case
         console.log('AI response received successfully');
+        
+        // Check if this is a demo response
+        if (data.demo) {
+          window.postMessage({ type: 'ai-companion-demo-mode' }, '*');
+        }
+        
         return data.response;
       } catch (attemptError) {
         console.error(`Attempt ${retryCount + 1} failed:`, attemptError);

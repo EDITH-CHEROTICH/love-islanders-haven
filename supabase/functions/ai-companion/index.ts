@@ -48,6 +48,8 @@ serve(async (req) => {
   }
 
   try {
+    console.log("Received request to AI companion");
+    
     // Parse the request body
     let requestBody;
     try {
@@ -65,6 +67,12 @@ serve(async (req) => {
     }
     
     const { message, conversationHistory = [], userId } = requestBody;
+    
+    console.log("Request params:", { 
+      message: message ? "Present" : "Missing", 
+      historyLength: conversationHistory.length,
+      userId: userId ? "Present" : "Missing"
+    });
 
     // Validate essential parameters
     if (!message) {
@@ -77,10 +85,6 @@ serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
-
-    console.log("Received request with message:", message);
-    console.log("Conversation history length:", conversationHistory.length);
-    console.log("User ID:", userId ? "Provided" : "Not provided");
 
     // Check for API key and initialize Gemini client
     if (!API_KEY || API_KEY.trim() === '') {
@@ -191,6 +195,7 @@ serve(async (req) => {
         }
       }
 
+      console.log("Successfully generated AI response");
       return new Response(JSON.stringify({ response: aiResponse }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -205,7 +210,7 @@ serve(async (req) => {
       });
     }
   } catch (error) {
-    console.error("Error:", error);
+    console.error("General error:", error);
     return new Response(JSON.stringify({ 
       error: error.message,
       response: "I'm sorry, I encountered an unexpected error. Please try again later."
