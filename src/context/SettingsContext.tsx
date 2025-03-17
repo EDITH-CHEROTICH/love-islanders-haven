@@ -22,7 +22,7 @@ interface SettingsContextType {
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
 
 export const SettingsProvider = ({ children }: { children: ReactNode }) => {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated } = useAuth();
   const [settings, setSettings] = useState<UserSettings>(defaultSettings);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -74,13 +74,13 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
       const success = await updateSettingsCategory(category, newSettings);
       
       if (success) {
-        toast.success(`${category.replace('_', ' ')} updated successfully`);
+        console.log(`${category} updated successfully`);
         return true;
       } else {
         // Revert on failure
         const revertedSettings = await fetchUserSettings();
         setSettings(revertedSettings);
-        toast.error(`Failed to update ${category.replace('_', ' ')}`);
+        console.error(`Failed to update ${category}`);
         return false;
       }
     } catch (err) {
@@ -101,6 +101,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
       const success = await saveUserSettings(settings);
       
       if (success) {
+        toast.success('All settings saved successfully');
         return true;
       } else {
         toast.error('Failed to save settings');

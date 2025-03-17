@@ -6,21 +6,35 @@ import { Label } from '@/components/ui/label';
 import { useSettings } from '@/context/SettingsContext';
 import { useEffect, useState } from 'react';
 import { CommunicationSettings as CommunicationSettingsType } from '@/services/settings';
+import { toast } from 'sonner';
 
 const CommunicationSettings = () => {
   const { settings, updateSettings } = useSettings();
   const [localSettings, setLocalSettings] = useState<CommunicationSettingsType>(
     settings.communication_settings
   );
+  const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
     setLocalSettings(settings.communication_settings);
   }, [settings.communication_settings]);
 
-  const handleChange = (key: keyof CommunicationSettingsType, value: boolean) => {
-    const newSettings = { ...localSettings, [key]: value };
-    setLocalSettings(newSettings);
-    updateSettings('communication_settings', newSettings);
+  const handleChange = async (key: keyof CommunicationSettingsType, value: boolean) => {
+    try {
+      setIsUpdating(true);
+      const newSettings = { ...localSettings, [key]: value };
+      setLocalSettings(newSettings);
+      
+      const success = await updateSettings('communication_settings', newSettings);
+      if (!success) {
+        toast.error('Failed to update communication settings');
+      }
+    } catch (error) {
+      console.error(`Error updating ${key}:`, error);
+      toast.error('Failed to update settings');
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
   return (
@@ -34,6 +48,7 @@ const CommunicationSettings = () => {
               <Switch 
                 id="read-receipts" 
                 checked={localSettings.readReceipts ?? true}
+                disabled={isUpdating}
                 onCheckedChange={(checked) => handleChange('readReceipts', checked)}
               />
             </div>
@@ -42,6 +57,7 @@ const CommunicationSettings = () => {
               <Switch 
                 id="typing-indicators" 
                 checked={localSettings.typingIndicators ?? true}
+                disabled={isUpdating}
                 onCheckedChange={(checked) => handleChange('typingIndicators', checked)}
               />
             </div>
@@ -59,6 +75,7 @@ const CommunicationSettings = () => {
               <Switch 
                 id="filter-offensive" 
                 checked={localSettings.filterOffensive ?? true}
+                disabled={isUpdating}
                 onCheckedChange={(checked) => handleChange('filterOffensive', checked)}
               />
             </div>
@@ -70,6 +87,7 @@ const CommunicationSettings = () => {
               <Switch 
                 id="filter-spam" 
                 checked={localSettings.filterSpam ?? true}
+                disabled={isUpdating}
                 onCheckedChange={(checked) => handleChange('filterSpam', checked)}
               />
             </div>

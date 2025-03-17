@@ -8,16 +8,18 @@ import { saveUserSettings } from "./saveSettings";
 // Fetch user settings from Supabase
 export const fetchUserSettings = async (): Promise<UserSettings> => {
   try {
-    const { data: user } = await supabase.auth.getUser();
+    const { data: userData } = await supabase.auth.getUser();
     
-    if (!user.user) {
+    if (!userData.user) {
       throw new Error('Not authenticated');
     }
+    
+    const userId = userData.user.id;
     
     const { data, error } = await supabase
       .from('user_settings')
       .select('*')
-      .eq('id', user.user.id)
+      .eq('id', userId)
       .single();
     
     if (error) {

@@ -9,23 +9,49 @@ export const updateSettingsCategory = async <T extends keyof UserSettings>(
   settings: UserSettings[T]
 ): Promise<boolean> => {
   try {
-    const { data: user } = await supabase.auth.getUser();
+    const { data: userData } = await supabase.auth.getUser();
     
-    if (!user.user) {
+    if (!userData.user) {
       throw new Error('Not authenticated');
     }
     
-    const { error } = await supabase
-      .from('user_settings')
-      .update({ 
-        [category]: settings as Json,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', user.user.id);
+    const userId = userData.user.id;
     
-    if (error) {
-      console.error(`Error updating ${category}:`, error);
-      return false;
+    // First check if a settings record exists
+    const { data: existingSettings } = await supabase
+      .from('user_settings')
+      .select('id')
+      .eq('id', userId)
+      .single();
+      
+    if (!existingSettings) {
+      // If no settings exist, create a new record with defaults
+      const { error: insertError } = await supabase
+        .from('user_settings')
+        .insert({
+          id: userId,
+          [category]: settings as Json,
+          updated_at: new Date().toISOString()
+        });
+        
+      if (insertError) {
+        console.error(`Error creating settings for ${category}:`, insertError);
+        return false;
+      }
+    } else {
+      // Update existing settings
+      const { error: updateError } = await supabase
+        .from('user_settings')
+        .update({ 
+          [category]: settings as Json,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', userId);
+        
+      if (updateError) {
+        console.error(`Error updating ${category}:`, updateError);
+        return false;
+      }
     }
     
     return true;

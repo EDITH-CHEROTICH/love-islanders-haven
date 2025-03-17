@@ -7,47 +7,87 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useState, useEffect } from 'react';
 import { useSettings } from '@/context/SettingsContext';
 import { MatchPreferences as MatchPreferencesType } from '@/services/settings';
+import { toast } from 'sonner';
 
 const MatchPreferences = () => {
   const { settings, updateSettings } = useSettings();
   const [localSettings, setLocalSettings] = useState<MatchPreferencesType>(
     settings.match_preferences
   );
+  const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
     setLocalSettings(settings.match_preferences);
   }, [settings.match_preferences]);
 
-  const handleAgeRangeChange = (values: number[]) => {
+  const handleAgeRangeChange = async (values: number[]) => {
     if (values.length >= 2) {
-      const newSettings = { 
-        ...localSettings, 
-        ageRange: [values[0], values[1]] as [number, number] 
-      };
-      setLocalSettings(newSettings);
-      updateSettings('match_preferences', newSettings);
+      try {
+        setIsUpdating(true);
+        const newSettings = { 
+          ...localSettings, 
+          ageRange: [values[0], values[1]] as [number, number] 
+        };
+        setLocalSettings(newSettings);
+        
+        const success = await updateSettings('match_preferences', newSettings);
+        if (!success) {
+          toast.error('Failed to update age range preferences');
+        }
+      } catch (error) {
+        console.error('Error updating age range:', error);
+        toast.error('Failed to update preferences');
+      } finally {
+        setIsUpdating(false);
+      }
     }
   };
 
-  const handleDistanceChange = (values: number[]) => {
-    const newSettings = { ...localSettings, distance: values[0] };
-    setLocalSettings(newSettings);
-    updateSettings('match_preferences', newSettings);
+  const handleDistanceChange = async (values: number[]) => {
+    try {
+      setIsUpdating(true);
+      const newSettings = { ...localSettings, distance: values[0] };
+      setLocalSettings(newSettings);
+      
+      const success = await updateSettings('match_preferences', newSettings);
+      if (!success) {
+        toast.error('Failed to update distance preferences');
+      }
+    } catch (error) {
+      console.error('Error updating distance:', error);
+      toast.error('Failed to update preferences');
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
-  const handleDealBreakerChange = (key: keyof MatchPreferencesType['dealBreakers'], checked: boolean) => {
-    const newDealBreakers = { 
-      ...localSettings.dealBreakers,
-      [key]: checked
-    };
-    
-    const newSettings = { 
-      ...localSettings, 
-      dealBreakers: newDealBreakers 
-    };
-    
-    setLocalSettings(newSettings);
-    updateSettings('match_preferences', newSettings);
+  const handleDealBreakerChange = async (key: keyof MatchPreferencesType['dealBreakers'], checked: boolean) => {
+    try {
+      setIsUpdating(true);
+      const dealBreakers = localSettings.dealBreakers || {};
+      
+      const newDealBreakers = { 
+        ...dealBreakers,
+        [key]: checked
+      };
+      
+      const newSettings = { 
+        ...localSettings, 
+        dealBreakers: newDealBreakers 
+      };
+      
+      setLocalSettings(newSettings);
+      
+      const success = await updateSettings('match_preferences', newSettings);
+      if (!success) {
+        toast.error('Failed to update deal breaker preferences');
+      }
+    } catch (error) {
+      console.error('Error updating deal breakers:', error);
+      toast.error('Failed to update preferences');
+    } finally {
+      setIsUpdating(false);
+    }
   };
   
   return (
@@ -64,7 +104,8 @@ const MatchPreferences = () => {
               min={18} 
               max={100} 
               step={1}
-              onValueChange={handleAgeRangeChange}
+              disabled={isUpdating}
+              onValueCommit={handleAgeRangeChange}
               className="mt-6"
             />
             <div className="flex justify-between mt-2 text-sm text-muted-foreground">
@@ -82,7 +123,8 @@ const MatchPreferences = () => {
               min={1} 
               max={100} 
               step={1}
-              onValueChange={handleDistanceChange}
+              disabled={isUpdating}
+              onValueCommit={handleDistanceChange}
               className="mt-6"
             />
             <div className="flex justify-between mt-2 text-sm text-muted-foreground">
@@ -99,6 +141,7 @@ const MatchPreferences = () => {
               <Checkbox 
                 id="smoking" 
                 checked={localSettings.dealBreakers?.smoking ?? false}
+                disabled={isUpdating}
                 onCheckedChange={(checked) => 
                   handleDealBreakerChange('smoking', checked === true)
                 }
@@ -109,6 +152,7 @@ const MatchPreferences = () => {
               <Checkbox 
                 id="children" 
                 checked={localSettings.dealBreakers?.children ?? false}
+                disabled={isUpdating}
                 onCheckedChange={(checked) => 
                   handleDealBreakerChange('children', checked === true)
                 }
@@ -119,6 +163,7 @@ const MatchPreferences = () => {
               <Checkbox 
                 id="pets" 
                 checked={localSettings.dealBreakers?.pets ?? false}
+                disabled={isUpdating}
                 onCheckedChange={(checked) => 
                   handleDealBreakerChange('pets', checked === true)
                 }
