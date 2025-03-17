@@ -331,6 +331,80 @@ export type Database = {
         }
         Relationships: []
       }
+      streak_likes: {
+        Row: {
+          created_at: string
+          id: string
+          streak_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          streak_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          streak_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "streak_likes_streak_id_fkey"
+            columns: ["streak_id"]
+            isOneToOne: false
+            referencedRelation: "streaks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      streaks: {
+        Row: {
+          caption: string | null
+          comments_count: number
+          content: string
+          created_at: string
+          id: string
+          likes_count: number
+          song_album_art: string | null
+          song_artist: string | null
+          song_preview_url: string | null
+          song_title: string | null
+          streak_count: number
+          user_id: string
+        }
+        Insert: {
+          caption?: string | null
+          comments_count?: number
+          content: string
+          created_at?: string
+          id?: string
+          likes_count?: number
+          song_album_art?: string | null
+          song_artist?: string | null
+          song_preview_url?: string | null
+          song_title?: string | null
+          streak_count?: number
+          user_id: string
+        }
+        Update: {
+          caption?: string | null
+          comments_count?: number
+          content?: string
+          created_at?: string
+          id?: string
+          likes_count?: number
+          song_album_art?: string | null
+          song_artist?: string | null
+          song_preview_url?: string | null
+          song_title?: string | null
+          streak_count?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_settings: {
         Row: {
           accessibility_settings: Json | null
