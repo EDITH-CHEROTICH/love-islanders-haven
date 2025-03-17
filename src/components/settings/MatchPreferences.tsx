@@ -70,27 +70,37 @@ const MatchPreferences = () => {
   const handleDealBreakerChange = async (key: keyof MatchPreferencesType['dealBreakers'], checked: boolean) => {
     try {
       setIsUpdating(true);
-      const dealBreakers = localSettings.dealBreakers || {};
+      // Create a deep copy of the current settings to avoid mutation issues
+      const dealBreakers = { ...(localSettings.dealBreakers || {}) };
       
-      const newDealBreakers = { 
-        ...dealBreakers,
-        [key]: checked
-      };
+      // Update the specific deal breaker
+      dealBreakers[key] = checked;
       
+      // Create a new settings object with the updated deal breakers
       const newSettings = { 
         ...localSettings, 
-        dealBreakers: newDealBreakers 
+        dealBreakers: dealBreakers 
       };
       
+      // Update local state first for responsive UI
       setLocalSettings(newSettings);
       
+      // Persist to database
+      console.log(`Updating deal breaker ${key} to ${checked}`, newSettings);
       const success = await updateSettings('match_preferences', newSettings);
+      
       if (!success) {
         toast.error('Failed to update deal breaker preferences');
+        // Revert local state on failure
+        setLocalSettings(settings.match_preferences);
+      } else {
+        toast.success(`Deal breaker "${key}" updated successfully`);
       }
     } catch (error) {
       console.error('Error updating deal breakers:', error);
       toast.error('Failed to update preferences');
+      // Revert local state on error
+      setLocalSettings(settings.match_preferences);
     } finally {
       setIsUpdating(false);
     }
@@ -146,7 +156,7 @@ const MatchPreferences = () => {
             <div className="flex items-center space-x-2">
               <Checkbox 
                 id="smoking" 
-                checked={localSettings.dealBreakers?.smoking ?? false}
+                checked={!!localSettings.dealBreakers?.smoking}
                 disabled={isUpdating}
                 onCheckedChange={(checked) => 
                   handleDealBreakerChange('smoking', checked === true)
@@ -157,7 +167,7 @@ const MatchPreferences = () => {
             <div className="flex items-center space-x-2">
               <Checkbox 
                 id="children" 
-                checked={localSettings.dealBreakers?.children ?? false}
+                checked={!!localSettings.dealBreakers?.children}
                 disabled={isUpdating}
                 onCheckedChange={(checked) => 
                   handleDealBreakerChange('children', checked === true)
@@ -168,7 +178,7 @@ const MatchPreferences = () => {
             <div className="flex items-center space-x-2">
               <Checkbox 
                 id="pets" 
-                checked={localSettings.dealBreakers?.pets ?? false}
+                checked={!!localSettings.dealBreakers?.pets}
                 disabled={isUpdating}
                 onCheckedChange={(checked) => 
                   handleDealBreakerChange('pets', checked === true)
