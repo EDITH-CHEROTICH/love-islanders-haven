@@ -1,6 +1,6 @@
 
-import React from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
@@ -12,6 +12,18 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
   const { toast } = useToast();
   const location = useLocation();
+  const navigate = useNavigate();
+  
+  // Handle the redirect from OAuth providers
+  useEffect(() => {
+    // Check if we have a hash fragment that could indicate a callback from OAuth
+    const hash = window.location.hash;
+    if (hash && hash.includes('access_token') && isAuthenticated) {
+      // Clear the hash and navigate to the home page
+      window.history.replaceState(null, '', window.location.pathname);
+      navigate('/', { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
 
   if (loading) {
     return (
