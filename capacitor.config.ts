@@ -16,6 +16,13 @@ const config: CapacitorConfig = {
   // Enable keyboard resizing in Android
   android: {
     captureInput: true,
+    // Add version information for Play Store
+    buildOptions: {
+      keystorePath: undefined, // Path to your keystore file
+      keystorePassword: undefined, // Your keystore password
+      keystoreAlias: undefined, // Your key alias
+      keystoreAliasPassword: undefined, // Your alias password
+    }
   }
 };
 
