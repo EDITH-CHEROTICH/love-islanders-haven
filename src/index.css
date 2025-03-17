@@ -44,6 +44,7 @@
   body {
     @apply bg-island-dark text-foreground antialiased;
     font-feature-settings: "ss01", "ss02", "cv01", "cv02", "cv03";
+    overflow: hidden;
   }
   
   /* Mobile app specific styles */
@@ -59,7 +60,7 @@
     height: 100vh;
     width: 100vw;
     position: relative;
-    overflow-y: auto;
+    overflow: hidden;
   }
   
   /* Safe area handling for mobile notches, etc. */
@@ -93,6 +94,13 @@
   .hide-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
+  }
+
+  .page-container {
+    height: calc(100vh - 70px);
+    overflow-y: auto;
+    width: 100%;
+    padding-bottom: 80px;
   }
 }
 
