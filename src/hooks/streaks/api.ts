@@ -7,6 +7,7 @@ import { toast } from "@/hooks/use-toast";
 
 // Fetch streak posts from Supabase
 export const fetchStreakPosts = async () => {
+  // First, get the streaks data
   const { data: streaksData, error } = await supabase
     .from('streaks')
     .select(`
@@ -21,28 +22,48 @@ export const fetchStreakPosts = async () => {
       song_title,
       song_artist,
       song_album_art,
-      song_preview_url,
-      profiles(name)
+      song_preview_url
     `)
     .order('created_at', { ascending: false })
     .limit(10);
 
   if (error) throw error;
   
-  return streaksData as StreakData[];
+  // Then, get user names for each post
+  const streakDataWithUsernames = await Promise.all(
+    streaksData.map(async (streak) => {
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('name')
+        .eq('id', streak.user_id)
+        .single();
+      
+      return {
+        ...streak,
+        profiles: profileData ? { name: profileData.name } : { name: 'Unknown User' }
+      };
+    })
+  );
+  
+  return streakDataWithUsernames as StreakData[];
 };
 
 // Fetch top streak users
 export const fetchTopStreaks = async () => {
   const { data, error } = await supabase
     .from('profiles')
-    .select('id, name, streak_count:streaks(streak_count)')
+    .select('id, name, streak_count')
     .order('streak_count', { ascending: false })
     .limit(3);
     
   if (error) throw error;
   
-  return data as ProfileWithStreak[];
+  // Transform the data to match our ProfileWithStreak type
+  return data.map(profile => ({
+    id: profile.id,
+    name: profile.name,
+    streak_count: [{ streak_count: profile.streak_count || 0 }]
+  })) as ProfileWithStreak[];
 };
 
 // Check if user has posted today
@@ -68,6 +89,18 @@ export const checkUserDailyPost = async (userId: string) => {
 
 // Get user's latest streak count
 export const getUserLatestStreakCount = async (userId: string) => {
+  // First try to get it from the profile
+  const { data: profileData, error: profileError } = await supabase
+    .from('profiles')
+    .select('streak_count')
+    .eq('id', userId)
+    .single();
+    
+  if (!profileError && profileData && profileData.streak_count !== null) {
+    return profileData.streak_count;
+  }
+  
+  // Fallback to checking the streaks table
   const { data, error } = await supabase
     .from('streaks')
     .select('streak_count')

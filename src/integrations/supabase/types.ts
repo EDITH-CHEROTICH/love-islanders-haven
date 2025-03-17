@@ -278,6 +278,7 @@ export type Database = {
           pet_type: string | null
           relationship_goal: string | null
           show_age: boolean | null
+          streak_count: number | null
           updated_at: string
           verified: boolean | null
         }
@@ -302,6 +303,7 @@ export type Database = {
           pet_type?: string | null
           relationship_goal?: string | null
           show_age?: boolean | null
+          streak_count?: number | null
           updated_at?: string
           verified?: boolean | null
         }
@@ -326,6 +328,7 @@ export type Database = {
           pet_type?: string | null
           relationship_goal?: string | null
           show_age?: boolean | null
+          streak_count?: number | null
           updated_at?: string
           verified?: boolean | null
         }

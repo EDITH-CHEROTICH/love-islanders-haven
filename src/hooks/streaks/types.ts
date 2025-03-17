@@ -21,5 +21,5 @@ export interface StreakData {
 export interface ProfileWithStreak {
   id: string;
   name: string;
-  streak_count?: Array<{ streak_count: number }>;
+  streak_count: Array<{ streak_count: number }>;
 }
