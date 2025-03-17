@@ -6,6 +6,23 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { v4 as uuidv4 } from 'uuid';
 
+// Define types for database responses
+interface StreakData {
+  id: string;
+  user_id: string;
+  content: string;
+  caption: string | null;
+  created_at: string;
+  streak_count: number;
+  likes_count: number;
+  comments_count: number;
+  song_title: string | null;
+  song_artist: string | null;
+  song_album_art: string | null;
+  song_preview_url: string | null;
+  profiles: { name: string } | null;
+}
+
 export const useStreaks = () => {
   const { isAuthenticated, user } = useAuth();
   const { toast } = useToast();
@@ -49,8 +66,10 @@ export const useStreaks = () => {
 
       if (error) throw error;
 
+      if (!streaksData) throw new Error("No data returned from streaks query");
+
       // Transform the data to match our StreakPost type
-      const transformedPosts: StreakPost[] = streaksData.map(streak => ({
+      const transformedPosts: StreakPost[] = (streaksData as StreakData[]).map(streak => ({
         id: streak.id,
         user_id: streak.user_id,
         content: streak.content,
@@ -88,10 +107,18 @@ export const useStreaks = () => {
           { name: "Jamie Taylor", count: 15 }
         ]);
       } else {
-        const transformedTopStreaks: TopStreak[] = topStreaksData.map(profile => ({
-          name: profile.name,
-          count: profile.streak_count?.[0]?.streak_count || 0
-        })).filter(streak => streak.count > 0);
+        // Type assertion for profile data
+        interface ProfileWithStreak {
+          name: string;
+          streak_count?: Array<{ streak_count: number }>;
+        }
+        
+        const transformedTopStreaks: TopStreak[] = (topStreaksData as ProfileWithStreak[])
+          .map(profile => ({
+            name: profile.name,
+            count: profile.streak_count?.[0]?.streak_count || 0
+          }))
+          .filter(streak => streak.count > 0);
         
         setTopStreaks(transformedTopStreaks.length > 0 ? transformedTopStreaks : [
           { name: "Jordan Lee", count: 30 },
@@ -185,7 +212,11 @@ export const useStreaks = () => {
       
       // Get user's current streak count
       if (data && data.length > 0) {
-        setUserStreakCount(data[0].streak_count || 0);
+        // Type assertion for the streak data
+        interface StreakCountData {
+          streak_count: number;
+        }
+        setUserStreakCount((data[0] as StreakCountData).streak_count || 0);
       } else {
         // Get the latest streak
         const { data: latestStreak, error: latestError } = await supabase
@@ -197,7 +228,12 @@ export const useStreaks = () => {
           
         if (latestError) throw latestError;
         
-        setUserStreakCount(latestStreak && latestStreak.length > 0 ? latestStreak[0].streak_count : 0);
+        interface StreakCountData {
+          streak_count: number;
+        }
+        
+        setUserStreakCount(latestStreak && latestStreak.length > 0 ? 
+          (latestStreak[0] as StreakCountData).streak_count : 0);
       }
     } catch (error) {
       console.error("Error checking user streak:", error);
@@ -249,13 +285,24 @@ export const useStreaks = () => {
       
       // Add the new post to the list
       if (data && data.length > 0) {
+        interface NewStreakData {
+          id: string;
+          user_id: string;
+          content: string;
+          caption: string | null;
+          created_at: string;
+          streak_count: number;
+        }
+        
+        const streakData = data[0] as NewStreakData;
+        
         const newPost: StreakPost = {
-          id: data[0].id,
-          user_id: data[0].user_id,
-          content: data[0].content,
-          caption: data[0].caption || undefined,
-          created_at: data[0].created_at,
-          streak_count: data[0].streak_count,
+          id: streakData.id,
+          user_id: streakData.user_id,
+          content: streakData.content,
+          caption: streakData.caption || undefined,
+          created_at: streakData.created_at,
+          streak_count: streakData.streak_count,
           likes_count: 0,
           comments_count: 0,
           user_name: user.email?.split('@')[0] || "You",
