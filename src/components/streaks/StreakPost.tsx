@@ -3,9 +3,9 @@ import { useState } from "react";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Heart, MessageCircle, Flame, User } from "lucide-react";
-import { StreakPost as StreakPostType } from "@/pages/Streaks";
 import { Separator } from "@/components/ui/separator";
 import { formatDistanceToNow } from "date-fns";
+import { StreakPost as StreakPostType } from "./types";
 
 interface StreakPostProps {
   post: StreakPostType;
