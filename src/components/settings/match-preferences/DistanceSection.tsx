@@ -3,6 +3,9 @@ import { useState } from 'react';
 import { Slider } from '@/components/ui/slider';
 import { toast } from 'sonner';
 import { MatchPreferences } from '@/services/settings';
+import { Button } from '@/components/ui/button';
+import { MapPin } from 'lucide-react';
+import { requestAndUpdateLocation } from '@/services/profiles';
 import {
   Select,
   SelectContent,
@@ -23,6 +26,7 @@ interface DistanceSectionProps {
 
 const DistanceSection = ({ settings, onSettingsChange, updateSettings }: DistanceSectionProps) => {
   const [isUpdating, setIsUpdating] = useState(false);
+  const [isUpdatingLocation, setIsUpdatingLocation] = useState(false);
 
   const handleDistanceChange = async (values: number[]) => {
     if (values.length > 0) {
@@ -74,6 +78,17 @@ const DistanceSection = ({ settings, onSettingsChange, updateSettings }: Distanc
       toast.error('Failed to update preferences');
     } finally {
       setIsUpdating(false);
+    }
+  };
+
+  const handleUpdateLocation = async () => {
+    try {
+      setIsUpdatingLocation(true);
+      await requestAndUpdateLocation();
+    } catch (error) {
+      console.error('Error updating location:', error);
+    } finally {
+      setIsUpdatingLocation(false);
     }
   };
 
@@ -134,6 +149,23 @@ const DistanceSection = ({ settings, onSettingsChange, updateSettings }: Distanc
           <span>1 {settings.distanceUnit ?? 'km'}</span>
           <span>{getDisplayDistance()} {settings.distanceUnit ?? 'km'}</span>
         </div>
+      </div>
+
+      <div className="mt-4">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="w-full flex items-center justify-center gap-2"
+          onClick={handleUpdateLocation}
+          disabled={isUpdatingLocation}
+        >
+          <MapPin size={16} />
+          {isUpdatingLocation ? "Updating Location..." : "Update My Location"}
+        </Button>
+        <p className="text-xs text-muted-foreground mt-2">
+          This will update your current location to be used for distance calculations.
+        </p>
       </div>
     </div>
   );

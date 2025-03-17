@@ -307,7 +307,10 @@ export type Database = {
           height_cm: number | null
           height_unit: string | null
           id: string
+          latitude: number | null
           location: string | null
+          location_updated_at: string | null
+          longitude: number | null
           name: string
           occupation: string | null
           pet_type: string | null
@@ -332,7 +335,10 @@ export type Database = {
           height_cm?: number | null
           height_unit?: string | null
           id: string
+          latitude?: number | null
           location?: string | null
+          location_updated_at?: string | null
+          longitude?: number | null
           name: string
           occupation?: string | null
           pet_type?: string | null
@@ -357,7 +363,10 @@ export type Database = {
           height_cm?: number | null
           height_unit?: string | null
           id?: string
+          latitude?: number | null
           location?: string | null
+          location_updated_at?: string | null
+          longitude?: number | null
           name?: string
           occupation?: string | null
           pet_type?: string | null
@@ -490,6 +499,27 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      calculate_distance: {
+        Args: {
+          lat1: number
+          lon1: number
+          lat2: number
+          lon2: number
+        }
+        Returns: number
+      }
+      find_users_within_distance: {
+        Args: {
+          user_id: string
+          max_distance: number
+        }
+        Returns: {
+          profile_id: string
+          name: string
+          age: number
+          distance: number
+        }[]
+      }
       get_user_streak_activity: {
         Args: {
           user_id: string

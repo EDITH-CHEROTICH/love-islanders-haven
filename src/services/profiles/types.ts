@@ -25,6 +25,9 @@ export interface SupabaseProfile {
   streak_count?: number;
   created_at: string;
   updated_at: string;
+  latitude?: number;
+  longitude?: number;
+  location_updated_at?: string;
 }
 
 export interface UserStreakActivity {

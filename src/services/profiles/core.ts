@@ -2,6 +2,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { ProfilePreferences } from "@/components/ProfileSetup";
 import { SupabaseProfile } from "./types";
+import { requestAndUpdateLocation } from "./location";
 
 export const createOrUpdateProfile = async (preferences: ProfilePreferences, name: string, bio = '') => {
   const user = supabase.auth.getUser();
@@ -44,6 +45,14 @@ export const createOrUpdateProfile = async (preferences: ProfilePreferences, nam
   if (error) {
     console.error('Error saving profile:', error);
     throw error;
+  }
+
+  // Try to get and update user's location after profile creation
+  // This is done in a non-blocking way so it doesn't affect profile creation
+  try {
+    requestAndUpdateLocation().catch(err => console.error('Error updating location after profile creation:', err));
+  } catch (error) {
+    console.error('Error requesting location after profile creation:', error);
   }
 
   return profileData;
