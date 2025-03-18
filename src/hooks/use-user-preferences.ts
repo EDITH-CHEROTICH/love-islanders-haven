@@ -24,11 +24,13 @@ export const useUserPreferences = () => {
       const matchPrefs = settings.match_preferences;
       
       setPreferences({
-        minAge: matchPrefs.min_age || 18,
-        maxAge: matchPrefs.max_age || 50,
-        maxDistance: matchPrefs.distance_preference || 50,
-        interests: matchPrefs.interests || [],
-        dealBreakers: matchPrefs.deal_breakers || [],
+        minAge: matchPrefs.ageRange?.[0] || 18,
+        maxAge: matchPrefs.ageRange?.[1] || 50,
+        maxDistance: matchPrefs.distance || 50,
+        interests: matchPrefs.interestedAge ? [] : [], // No interests field in current type
+        dealBreakers: Object.entries(matchPrefs.dealBreakers || {})
+          .filter(([_, value]) => value === true)
+          .map(([key]) => key),
       });
     }
   }, [settings]);
