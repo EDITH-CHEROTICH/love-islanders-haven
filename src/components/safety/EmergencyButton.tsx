@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { AlertTriangle, SirenAlert } from 'lucide-react';
+import { AlertTriangle, Bell } from 'lucide-react';
 import { useDatingSafety } from '@/hooks/use-dating-safety';
 import { Spinner } from '@/components/ui/spinner';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -83,7 +83,7 @@ const EmergencyButton = ({ className }: EmergencyButtonProps) => {
         className={`gap-2 ${className}`} 
         onClick={handleEmergencyButtonClick}
       >
-        <SirenAlert className="h-4 w-4" />
+        <Bell className="h-4 w-4" />
         Emergency Alert
       </Button>
 

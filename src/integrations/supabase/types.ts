@@ -89,6 +89,44 @@ export type Database = {
         }
         Relationships: []
       }
+      contact_notifications: {
+        Row: {
+          alert_type: string
+          contact_id: string
+          delivered: boolean
+          error_message: string | null
+          id: string
+          message: string
+          sent_at: string
+        }
+        Insert: {
+          alert_type: string
+          contact_id: string
+          delivered?: boolean
+          error_message?: string | null
+          id?: string
+          message: string
+          sent_at?: string
+        }
+        Update: {
+          alert_type?: string
+          contact_id?: string
+          delivered?: boolean
+          error_message?: string | null
+          id?: string
+          message?: string
+          sent_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_contact_id"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "safety_contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       date_plans: {
         Row: {
           contact_id: string | null
@@ -129,6 +167,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      emergency_alerts: {
+        Row: {
+          id: string
+          location_latitude: number | null
+          location_link: string | null
+          location_longitude: number | null
+          timestamp: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          location_latitude?: number | null
+          location_link?: string | null
+          location_longitude?: number | null
+          timestamp?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          location_latitude?: number | null
+          location_link?: string | null
+          location_longitude?: number | null
+          timestamp?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       interests: {
         Row: {
