@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
-import { Tab, Tabs, TabList, TabPanel } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import ProfileDetails from '@/components/profile/ProfileDetails';
 import ProfileMedia from '@/components/profile/ProfileMedia';
 import ProfileActionBar from '@/components/profile/ProfileActionBar';
@@ -41,35 +41,34 @@ const Profile = () => {
         </header>
         
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabList className="flex w-full bg-background/50 backdrop-blur-md rounded-lg p-1 mb-6">
-            <Tab value="profile" className="flex-1 py-2 rounded-md data-[state=active]:bg-love/20">
+          <TabsList className="flex w-full bg-background/50 backdrop-blur-md rounded-lg p-1 mb-6">
+            <TabsTrigger value="profile" className="flex-1 py-2 rounded-md data-[state=active]:bg-love/20">
               <User className="h-4 w-4 mr-2" />
               Profile
-            </Tab>
-            <Tab value="insights" className="flex-1 py-2 rounded-md data-[state=active]:bg-love/20">
+            </TabsTrigger>
+            <TabsTrigger value="insights" className="flex-1 py-2 rounded-md data-[state=active]:bg-love/20">
               <Info className="h-4 w-4 mr-2" />
               Insights
-            </Tab>
-            <Tab value="calendar" className="flex-1 py-2 rounded-md data-[state=active]:bg-love/20">
+            </TabsTrigger>
+            <TabsTrigger value="calendar" className="flex-1 py-2 rounded-md data-[state=active]:bg-love/20">
               <Calendar className="h-4 w-4 mr-2" />
               Calendar
-            </Tab>
-          </TabList>
+            </TabsTrigger>
+          </TabsList>
           
-          <TabPanel value="profile">
+          <TabsContent value="profile">
             <div className="space-y-6">
-              <ProfileMedia profile={currentProfile} editable={true} />
+              <ProfileMedia profile={currentProfile} />
               
-              <ProfileDetails profile={currentProfile} editable={true} />
+              <ProfileDetails profile={currentProfile} />
               
               <ProfileActionBar 
                 onEdit={handleEditProfile}
-                onShare={handleShareProfile}
               />
             </div>
-          </TabPanel>
+          </TabsContent>
           
-          <TabPanel value="insights">
+          <TabsContent value="insights">
             <div className="space-y-6">
               <Alert>
                 <AlertTitle>Profile Performance</AlertTitle>
@@ -80,9 +79,9 @@ const Profile = () => {
               
               <ProfileInsights />
             </div>
-          </TabPanel>
+          </TabsContent>
           
-          <TabPanel value="calendar">
+          <TabsContent value="calendar">
             <div className="space-y-6">
               <Alert>
                 <AlertTitle>Date Planning</AlertTitle>
@@ -108,7 +107,7 @@ const Profile = () => {
                 </p>
               </div>
             </div>
-          </TabPanel>
+          </TabsContent>
         </Tabs>
       </div>
     </div>

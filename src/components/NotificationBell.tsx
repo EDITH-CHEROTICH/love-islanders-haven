@@ -1,170 +1,183 @@
 
-import { useState, useEffect } from 'react';
-import { Bell } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
 import { 
-  Popover,
-  PopoverContent,
-  PopoverTrigger
+  Bell, 
+  BellRing,
+  Check,
+  X 
+} from 'lucide-react';
+import { 
+  Popover, 
+  PopoverContent, 
+  PopoverTrigger 
 } from '@/components/ui/popover';
+import { Button } from '@/components/ui/button';
+import { format } from 'date-fns';
+import { useNavigate } from 'react-router-dom';
 import { 
   getNotifications, 
   markNotificationAsRead, 
   markAllNotificationsAsRead,
   subscribeToNotifications,
-  Notification
+  type Notification 
 } from '@/services/notifications';
-import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { useToast } from '@/hooks/use-toast';
-import { format } from 'date-fns';
 
 const NotificationBell = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [open, setOpen] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(0);
+  const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
-  const { toast } = useToast();
-  
-  // Fetch notifications when component mounts
+
+  // Count unread notifications
+  const unreadCount = notifications.filter(n => !n.is_read).length;
+
+  // Fetch notifications on mount
   useEffect(() => {
-    fetchNotifications();
+    const fetchData = async () => {
+      const data = await getNotifications();
+      setNotifications(data);
+    };
     
-    // Subscribe to realtime notifications
-    const unsubscribe = subscribeToNotifications((notification) => {
-      setNotifications(prev => [notification, ...prev]);
-      setUnreadCount(prev => prev + 1);
+    fetchData();
+  }, []);
+
+  // Set up real-time subscription
+  useEffect(() => {
+    const cleanup = subscribeToNotifications((newNotification) => {
+      setNotifications(prev => [newNotification, ...prev]);
     });
     
     return () => {
-      unsubscribe();
+      cleanup();
     };
   }, []);
-  
-  // Update unread count when notifications change
-  useEffect(() => {
-    const count = notifications.filter(n => !n.is_read).length;
-    setUnreadCount(count);
-  }, [notifications]);
-  
-  const fetchNotifications = async () => {
-    const data = await getNotifications();
-    setNotifications(data);
-  };
-  
-  const handleNotificationClick = async (notification: Notification) => {
-    // Mark as read
-    if (!notification.is_read) {
-      await markNotificationAsRead(notification.id);
-      
-      // Update local state
-      setNotifications(notifications.map(n => 
-        n.id === notification.id ? { ...n, is_read: true } : n
-      ));
+
+  // Handle marking a notification as read
+  const handleMarkAsRead = async (id: string) => {
+    const success = await markNotificationAsRead(id);
+    if (success) {
+      setNotifications(prev => 
+        prev.map(n => n.id === id ? { ...n, is_read: true } : n)
+      );
     }
+  };
+
+  // Handle marking all notifications as read
+  const handleMarkAllAsRead = async () => {
+    const success = await markAllNotificationsAsRead();
+    if (success) {
+      setNotifications(prev => 
+        prev.map(n => ({ ...n, is_read: true }))
+      );
+    }
+  };
+
+  // Handle notification click
+  const handleNotificationClick = (notification: Notification) => {
+    handleMarkAsRead(notification.id);
     
     // Navigate based on notification type
     switch (notification.type) {
       case 'match':
+        if (notification.related_entity_id) {
+          navigate(`/messages/${notification.related_entity_id}`);
+        }
+        break;
       case 'message':
         if (notification.related_entity_id) {
           navigate(`/messages/${notification.related_entity_id}`);
-        } else {
-          navigate('/matches');
         }
         break;
       case 'like':
+        navigate('/matches');
+        break;
       case 'profile_view':
-        if (notification.related_user_id) {
-          navigate(`/profile/${notification.related_user_id}`);
-        }
+        navigate('/profile');
         break;
       default:
         break;
     }
     
-    setOpen(false);
+    setIsOpen(false);
   };
-  
-  const handleMarkAllAsRead = async () => {
-    const success = await markAllNotificationsAsRead();
-    
-    if (success) {
-      setNotifications(notifications.map(n => ({ ...n, is_read: true })));
-      toast({
-        title: "Success",
-        description: "All notifications marked as read",
-      });
-    } else {
-      toast({
-        title: "Error",
-        description: "Failed to mark notifications as read",
-        variant: "destructive",
-      });
-    }
-  };
-  
+
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative">
-          <Bell className="h-5 w-5" />
-          {unreadCount > 0 && (
-            <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-love text-[10px] text-white">
-              {unreadCount > 9 ? '9+' : unreadCount}
-            </span>
+        <Button 
+          variant="ghost" 
+          size="icon"
+          className="relative"
+        >
+          {unreadCount > 0 ? (
+            <>
+              <BellRing className="h-5 w-5 text-love" />
+              <span className="absolute top-0 right-0 -mr-1 -mt-1 h-4 w-4 rounded-full bg-love text-[10px] font-medium text-white flex items-center justify-center">
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
+            </>
+          ) : (
+            <Bell className="h-5 w-5" />
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="end" className="w-80 p-0">
-        <div className="flex items-center justify-between p-4 border-b">
+      <PopoverContent 
+        className="w-80 max-h-[450px] flex flex-col"
+        align="end"
+      >
+        <div className="flex items-center justify-between mb-2">
           <h3 className="font-medium">Notifications</h3>
           {unreadCount > 0 && (
             <Button 
               variant="ghost" 
               size="sm" 
               onClick={handleMarkAllAsRead}
-              className="text-xs h-8"
+              className="text-xs"
             >
+              <Check className="h-3 w-3 mr-1" />
               Mark all as read
             </Button>
           )}
         </div>
         
-        <ScrollArea className="h-80">
-          {notifications.length > 0 ? (
-            <div className="divide-y">
+        <div className="overflow-y-auto flex-1">
+          {notifications.length === 0 ? (
+            <div className="text-center py-4 text-muted-foreground">
+              No notifications yet
+            </div>
+          ) : (
+            <div className="space-y-2">
               {notifications.map((notification) => (
-                <div
-                  key={notification.id}
-                  className={`p-4 cursor-pointer hover:bg-accent/50 transition-colors ${
-                    !notification.is_read ? 'bg-accent/20' : ''
+                <div 
+                  key={notification.id} 
+                  className={`p-2 rounded-md cursor-pointer flex justify-between items-start ${
+                    notification.is_read ? 'bg-background' : 'bg-love/5'
                   }`}
                   onClick={() => handleNotificationClick(notification)}
                 >
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <p className="text-sm font-medium">{notification.content}</p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {format(new Date(notification.created_at), 'MMM d, h:mm a')}
-                      </p>
-                    </div>
-                    {!notification.is_read && (
-                      <div className="w-2 h-2 rounded-full bg-love mt-1"></div>
-                    )}
+                  <div>
+                    <p className="text-sm font-medium">{notification.content}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {format(new Date(notification.created_at), 'MMM d, h:mm a')}
+                    </p>
                   </div>
+                  {!notification.is_read && (
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-6 w-6"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleMarkAsRead(notification.id);
+                      }}
+                    >
+                      <Check className="h-3 w-3" />
+                    </Button>
+                  )}
                 </div>
               ))}
             </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center h-full py-8 text-center">
-              <p className="text-muted-foreground">No notifications yet</p>
-              <p className="text-xs text-muted-foreground mt-1">
-                When you get matches or messages, you'll see them here
-              </p>
-            </div>
           )}
-        </ScrollArea>
+        </div>
       </PopoverContent>
     </Popover>
   );

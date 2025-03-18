@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -92,40 +91,56 @@ export const markAllNotificationsAsRead = async () => {
 export const subscribeToNotifications = (
   onNewNotification: (notification: Notification) => void
 ) => {
-  const { data: { user } } = supabase.auth.getUser();
-  
-  if (!user) return () => {};
-  
-  const channel = supabase
-    .channel('public:notifications')
-    .on(
-      'postgres_changes',
-      {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'notifications',
-        filter: `user_id=eq.${user.id}`,
-      },
-      (payload) => {
-        const notification = payload.new as Notification;
+  try {
+    const user = supabase.auth.getUser().then(({ data }) => data.user);
+    
+    // If we can't get the user right away, return an empty cleanup function
+    if (!user) return () => {};
+    
+    // Get user ID asynchronously and then set up the subscription
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) return;
+      
+      const channel = supabase
+        .channel('public:notifications')
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'notifications',
+            filter: `user_id=eq.${user.id}`,
+          },
+          (payload) => {
+            const notification = payload.new as Notification;
+            
+            // Display a toast notification
+            toast(notification.content, {
+              description: getNotificationDescription(notification),
+              position: 'top-right',
+              duration: 5000,
+            });
+            
+            // Call the callback with the new notification
+            onNewNotification(notification);
+          }
+        )
+        .subscribe();
         
-        // Display a toast notification
-        toast(notification.content, {
-          description: getNotificationDescription(notification),
-          position: 'top-right',
-          duration: 5000,
-        });
-        
-        // Call the callback with the new notification
-        onNewNotification(notification);
+      // Store the channel in a global variable so we can unsubscribe later
+      window.__notificationChannel = channel;
+    });
+    
+    // Return cleanup function
+    return () => {
+      if (window.__notificationChannel) {
+        supabase.removeChannel(window.__notificationChannel);
       }
-    )
-    .subscribe();
-  
-  // Return cleanup function
-  return () => {
-    supabase.removeChannel(channel);
-  };
+    };
+  } catch (error) {
+    console.error('Error setting up notification subscription:', error);
+    return () => {};
+  }
 };
 
 // Helper function to get a description based on notification type
@@ -143,3 +158,10 @@ const getNotificationDescription = (notification: Notification) => {
       return '';
   }
 };
+
+// Add this to the global window object for TypeScript
+declare global {
+  interface Window {
+    __notificationChannel?: ReturnType<typeof supabase.channel>;
+  }
+}

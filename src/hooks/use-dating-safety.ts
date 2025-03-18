@@ -1,7 +1,7 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 export interface SafetyContact {
   id: string;
@@ -23,37 +23,37 @@ export interface DatePlan {
   created_at: string;
 }
 
-export const useDatingSafety = () => {
+export function useDatingSafety() {
   const [safetyContacts, setSafetyContacts] = useState<SafetyContact[]>([]);
   const [datePlans, setDatePlans] = useState<DatePlan[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
 
   // Fetch safety contacts
   const fetchSafetyContacts = async () => {
+    setIsLoading(true);
     try {
-      setIsLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
       
-      if (!user) throw new Error('Not authenticated');
-      
+      if (!user) {
+        throw new Error('Not authenticated');
+      }
+
       const { data, error } = await supabase
         .from('safety_contacts')
         .select('*')
-        .eq('user_id', user.id);
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
       
       if (error) throw error;
       
       setSafetyContacts(data as SafetyContact[]);
-      return data as SafetyContact[];
     } catch (error) {
       console.error('Error fetching safety contacts:', error);
       toast({
-        title: "Error",
-        description: "Failed to load your safety contacts",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to load safety contacts',
+        variant: 'destructive',
       });
-      return [];
     } finally {
       setIsLoading(false);
     }
@@ -61,38 +61,42 @@ export const useDatingSafety = () => {
 
   // Add a safety contact
   const addSafetyContact = async (contact: Omit<SafetyContact, 'id' | 'user_id' | 'created_at'>) => {
+    setIsLoading(true);
     try {
-      setIsLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
       
-      if (!user) throw new Error('Not authenticated');
-      
+      if (!user) {
+        throw new Error('Not authenticated');
+      }
+
       const { data, error } = await supabase
         .from('safety_contacts')
-        .insert({
-          user_id: user.id,
-          name: contact.name,
-          phone_number: contact.phone_number,
-          email: contact.email
-        })
-        .select('*')
-        .single();
+        .insert([
+          {
+            user_id: user.id,
+            name: contact.name,
+            phone_number: contact.phone_number,
+            email: contact.email
+          }
+        ])
+        .select();
       
       if (error) throw error;
       
-      setSafetyContacts([...safetyContacts, data as SafetyContact]);
+      setSafetyContacts(prev => [data![0] as SafetyContact, ...prev]);
+      
       toast({
-        title: "Contact Added",
+        title: 'Contact added',
         description: `${contact.name} has been added as a safety contact`,
       });
       
-      return data as SafetyContact;
+      return data![0] as SafetyContact;
     } catch (error) {
       console.error('Error adding safety contact:', error);
       toast({
-        title: "Error",
-        description: "Failed to add safety contact",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to add safety contact',
+        variant: 'destructive',
       });
       return null;
     } finally {
@@ -100,11 +104,10 @@ export const useDatingSafety = () => {
     }
   };
 
-  // Delete a safety contact
-  const deleteSafetyContact = async (contactId: string) => {
+  // Remove a safety contact
+  const removeSafetyContact = async (contactId: string) => {
+    setIsLoading(true);
     try {
-      setIsLoading(true);
-      
       const { error } = await supabase
         .from('safety_contacts')
         .delete()
@@ -112,19 +115,20 @@ export const useDatingSafety = () => {
       
       if (error) throw error;
       
-      setSafetyContacts(safetyContacts.filter(c => c.id !== contactId));
+      setSafetyContacts(prev => prev.filter(contact => contact.id !== contactId));
+      
       toast({
-        title: "Contact Removed",
-        description: "Safety contact has been removed",
+        title: 'Contact removed',
+        description: 'Safety contact has been removed',
       });
       
       return true;
     } catch (error) {
-      console.error('Error deleting safety contact:', error);
+      console.error('Error removing safety contact:', error);
       toast({
-        title: "Error",
-        description: "Failed to remove safety contact",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to remove safety contact',
+        variant: 'destructive',
       });
       return false;
     } finally {
@@ -132,42 +136,47 @@ export const useDatingSafety = () => {
     }
   };
 
-  // Create a date plan
-  const createDatePlan = async (plan: Omit<DatePlan, 'id' | 'user_id' | 'created_at'>) => {
+  // Add a date plan
+  const addDatePlan = async (plan: Omit<DatePlan, 'id' | 'user_id' | 'created_at'>) => {
+    setIsLoading(true);
     try {
-      setIsLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
       
-      if (!user) throw new Error('Not authenticated');
-      
+      if (!user) {
+        throw new Error('Not authenticated');
+      }
+
       const { data, error } = await supabase
         .from('date_plans')
-        .insert({
-          user_id: user.id,
-          location: plan.location,
-          date_time: plan.date_time,
-          notes: plan.notes,
-          contact_id: plan.contact_id,
-          location_sharing_enabled: plan.location_sharing_enabled
-        })
-        .select('*')
-        .single();
+        .insert([
+          {
+            user_id: user.id,
+            location: plan.location,
+            date_time: plan.date_time,
+            notes: plan.notes,
+            contact_id: plan.contact_id,
+            location_sharing_enabled: plan.location_sharing_enabled
+          }
+        ])
+        .select();
       
       if (error) throw error;
       
-      setDatePlans([...datePlans, data as DatePlan]);
+      const newPlan = data![0] as DatePlan;
+      setDatePlans(prev => [newPlan, ...prev]);
+      
       toast({
-        title: "Date Plan Created",
-        description: "Your date plan has been saved",
+        title: 'Date plan added',
+        description: `Date plan for ${new Date(plan.date_time).toLocaleDateString()} has been scheduled`,
       });
       
-      return data as DatePlan;
+      return newPlan;
     } catch (error) {
-      console.error('Error creating date plan:', error);
+      console.error('Error adding date plan:', error);
       toast({
-        title: "Error",
-        description: "Failed to create date plan",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to add date plan',
+        variant: 'destructive',
       });
       return null;
     } finally {
@@ -175,14 +184,16 @@ export const useDatingSafety = () => {
     }
   };
 
-  // Fetch date plans
+  // Get date plans
   const fetchDatePlans = async () => {
+    setIsLoading(true);
     try {
-      setIsLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
       
-      if (!user) throw new Error('Not authenticated');
-      
+      if (!user) {
+        throw new Error('Not authenticated');
+      }
+
       const { data, error } = await supabase
         .from('date_plans')
         .select('*')
@@ -196,9 +207,9 @@ export const useDatingSafety = () => {
     } catch (error) {
       console.error('Error fetching date plans:', error);
       toast({
-        title: "Error",
-        description: "Failed to load your date plans",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to load date plans',
+        variant: 'destructive',
       });
       return [];
     } finally {
@@ -206,14 +217,20 @@ export const useDatingSafety = () => {
     }
   };
 
+  // Load initial data
+  useEffect(() => {
+    fetchSafetyContacts();
+    fetchDatePlans();
+  }, []);
+
   return {
     safetyContacts,
     datePlans,
     isLoading,
     fetchSafetyContacts,
     addSafetyContact,
-    deleteSafetyContact,
-    createDatePlan,
+    removeSafetyContact,
+    addDatePlan,
     fetchDatePlans
   };
-};
+}

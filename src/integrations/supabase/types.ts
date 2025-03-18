@@ -89,6 +89,47 @@ export type Database = {
         }
         Relationships: []
       }
+      date_plans: {
+        Row: {
+          contact_id: string | null
+          created_at: string
+          date_time: string
+          id: string
+          location: string
+          location_sharing_enabled: boolean
+          notes: string | null
+          user_id: string
+        }
+        Insert: {
+          contact_id?: string | null
+          created_at?: string
+          date_time: string
+          id?: string
+          location: string
+          location_sharing_enabled?: boolean
+          notes?: string | null
+          user_id: string
+        }
+        Update: {
+          contact_id?: string | null
+          created_at?: string
+          date_time?: string
+          id?: string
+          location?: string
+          location_sharing_enabled?: boolean
+          notes?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "date_plans_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "safety_contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       interests: {
         Row: {
           created_at: string
@@ -220,6 +261,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      notifications: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          is_read: boolean
+          related_entity_id: string | null
+          related_user_id: string | null
+          type: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          related_entity_id?: string | null
+          related_user_id?: string | null
+          type: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          related_entity_id?: string | null
+          related_user_id?: string | null
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       profile_images: {
         Row: {
@@ -396,6 +470,33 @@ export type Database = {
           streak_count?: number | null
           updated_at?: string
           verified?: boolean | null
+        }
+        Relationships: []
+      }
+      safety_contacts: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          phone_number: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          phone_number: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          phone_number?: string
+          user_id?: string
         }
         Relationships: []
       }
