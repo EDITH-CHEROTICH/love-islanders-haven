@@ -1,6 +1,6 @@
 
 import { useNavigate } from 'react-router-dom';
-import { LogOut, Settings } from 'lucide-react';
+import { LogOut } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import ProfileView from '@/components/ProfileView';
@@ -44,15 +44,6 @@ const Profile = () => {
           <ProfileView profile={userProfile} isEditable={true} />
           
           <div className="flex flex-col gap-3 mt-6">
-            <Button 
-              variant="outline"
-              className="flex items-center justify-center gap-2 w-full bg-island-light/10 border-island-light"
-              onClick={handleSettings}
-            >
-              <Settings size={16} />
-              <span>Settings</span>
-            </Button>
-            
             <button 
               className="flex items-center justify-center gap-2 text-muted-foreground hover:text-love transition-colors"
               onClick={handleLogout}

@@ -1,12 +1,18 @@
 
 import { Edit, Settings } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface ProfileActionBarProps {
   onEdit: () => void;
-  onSettings: () => void;
 }
 
-const ProfileActionBar = ({ onEdit, onSettings }: ProfileActionBarProps) => {
+const ProfileActionBar = ({ onEdit }: ProfileActionBarProps) => {
+  const navigate = useNavigate();
+  
+  const handleSettings = () => {
+    navigate('/settings');
+  };
+  
   return (
     <div className="absolute top-4 right-4 flex gap-2 z-10">
       <button 
@@ -19,7 +25,7 @@ const ProfileActionBar = ({ onEdit, onSettings }: ProfileActionBarProps) => {
       <button 
         className="bg-island-light/80 p-2 rounded-full hover:bg-island-light transition-colors" 
         aria-label="Settings"
-        onClick={onSettings}
+        onClick={handleSettings}
       >
         <Settings size={20} className="text-white" />
       </button>
