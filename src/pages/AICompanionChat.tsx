@@ -36,8 +36,8 @@ const AICompanionChat: React.FC = () => {
             <InfoIcon className="h-5 w-5" />
             <AlertTitle>AI Companion is running in demo mode</AlertTitle>
             <AlertDescription>
-              To enable full functionality, please set up your Google Gemini API key in the Supabase Edge Function settings.
-              The API key you provided (client ID: 1012633943690-jsk17sgd292l0apr9926lcitbs57c8fc.apps.googleusercontent.com) needs to be added to the GOOGLE_AI_API_KEY secret.
+              To enable full functionality, please set up your OpenAI API key in the Supabase Edge Function settings.
+              The API key needs to be added to the OPENAI_API_KEY secret.
             </AlertDescription>
           </Alert>
         )}

@@ -1,50 +1,51 @@
 
 // Helper functions for AI model interaction
+import OpenAI from "https://esm.sh/openai@4.24.1";
 
-export async function generateAIResponse(genAIClient, MODEL_NAME, systemPrompt, chatHistory, userMessage) {
+export async function generateAIResponse(openaiClient, systemPrompt, chatHistory, userMessage) {
   try {
-    console.log("Calling Gemini API with conversation history...");
+    console.log("Calling OpenAI API with conversation history...");
     console.log("System prompt (first 50 chars):", systemPrompt?.substring(0, 50) + "...");
     console.log("Chat history length:", chatHistory?.length || 0);
     console.log("User message:", userMessage);
     
-    // Get the model
-    const model = genAIClient.getGenerativeModel({ model: MODEL_NAME });
-
-    // Format chat history for Gemini
-    // Gemini expects 'user' and 'model' roles
-    const formattedHistory = chatHistory.map(msg => ({
-      role: msg.role === 'assistant' ? 'model' : 'user',
-      parts: [{ text: msg.content }]
-    }));
+    // Prepare messages for OpenAI
+    const messages = [];
     
-    // Start the chat with the formatted history
-    const chat = model.startChat({
-      history: formattedHistory,
-      generationConfig: {
-        temperature: 0.7,
-        maxOutputTokens: 800,
-      },
-    });
-
-    // Add system prompt as first message if not present in history
-    let result;
-    if (chatHistory.length === 0) {
-      // First, send the system prompt
-      console.log("Sending system prompt first");
-      await chat.sendMessage(systemPrompt);
-      
-      // Then send the actual user message
-      console.log("Sending user message");
-      result = await chat.sendMessage(userMessage);
-    } else {
-      // If we already have history, just send the new message
-      console.log("We have history, just sending the new message");
-      result = await chat.sendMessage(userMessage);
+    // Add system prompt as first message
+    if (systemPrompt) {
+      messages.push({
+        role: 'system',
+        content: systemPrompt
+      });
     }
     
-    // Extract the response text
-    const aiResponse = result.response.text();
+    // Add chat history
+    if (chatHistory && chatHistory.length > 0) {
+      messages.push(...chatHistory.map(msg => ({
+        role: msg.role,
+        content: msg.content
+      })));
+    }
+    
+    // Add the new user message
+    messages.push({
+      role: 'user',
+      content: userMessage
+    });
+    
+    console.log("Sending", messages.length, "messages to OpenAI");
+
+    // Call OpenAI API
+    const completion = await openaiClient.chat.completions.create({
+      model: "gpt-4o-mini", // Using GPT-4o mini for cost efficiency
+      messages: messages,
+      temperature: 0.7,
+      max_tokens: 800,
+    });
+    
+    // Extract response
+    const aiResponse = completion.choices[0].message.content;
     console.log("AI response generated successfully (first 50 chars):", aiResponse?.substring(0, 50) + "...");
     
     return aiResponse;
@@ -69,7 +70,7 @@ export async function generateAIResponse(genAIClient, MODEL_NAME, systemPrompt, 
   }
 }
 
-export async function generateRecommendation(model, userStreakActivity) {
+export async function generateRecommendation(openaiClient, userStreakActivity) {
   try {
     // Create a specialized prompt for streak recommendations
     const recommendationPrompt = `Based on the user's streak activity and interests, generate ONE specific, personalized recommendation for their next streak post. 
@@ -80,9 +81,16 @@ export async function generateRecommendation(model, userStreakActivity) {
     User's recent streaks and interests: ${JSON.stringify(userStreakActivity.slice(0, 3))}`;
     
     // Generate a recommendation
-    const recommendationResult = await model.generateContent(recommendationPrompt);
-    const recommendationText = recommendationResult.response.text();
+    const completion = await openaiClient.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        { role: "user", content: recommendationPrompt }
+      ],
+      temperature: 0.7,
+      max_tokens: 200,
+    });
     
+    const recommendationText = completion.choices[0].message.content;
     return recommendationText;
   } catch (error) {
     console.error("Error generating recommendation:", error);
@@ -91,5 +99,5 @@ export async function generateRecommendation(model, userStreakActivity) {
 }
 
 export function getDemoResponse() {
-  return `Hello there! I'm Isla, your AI companion. I'm having trouble connecting to my servers right now. Please check if the Google AI API key has been correctly set in the Supabase Edge Function settings. How are you feeling today?`;
+  return `Hello there! I'm Isla, your AI companion. I'm having trouble connecting to my servers right now. Please check if the OpenAI API key has been correctly set in the Supabase Edge Function settings. How are you feeling today?`;
 }

@@ -2,7 +2,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.33.1';
-import { GoogleGenerativeAI } from "https://esm.sh/@google/generative-ai@0.2.1";
+import OpenAI from "https://esm.sh/openai@4.24.1";
 
 // Import utility functions
 import { 
@@ -32,9 +32,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Initialize Gemini 
-const API_KEY = Deno.env.get('GOOGLE_AI_API_KEY');
-const MODEL_NAME = 'gemini-1.5-flash';
+// Initialize OpenAI
+const API_KEY = Deno.env.get('OPENAI_API_KEY');
 
 // Initialize Supabase client
 const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
@@ -86,9 +85,9 @@ serve(async (req) => {
       });
     }
 
-    // Check for API key and initialize Gemini client
+    // Check for API key and initialize OpenAI client
     if (!API_KEY || API_KEY.trim() === '') {
-      console.log("No Google AI API key found in environment variables");
+      console.log("No OpenAI API key found in environment variables");
       
       // Return a demo response instead of calling the API
       return new Response(JSON.stringify({ 
@@ -99,10 +98,12 @@ serve(async (req) => {
       });
     }
 
-    console.log("Using Google AI API key:", API_KEY.substring(0, 5) + "...");
+    console.log("Using OpenAI API key:", API_KEY.substring(0, 5) + "...");
     
-    // Initialize the Google GenAI client
-    const genAIClient = new GoogleGenerativeAI(API_KEY);
+    // Initialize OpenAI client
+    const openaiClient = new OpenAI({
+      apiKey: API_KEY,
+    });
     
     // Fetch user profile and settings if userId is provided
     let userProfile = null;
@@ -149,7 +150,7 @@ serve(async (req) => {
       }
     }
     
-    // Prepare the chat history for Gemini
+    // Prepare the chat history for OpenAI
     const chatHistory = recentConversation.length > 0 
       ? recentConversation 
       : conversationHistory;
@@ -158,10 +159,9 @@ serve(async (req) => {
     const systemPrompt = prepareSystemPrompt(userMemoryContext);
 
     try {
-      // Generate AI response
+      // Generate AI response using OpenAI
       const aiResponse = await generateAIResponse(
-        genAIClient, 
-        MODEL_NAME, 
+        openaiClient, 
         systemPrompt, 
         chatHistory, 
         message
@@ -178,11 +178,8 @@ serve(async (req) => {
           // If we should generate a recommendation and we have streak data
           if (shouldRecommend && userStreakActivity && userStreakActivity.length > 0) {
             try {
-              // Get the model
-              const model = genAIClient.getGenerativeModel({ model: MODEL_NAME });
-              
-              // Generate a recommendation
-              const recommendationText = await generateRecommendation(model, userStreakActivity);
+              // Generate a recommendation using OpenAI
+              const recommendationText = await generateRecommendation(openaiClient, userStreakActivity);
               
               // Save the recommendation as a separate message
               await saveAssistantResponse(supabase, userId, recommendationText, 'recommendation');
