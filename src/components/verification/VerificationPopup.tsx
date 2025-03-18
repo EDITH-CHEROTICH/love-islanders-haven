@@ -12,7 +12,7 @@ import {
   InputOTPSlot 
 } from '@/components/ui/input-otp';
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
+import { updateVerificationStatus } from '@/services/profiles';
 
 interface VerificationPopupProps {
   open: boolean;
@@ -49,11 +49,8 @@ const VerificationPopup = ({ open, onClose, onVerified, userId }: VerificationPo
       await new Promise(resolve => setTimeout(resolve, 1500));
       
       if (otp === verificationCode) {
-        // Update user verification status in the database
-        const { error } = await supabase
-          .from('profiles')
-          .update({ verified: true })
-          .eq('id', userId);
+        // Use our verification service instead of direct Supabase calls
+        const { error } = await updateVerificationStatus(userId, true);
           
         if (error) throw error;
         
