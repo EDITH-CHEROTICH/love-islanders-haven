@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -24,6 +23,7 @@ export interface MessageHeaderProps {
 }
 
 const MessageHeader = ({ matchInfo, onBackClick, actions }: MessageHeaderProps) => {
+  
   return (
     <div className="border-b p-3 flex items-center justify-between bg-background/80 backdrop-blur-sm sticky top-0 z-10">
       <div className="flex items-center">
