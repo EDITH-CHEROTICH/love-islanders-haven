@@ -6,9 +6,9 @@ export interface EmergencyAlert {
   id: string;
   user_id: string;
   timestamp: string;
-  location_link?: string;
-  location_latitude?: number;
-  location_longitude?: number;
+  location_link?: string | null;
+  location_latitude?: number | null;
+  location_longitude?: number | null;
 }
 
 export interface ContactNotification {
@@ -18,7 +18,7 @@ export interface ContactNotification {
   message: string;
   sent_at: string;
   delivered: boolean;
-  error_message?: string;
+  error_message?: string | null;
 }
 
 /**

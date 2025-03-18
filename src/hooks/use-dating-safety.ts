@@ -31,15 +31,13 @@ export function useDatingSafety() {
       // Create emergency alert in database
       const { error: alertError } = await supabase
         .from('emergency_alerts')
-        .insert([
-          {
-            user_id: user.id,
-            timestamp: now,
-            location_link: locationStr,
-            location_latitude: location?.latitude,
-            location_longitude: location?.longitude
-          }
-        ]);
+        .insert([{
+          user_id: user.id,
+          timestamp: now,
+          location_link: locationStr,
+          location_latitude: location?.latitude,
+          location_longitude: location?.longitude
+        }]);
       
       if (alertError) throw alertError;
       
@@ -47,14 +45,13 @@ export function useDatingSafety() {
       const promises = safetyContactsHook.safetyContacts.map(async (contact) => {
         const { error } = await supabase
           .from('contact_notifications')
-          .insert([
-            {
-              contact_id: contact.id,
-              alert_type: 'emergency',
-              message: `EMERGENCY ALERT: ${user.email} has triggered an emergency alert. Location: ${locationStr}`,
-              sent_at: now
-            }
-          ]);
+          .insert([{
+            contact_id: contact.id,
+            alert_type: 'emergency',
+            message: `EMERGENCY ALERT: ${user.email} has triggered an emergency alert. Location: ${locationStr}`,
+            sent_at: now,
+            delivered: false
+          }]);
         
         return { contact, error };
       });
