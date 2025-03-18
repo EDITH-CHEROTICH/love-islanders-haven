@@ -32,7 +32,7 @@ const ProfileDetails = ({ profile }: ProfileDetailsProps) => {
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2">
-        <h2 className="text-2xl font-bold">{profile.name}</h2>
+        <h2 className="text-2xl font-bold text-gradient">{profile.name}</h2>
         {getAgeDisplay() && <span className="text-xl">{getAgeDisplay()}</span>}
         
         {profile.verified && (
@@ -48,13 +48,13 @@ const ProfileDetails = ({ profile }: ProfileDetailsProps) => {
       
       <div className="flex flex-wrap gap-2">
         {profile.occupation && (
-          <span className="text-xs bg-island-light/20 text-white px-2 py-1 rounded-full">
+          <span className="text-xs glass-card text-white px-2 py-1 rounded-full">
             {profile.occupation}
           </span>
         )}
         
         {profile.education && (
-          <span className="text-xs bg-island-light/20 text-white px-2 py-1 rounded-full">
+          <span className="text-xs glass-card text-white px-2 py-1 rounded-full">
             {profile.education}
           </span>
         )}

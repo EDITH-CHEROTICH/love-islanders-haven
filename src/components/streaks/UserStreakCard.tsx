@@ -9,9 +9,9 @@ interface UserStreakCardProps {
 
 const UserStreakCard = ({ streakCount, hasPostedToday }: UserStreakCardProps) => {
   return (
-    <Card>
+    <Card className="bg-island-light/20 border border-love/20 backdrop-blur-md">
       <CardHeader className="pb-2">
-        <CardTitle className="text-lg">Your Streak</CardTitle>
+        <CardTitle className="text-lg text-gradient">Your Streak</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="flex items-center justify-between">
