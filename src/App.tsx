@@ -14,6 +14,7 @@ import NotFound from './pages/NotFound';
 import Navbar from './components/Navbar';
 import Profile from './pages/Profile';
 import Matches from './pages/Matches';
+import Discover from './pages/Discover';
 
 const App: React.FC = () => {
   return (
@@ -29,6 +30,7 @@ const App: React.FC = () => {
             <Route path="/streaks" element={<ProtectedRoute><Streaks /></ProtectedRoute>} />
             <Route path="/feedback" element={<Feedback />} />
             <Route path="/matches" element={<ProtectedRoute><Matches /></ProtectedRoute>} />
+            <Route path="/discover" element={<ProtectedRoute><Discover /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
