@@ -49,11 +49,7 @@ export function useDatingSafety() {
       setSafetyContacts(data as SafetyContact[]);
     } catch (error) {
       console.error('Error fetching safety contacts:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to load safety contacts',
-        variant: 'destructive',
-      });
+      toast.error('Failed to load safety contacts');
     } finally {
       setIsLoading(false);
     }
@@ -85,19 +81,12 @@ export function useDatingSafety() {
       
       setSafetyContacts(prev => [data![0] as SafetyContact, ...prev]);
       
-      toast({
-        title: 'Contact added',
-        description: `${contact.name} has been added as a safety contact`,
-      });
+      toast.success(`${contact.name} has been added as a safety contact`);
       
       return data![0] as SafetyContact;
     } catch (error) {
       console.error('Error adding safety contact:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to add safety contact',
-        variant: 'destructive',
-      });
+      toast.error('Failed to add safety contact');
       return null;
     } finally {
       setIsLoading(false);
@@ -117,19 +106,12 @@ export function useDatingSafety() {
       
       setSafetyContacts(prev => prev.filter(contact => contact.id !== contactId));
       
-      toast({
-        title: 'Contact removed',
-        description: 'Safety contact has been removed',
-      });
+      toast.success('Safety contact has been removed');
       
       return true;
     } catch (error) {
       console.error('Error removing safety contact:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to remove safety contact',
-        variant: 'destructive',
-      });
+      toast.error('Failed to remove safety contact');
       return false;
     } finally {
       setIsLoading(false);
@@ -165,19 +147,12 @@ export function useDatingSafety() {
       const newPlan = data![0] as DatePlan;
       setDatePlans(prev => [newPlan, ...prev]);
       
-      toast({
-        title: 'Date plan added',
-        description: `Date plan for ${new Date(plan.date_time).toLocaleDateString()} has been scheduled`,
-      });
+      toast.success(`Date plan for ${new Date(plan.date_time).toLocaleDateString()} has been scheduled`);
       
       return newPlan;
     } catch (error) {
       console.error('Error adding date plan:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to add date plan',
-        variant: 'destructive',
-      });
+      toast.error('Failed to add date plan');
       return null;
     } finally {
       setIsLoading(false);
@@ -206,11 +181,7 @@ export function useDatingSafety() {
       return data as DatePlan[];
     } catch (error) {
       console.error('Error fetching date plans:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to load date plans',
-        variant: 'destructive',
-      });
+      toast.error('Failed to load date plans');
       return [];
     } finally {
       setIsLoading(false);

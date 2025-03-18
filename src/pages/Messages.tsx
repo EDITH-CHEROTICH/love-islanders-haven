@@ -53,7 +53,7 @@ const Messages = () => {
     safetyContacts, 
     isLoading: safetyLoading, 
     fetchSafetyContacts,
-    createDatePlan
+    addDatePlan
   } = useDatingSafety();
   
   useEffect(() => {
@@ -181,7 +181,7 @@ const Messages = () => {
       return;
     }
     
-    const result = await createDatePlan(datePlan);
+    const result = await addDatePlan(datePlan);
     
     if (result) {
       setDatePlanDialogOpen(false);
@@ -196,123 +196,125 @@ const Messages = () => {
     }
   };
   
+  const calendarAction = (
+    <Dialog open={datePlanDialogOpen} onOpenChange={setDatePlanDialogOpen}>
+      <DialogTrigger asChild>
+        <Button variant="ghost" size="icon">
+          <Calendar className="h-5 w-5" />
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Plan a Date</DialogTitle>
+          <DialogDescription>
+            Set up a date and optionally enable safety features
+          </DialogDescription>
+        </DialogHeader>
+        
+        <div className="grid gap-4 py-4">
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="location" className="text-right">
+              Location
+            </Label>
+            <Input
+              id="location"
+              placeholder="Enter meeting location"
+              className="col-span-3"
+              value={datePlan.location}
+              onChange={(e) => setDatePlan({...datePlan, location: e.target.value})}
+            />
+          </div>
+          
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="date" className="text-right">
+              Date & Time
+            </Label>
+            <Input
+              id="date"
+              type="datetime-local"
+              className="col-span-3"
+              value={datePlan.date_time}
+              onChange={(e) => setDatePlan({...datePlan, date_time: e.target.value})}
+            />
+          </div>
+          
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="notes" className="text-right">
+              Notes
+            </Label>
+            <Textarea
+              id="notes"
+              placeholder="Add any additional details"
+              className="col-span-3"
+              value={datePlan.notes}
+              onChange={(e) => setDatePlan({...datePlan, notes: e.target.value})}
+            />
+          </div>
+          
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="safety-contact" className="text-right">
+              Safety Contact
+            </Label>
+            <Select 
+              value={datePlan.contact_id} 
+              onValueChange={(value) => setDatePlan({...datePlan, contact_id: value})}
+            >
+              <SelectTrigger className="col-span-3">
+                <SelectValue placeholder="Select a safety contact" />
+              </SelectTrigger>
+              <SelectContent>
+                {safetyContacts.map(contact => (
+                  <SelectItem key={contact.id} value={contact.id}>
+                    {contact.name}
+                  </SelectItem>
+                ))}
+                {safetyContacts.length === 0 && (
+                  <SelectItem value="" disabled>
+                    No safety contacts added yet
+                  </SelectItem>
+                )}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="location-sharing" className="text-right">
+              Location Sharing
+            </Label>
+            <div className="flex items-center space-x-2 col-span-3">
+              <Switch
+                id="location-sharing"
+                checked={datePlan.location_sharing_enabled}
+                onCheckedChange={(checked) => 
+                  setDatePlan({...datePlan, location_sharing_enabled: checked})
+                }
+              />
+              <Label htmlFor="location-sharing">
+                Share location during date
+              </Label>
+            </div>
+          </div>
+        </div>
+        
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setDatePlanDialogOpen(false)}>
+            Cancel
+          </Button>
+          <Button onClick={handlePlanDate}>
+            Create Date Plan
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+  
   return (
     <div className="min-h-screen bg-gradient-to-b from-island-dark via-island to-island-dark pb-20">
       <div className="page-container hide-scrollbar">
         <MessageHeader 
           matchInfo={matchInfo} 
           onBackClick={handleBackClick} 
-          actions={
-            <Dialog open={datePlanDialogOpen} onOpenChange={setDatePlanDialogOpen}>
-              <DialogTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  <Calendar className="h-5 w-5" />
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Plan a Date</DialogTitle>
-                  <DialogDescription>
-                    Set up a date and optionally enable safety features
-                  </DialogDescription>
-                </DialogHeader>
-                
-                <div className="grid gap-4 py-4">
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="location" className="text-right">
-                      Location
-                    </Label>
-                    <Input
-                      id="location"
-                      placeholder="Enter meeting location"
-                      className="col-span-3"
-                      value={datePlan.location}
-                      onChange={(e) => setDatePlan({...datePlan, location: e.target.value})}
-                    />
-                  </div>
-                  
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="date" className="text-right">
-                      Date & Time
-                    </Label>
-                    <Input
-                      id="date"
-                      type="datetime-local"
-                      className="col-span-3"
-                      value={datePlan.date_time}
-                      onChange={(e) => setDatePlan({...datePlan, date_time: e.target.value})}
-                    />
-                  </div>
-                  
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="notes" className="text-right">
-                      Notes
-                    </Label>
-                    <Textarea
-                      id="notes"
-                      placeholder="Add any additional details"
-                      className="col-span-3"
-                      value={datePlan.notes}
-                      onChange={(e) => setDatePlan({...datePlan, notes: e.target.value})}
-                    />
-                  </div>
-                  
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="safety-contact" className="text-right">
-                      Safety Contact
-                    </Label>
-                    <Select 
-                      value={datePlan.contact_id} 
-                      onValueChange={(value) => setDatePlan({...datePlan, contact_id: value})}
-                    >
-                      <SelectTrigger className="col-span-3">
-                        <SelectValue placeholder="Select a safety contact" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {safetyContacts.map(contact => (
-                          <SelectItem key={contact.id} value={contact.id}>
-                            {contact.name}
-                          </SelectItem>
-                        ))}
-                        {safetyContacts.length === 0 && (
-                          <SelectItem value="" disabled>
-                            No safety contacts added yet
-                          </SelectItem>
-                        )}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="location-sharing" className="text-right">
-                      Location Sharing
-                    </Label>
-                    <div className="flex items-center space-x-2 col-span-3">
-                      <Switch
-                        id="location-sharing"
-                        checked={datePlan.location_sharing_enabled}
-                        onCheckedChange={(checked) => 
-                          setDatePlan({...datePlan, location_sharing_enabled: checked})
-                        }
-                      />
-                      <Label htmlFor="location-sharing">
-                        Share location during date
-                      </Label>
-                    </div>
-                  </div>
-                </div>
-                
-                <DialogFooter>
-                  <Button variant="outline" onClick={() => setDatePlanDialogOpen(false)}>
-                    Cancel
-                  </Button>
-                  <Button onClick={handlePlanDate}>
-                    Create Date Plan
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-          }
+          actions={calendarAction}
         />
         
         <main className="flex flex-col h-[calc(100vh-180px)]">

@@ -1,6 +1,5 @@
-
 import { useState } from 'react';
-import { Filter, Coffee, Briefcase, GraduationCap, Smoking, Plus, Minus } from 'lucide-react';
+import { Filter, Coffee, Briefcase, GraduationCap, Cigarette, Plus, Minus } from 'lucide-react';
 import {
   Sheet,
   SheetClose,
@@ -264,7 +263,7 @@ const AdvancedFilters = ({ onFilterChange, activeFilters }: AdvancedFiltersProps
               
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Smoking className="h-4 w-4 text-muted-foreground" />
+                  <Cigarette className="h-4 w-4 text-muted-foreground" />
                   <Label htmlFor="smoking">Smoking</Label>
                 </div>
                 <Select

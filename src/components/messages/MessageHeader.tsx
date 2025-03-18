@@ -20,9 +20,10 @@ export interface MessageHeaderProps {
     }
   };
   onBackClick: () => void;
+  actions?: React.ReactNode;
 }
 
-const MessageHeader = ({ matchInfo, onBackClick }: MessageHeaderProps) => {
+const MessageHeader = ({ matchInfo, onBackClick, actions }: MessageHeaderProps) => {
   return (
     <div className="border-b p-3 flex items-center justify-between bg-background/80 backdrop-blur-sm sticky top-0 z-10">
       <div className="flex items-center">
@@ -51,6 +52,7 @@ const MessageHeader = ({ matchInfo, onBackClick }: MessageHeaderProps) => {
       </div>
       
       <div className="flex items-center space-x-1">
+        {actions}
         <Button variant="ghost" size="icon" className="text-love">
           <Phone className="h-5 w-5" />
         </Button>
