@@ -3,6 +3,9 @@ import { useState } from 'react';
 import { Image, Plus, Trash2, ShieldCheck, ShieldAlert } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { saveProfileImage } from '@/services/profiles';
+import VerificationPopup from './verification/VerificationPopup';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/context/AuthContext';
 
 interface ProfileImageManagerProps {
   images: string[];
@@ -18,8 +21,10 @@ const ProfileImageManager = ({
   onVerificationRequest 
 }: ProfileImageManagerProps) => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [newImageUrl, setNewImageUrl] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [verificationOpen, setVerificationOpen] = useState(false);
   const maxImages = 6;
   const minImages = 2;
 
@@ -101,10 +106,16 @@ const ProfileImageManager = ({
   };
 
   const handleVerificationRequest = () => {
+    setVerificationOpen(true);
+  };
+  
+  const handleVerificationSuccess = async () => {
+    // Call the onVerificationRequest callback to update parent components
     onVerificationRequest();
+    
     toast({
-      title: "Verification Requested",
-      description: "Your verification request has been submitted. We'll review it soon.",
+      title: "Verification Complete",
+      description: "Your profile is now verified. This helps others trust you're a real person.",
     });
   };
 
@@ -208,6 +219,16 @@ const ProfileImageManager = ({
           )}
         </div>
       </div>
+      
+      {/* Verification Popup */}
+      {user && (
+        <VerificationPopup
+          open={verificationOpen}
+          onClose={() => setVerificationOpen(false)}
+          onVerified={handleVerificationSuccess}
+          userId={user.id}
+        />
+      )}
     </div>
   );
 };

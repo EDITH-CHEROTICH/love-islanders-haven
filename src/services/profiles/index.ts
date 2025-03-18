@@ -5,3 +5,4 @@ export * from './core';
 export * from './interests';
 export * from './media';
 export * from './location';
+export * from './verification';
