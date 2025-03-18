@@ -3,7 +3,7 @@ import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   // Unique app identifier for app stores
-  appId: 'app.lovable.1ced3d0c5b464aa581e60b645c90d997',
+  appId: 'com.lovable.islandershaven',
   
   // Display name of your app
   appName: 'love-islanders-haven',
