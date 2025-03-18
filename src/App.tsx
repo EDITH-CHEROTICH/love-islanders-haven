@@ -12,6 +12,8 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Login from './pages/Login';
 import NotFound from './pages/NotFound';
 import Navbar from './components/Navbar';
+import Profile from './pages/Profile';
+import Matches from './pages/Matches';
 
 const App: React.FC = () => {
   return (
@@ -26,8 +28,8 @@ const App: React.FC = () => {
             <Route path="/ai-companion" element={<ProtectedRoute><AICompanionChat /></ProtectedRoute>} />
             <Route path="/streaks" element={<ProtectedRoute><Streaks /></ProtectedRoute>} />
             <Route path="/feedback" element={<Feedback />} />
-            <Route path="/matches" element={<ProtectedRoute><div className="min-h-screen flex items-center justify-center bg-island-dark p-4"><h1 className="text-2xl font-bold text-white">Matches Page</h1><p className="text-white">This page is coming soon!</p></div></ProtectedRoute>} />
-            <Route path="/profile" element={<ProtectedRoute><div className="min-h-screen flex items-center justify-center bg-island-dark p-4"><h1 className="text-2xl font-bold text-white">Profile Page</h1><p className="text-white">This page is coming soon!</p></div></ProtectedRoute>} />
+            <Route path="/matches" element={<ProtectedRoute><Matches /></ProtectedRoute>} />
+            <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           <Navbar />

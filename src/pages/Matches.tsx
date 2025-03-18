@@ -1,11 +1,9 @@
 
 import { useState } from 'react';
-import { matches } from '../utils/dummyData';
-import Navbar from '../components/Navbar';
+import { matches } from '@/utils/dummyData';
 import { format } from 'date-fns';
 import { MessageCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -16,7 +14,6 @@ const Matches = () => {
   const [chatMessage, setChatMessage] = useState('');
   const [chatMessages, setChatMessages] = useState<{[key: string]: Array<{text: string, sender: 'user' | 'match'}>}>({});
   const { toast } = useToast();
-  const navigate = useNavigate();
   
   const handleChatClick = (match: any) => {
     setSelectedMatch(match);
@@ -68,7 +65,7 @@ const Matches = () => {
   };
   
   return (
-    <div className="min-h-screen bg-gradient-to-b from-island-dark via-island to-island-dark">
+    <div className="min-h-screen bg-gradient-to-b from-island-dark via-island to-island-dark pb-20">
       <div className="page-container hide-scrollbar">
         <header className="text-center pt-4 mb-6">
           <h1 className="text-2xl font-bold text-gradient">Matches</h1>
@@ -151,7 +148,7 @@ const Matches = () => {
                             ))
                           ) : (
                             <div className="text-center text-muted-foreground py-4">
-                              No messages yet. Say hello to {match.profile.name}!
+                              No messages yet. Say hello to {selectedMatch.profile.name}!
                             </div>
                           ))}
                         </div>
@@ -182,18 +179,15 @@ const Matches = () => {
               <p className="text-muted-foreground mb-6">
                 Keep swiping to find your match!
               </p>
-              <button 
-                onClick={() => {}}
+              <Button 
                 className="bg-love hover:bg-love-dark text-white px-6 py-2 rounded-full transition-all"
               >
                 Continue Swiping
-              </button>
+              </Button>
             </div>
           )}
         </main>
       </div>
-      
-      <Navbar />
     </div>
   );
 };
