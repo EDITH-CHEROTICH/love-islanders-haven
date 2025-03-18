@@ -21,7 +21,7 @@ const SwipeButtons = ({
         className="w-12 h-12 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center border border-yellow-500/20 shadow-lg transition-all"
         aria-label="Rewind"
       >
-        <RefreshCcw className="text-yellow-500 w-6 h-6" />
+        <RefreshCcw className="text-yellow-500 w-7 h-7" />
       </button>
       
       <button 
@@ -29,7 +29,7 @@ const SwipeButtons = ({
         className="w-14 h-14 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center border border-rose-500/20 shadow-lg transition-all"
         aria-label="Dislike"
       >
-        <X className="text-rose-500 w-8 h-8" />
+        <X className="text-rose-500 w-7 h-7" />
       </button>
       
       <button 
@@ -37,7 +37,7 @@ const SwipeButtons = ({
         className="w-12 h-12 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center border border-blue-500/20 shadow-lg transition-all"
         aria-label="Super Like"
       >
-        <Star className="text-blue-500 w-6 h-6" />
+        <Star className="text-blue-500 w-7 h-7" />
       </button>
       
       <button 
@@ -45,7 +45,7 @@ const SwipeButtons = ({
         className="w-14 h-14 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center border border-green-500/20 shadow-lg transition-all"
         aria-label="Like"
       >
-        <Heart className="text-green-500 w-8 h-8" />
+        <Heart className="text-green-500 w-7 h-7" />
       </button>
       
       <button 
@@ -53,7 +53,7 @@ const SwipeButtons = ({
         className="w-12 h-12 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center border border-purple-500/20 shadow-lg transition-all"
         aria-label="Message"
       >
-        <MessageCircle className="text-purple-500 w-6 h-6" />
+        <MessageCircle className="text-purple-500 w-7 h-7" />
       </button>
     </div>
   );
