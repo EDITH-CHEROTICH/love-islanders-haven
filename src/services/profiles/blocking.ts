@@ -57,7 +57,7 @@ export const getBlockedUsers = async (userId: string) => {
   try {
     const { data, error } = await supabase
       .from('blocked_users')
-      .select('blocked_user_id, profiles:blocked_user_id(id, name, age)')
+      .select('blocked_user_id, profiles!inner(id, name, age)')
       .eq('user_id', userId);
     
     if (error) throw error;
