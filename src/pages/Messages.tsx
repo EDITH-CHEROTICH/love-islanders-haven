@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -8,14 +7,14 @@ import MessageHeader from '@/components/messages/MessageHeader';
 import MessageContainer from '@/components/messages/MessageContainer';
 import DatePlanDialog from '@/components/messages/DatePlanDialog';
 import { useMatchMessages } from '@/hooks/use-match-messages';
-import { useSafetyContacts } from '@/hooks/safety/use-safety-contacts';
+import { useDatingSafety } from '@/hooks/use-dating-safety';
 
 const Messages = () => {
   const { matchId } = useParams<{ matchId: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-  const { fetchSafetyContacts } = useSafetyContacts();
+  const { fetchSafetyContacts } = useDatingSafety();
   const { matchInfo } = useMatchMessages(matchId, currentUserId);
   
   // Fetch safety contacts on component mount
