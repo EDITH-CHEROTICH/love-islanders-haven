@@ -3,13 +3,21 @@ import { Heart, X, Star, Send, RefreshCcw } from 'lucide-react';
 
 interface SwipeButtonsProps {
   onSwipe: (direction: 'left' | 'right') => void;
+  onSuperLike?: () => void;
+  onRewind?: () => void;
+  onBoost?: () => void;
 }
 
-const SwipeButtons = ({ onSwipe }: SwipeButtonsProps) => {
+const SwipeButtons = ({ 
+  onSwipe, 
+  onSuperLike = () => {}, 
+  onRewind = () => {}, 
+  onBoost = () => {} 
+}: SwipeButtonsProps) => {
   return (
     <div className="flex justify-center gap-3 mt-4 pb-16">
       <button 
-        onClick={() => {}} // Rewind functionality (placeholder)
+        onClick={onRewind} 
         className="w-12 h-12 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center border border-yellow-500/20 shadow-lg transition-all"
         aria-label="Rewind"
       >
@@ -25,7 +33,7 @@ const SwipeButtons = ({ onSwipe }: SwipeButtonsProps) => {
       </button>
       
       <button 
-        onClick={() => {}} // Super like functionality (placeholder)
+        onClick={onSuperLike} 
         className="w-12 h-12 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center border border-blue-500/20 shadow-lg transition-all"
         aria-label="Super Like"
       >
@@ -41,7 +49,7 @@ const SwipeButtons = ({ onSwipe }: SwipeButtonsProps) => {
       </button>
       
       <button 
-        onClick={() => {}} // Boost functionality (placeholder)
+        onClick={onBoost} 
         className="w-12 h-12 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center border border-purple-500/20 shadow-lg transition-all"
         aria-label="Boost"
       >
