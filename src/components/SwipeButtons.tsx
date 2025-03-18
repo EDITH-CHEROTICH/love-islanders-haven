@@ -1,4 +1,5 @@
 
+import React from 'react';
 import { Heart, X, Star, MessageCircle, RefreshCcw } from 'lucide-react';
 
 interface SwipeButtonsProps {
@@ -51,7 +52,7 @@ const SwipeButtons = ({
       <button 
         onClick={onBoost} 
         className="w-12 h-12 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center border border-purple-500/20 shadow-lg transition-all"
-        aria-label="Message"
+        aria-label="Boost"
       >
         <MessageCircle className="text-purple-500 w-7 h-7" />
       </button>
