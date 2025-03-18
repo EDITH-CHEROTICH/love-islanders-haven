@@ -1,9 +1,44 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { profiles } from '@/utils/dummyData';
+import ProfileCard from '@/components/ProfileCard';
+import SwipeButtons from '@/components/SwipeButtons';
 
 const Discover = () => {
   const { toast } = useToast();
+  const [currentProfileIndex, setCurrentProfileIndex] = useState(0);
+  const [swipedProfiles, setSwipedProfiles] = useState<{[key: string]: 'left' | 'right'}>({});
+
+  const handleSwipe = (direction: 'left' | 'right') => {
+    // Store the swipe direction for the current profile
+    setSwipedProfiles({
+      ...swipedProfiles,
+      [profiles[currentProfileIndex].id]: direction
+    });
+
+    // If swiped right (like), show a match notification
+    if (direction === 'right') {
+      toast({
+        title: "It's a match!",
+        description: `You matched with ${profiles[currentProfileIndex].name}!`,
+      });
+    }
+
+    // Move to the next profile if available
+    if (currentProfileIndex < profiles.length - 1) {
+      setCurrentProfileIndex(currentProfileIndex + 1);
+    } else {
+      // Reset to first profile for demo purposes
+      toast({
+        description: "You've seen all profiles. Starting over!",
+      });
+      setCurrentProfileIndex(0);
+      setSwipedProfiles({});
+    }
+  };
+
+  const currentProfile = profiles[currentProfileIndex];
   
   return (
     <div className="min-h-screen bg-gradient-to-b from-island-dark via-island to-island-dark pb-20">
@@ -12,32 +47,18 @@ const Discover = () => {
           <h1 className="text-2xl font-bold text-gradient">Discover</h1>
         </header>
         
-        <main className="container max-w-md mx-auto px-4">
-          <div className="glass-card p-8 animate-fade-in">
-            <div className="text-center mb-6">
-              <h2 className="text-xl font-semibold mb-2">Find New Connections</h2>
-              <p className="text-muted-foreground">
-                Discover people that match your interests and preferences
-              </p>
+        <main className="container max-w-md mx-auto px-4 pb-20">
+          <div className="flex flex-col items-center">
+            <div className="w-full max-w-sm relative">
+              {currentProfile && (
+                <ProfileCard 
+                  profile={currentProfile}
+                  onSwipe={handleSwipe}
+                />
+              )}
             </div>
             
-            <div className="space-y-4">
-              {Array.from({ length: 3 }).map((_, index) => (
-                <div key={index} className="glass-card p-4 flex items-center hover:bg-island-light/20 transition-all">
-                  <div className="w-16 h-16 rounded-full overflow-hidden mr-4 flex-shrink-0 bg-island-light/30">
-                    <div className="w-full h-full flex items-center justify-center text-love">
-                      {index + 1}
-                    </div>
-                  </div>
-                  <div className="flex-grow">
-                    <h3 className="font-semibold">Suggested Match {index + 1}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Tap to explore this profile
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <SwipeButtons onSwipe={handleSwipe} />
           </div>
         </main>
       </div>
