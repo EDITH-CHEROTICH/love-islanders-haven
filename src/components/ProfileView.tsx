@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Profile } from '../utils/dummyData';
 import { useToast } from '@/hooks/use-toast';
@@ -29,13 +28,6 @@ const ProfileView = ({ profile: initialProfile, isEditable = false }: ProfileVie
         description: "You can now edit your profile images, videos, verification status, and preferences.",
       });
     }
-  };
-
-  const handleSettings = () => {
-    toast({
-      title: "Settings",
-      description: "Settings functionality will be available soon.",
-    });
   };
 
   const handleImagesChange = (newImages: string[]) => {
@@ -113,7 +105,7 @@ const ProfileView = ({ profile: initialProfile, isEditable = false }: ProfileVie
     <div className="p-4 animate-fade-in">
       <div className="relative mb-6">
         {isEditable && (
-          <ProfileActionBar onEdit={handleEdit} onSettings={handleSettings} />
+          <ProfileActionBar onEdit={handleEdit} />
         )}
         
         {!isEditing ? (
