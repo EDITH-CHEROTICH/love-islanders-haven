@@ -104,14 +104,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signUp = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signUp({ 
+    const { data, error } = await supabase.auth.signUp({ 
       email, 
       password,
       options: {
         emailRedirectTo: `${window.location.origin}/`
       }
     });
+    
     if (error) throw error;
+    
+    // For development environments where email verification might be disabled
+    // This will set the user as authenticated immediately after sign up
+    if (data.user && !data.user.email_confirmed_at) {
+      // Set local authentication for immediate access
+      localStorage.setItem('isAuthenticated', 'true');
+      localStorage.setItem('authMethod', 'email');
+      localStorage.setItem('authContact', email);
+      setIsLocalAuth(true);
+    }
   };
 
   const signOut = async () => {
