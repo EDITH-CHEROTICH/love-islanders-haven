@@ -1,142 +1,169 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
-import { profiles } from '@/utils/dummyData';
-import ProfileCard from '@/components/ProfileCard';
 import SwipeButtons from '@/components/SwipeButtons';
-import { sortProfilesByCompatibility, trackUserFeedback } from '@/services/recommendations';
-import { useBehaviorTracking } from '@/hooks/use-behavior-tracking';
-import { useUserPreferences } from '@/hooks/use-user-preferences';
-import { supabase } from "@/integrations/supabase/client";
+import ProfileCard from '@/components/ProfileCard';
+import { supabase } from '@/integrations/supabase/client';
+import AdvancedFilters from '@/components/discover/AdvancedFilters';
+import NotificationBell from '@/components/NotificationBell';
+
+// Import mock profiles from utils
+import { profiles } from '@/utils/dummyData';
 
 const Discover = () => {
-  const { toast } = useToast();
   const [currentProfileIndex, setCurrentProfileIndex] = useState(0);
-  const [swipedProfiles, setSwipedProfiles] = useState<{[key: string]: 'left' | 'right'}>({});
-  const [userId, setUserId] = useState<string | undefined>(undefined);
-  const [sortedProfiles, setSortedProfiles] = useState(profiles);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [filters, setFilters] = useState({
+    ageRange: [18, 50] as [number, number],
+    distance: 50,
+    height: [150, 210] as [number, number],
+    relationshipGoals: [],
+    hasChildren: null,
+    hasPets: null,
+    smoking: null,
+    education: null,
+    occupation: null,
+    interests: [],
+  });
   
-  // Get user behavior data
-  const { behaviorData, trackAction } = useBehaviorTracking(userId);
-  
-  // Get user preferences
-  const { preferences } = useUserPreferences();
-
-  // Check if user is authenticated
-  useEffect(() => {
-    const checkAuth = async () => {
-      const { data } = await supabase.auth.getUser();
-      setUserId(data.user?.id);
-    };
-    
-    checkAuth();
-  }, []);
-
-  // Sort profiles based on compatibility
-  useEffect(() => {
-    const optimizedProfiles = sortProfilesByCompatibility(
-      profiles,
-      preferences,
-      behaviorData
-    );
-    
-    setSortedProfiles(optimizedProfiles);
-  }, [preferences, behaviorData]);
-
-  const handleSwipe = useCallback((direction: 'left' | 'right') => {
-    const currentProfile = sortedProfiles[currentProfileIndex];
-    
-    // Store the swipe direction for the current profile
-    setSwipedProfiles(prev => ({
-      ...prev,
-      [currentProfile.id]: direction
-    }));
-
-    // Track user behavior
-    trackAction(
-      currentProfile.id, 
-      direction === 'right' ? 'like' : 'dislike',
-      currentProfile
-    );
-    
-    // Track in recommendation system
-    trackUserFeedback(
-      userId,
-      currentProfile.id,
-      direction === 'right' ? 'like' : 'dislike'
-    );
-
-    // If swiped right (like), show a match notification
-    if (direction === 'right') {
+  const handleSwipe = (direction: 'left' | 'right') => {
+    // Skip animation if we're at the last profile
+    if (currentProfileIndex >= profiles.length - 1) {
       toast({
-        title: "It's a match!",
-        description: `You matched with ${currentProfile.name}!`,
+        title: "End of profiles",
+        description: "You've seen all available profiles for now",
       });
+      return;
+    }
+
+    setIsAnimating(true);
+    
+    // Simulate API call to record swipe
+    setTimeout(() => {
+      if (direction === 'right') {
+        toast({
+          title: "Liked",
+          description: `You liked ${profiles[currentProfileIndex].name}`,
+          variant: "default",
+        });
+      }
       
-      // In a real app, we would check if this is a mutual match
-      // and then create a match in the database
-    }
+      setCurrentProfileIndex(prev => prev + 1);
+      setIsAnimating(false);
+    }, 300);
+  };
 
-    // Move to the next profile if available
-    if (currentProfileIndex < sortedProfiles.length - 1) {
-      setCurrentProfileIndex(currentProfileIndex + 1);
-    } else {
-      // Reset to first profile for demo purposes
+  const handleSuperLike = () => {
+    if (currentProfileIndex >= profiles.length - 1) {
       toast({
-        description: "You've seen all profiles. Starting over!",
+        title: "End of profiles",
+        description: "You've seen all available profiles for now",
       });
-      setCurrentProfileIndex(0);
-      setSwipedProfiles({});
+      return;
     }
-  }, [currentProfileIndex, sortedProfiles, toast, trackAction, userId]);
 
-  const handleSuperLike = useCallback(() => {
-    const currentProfile = sortedProfiles[currentProfileIndex];
-    
-    // Track superlike in behavior data
-    trackAction(currentProfile.id, 'superlike', currentProfile);
-    
-    // Track in recommendation system
-    trackUserFeedback(userId, currentProfile.id, 'superlike');
-    
     toast({
-      title: "Super Like Sent!",
-      description: `You super liked ${currentProfile.name}!`,
+      title: "Super Like",
+      description: `You super liked ${profiles[currentProfileIndex].name}`,
+      variant: "default",
     });
     
-    // Move to next profile
-    if (currentProfileIndex < sortedProfiles.length - 1) {
-      setCurrentProfileIndex(currentProfileIndex + 1);
+    // Move to next profile after super like
+    setCurrentProfileIndex(prev => prev + 1);
+  };
+
+  const handleRewind = () => {
+    if (currentProfileIndex > 0) {
+      setCurrentProfileIndex(prev => prev - 1);
+      toast({
+        description: "Previous profile restored",
+      });
     } else {
       toast({
-        description: "You've seen all profiles. Starting over!",
+        title: "Cannot rewind",
+        description: "No previous profiles to display",
+        variant: "destructive",
       });
-      setCurrentProfileIndex(0);
-      setSwipedProfiles({});
     }
-  }, [currentProfileIndex, sortedProfiles, toast, trackAction, userId]);
+  };
 
-  const currentProfile = sortedProfiles[currentProfileIndex];
+  const handleBoost = () => {
+    toast({
+      title: "Boost activated",
+      description: "Your profile will be shown to more people for the next 30 minutes",
+      variant: "default",
+    });
+  };
+
+  const handleFilterChange = (newFilters: any) => {
+    setFilters(newFilters);
+    
+    // Here you would typically call an API to fetch filtered profiles
+    // For now we'll just show a toast
+    toast({
+      title: "Filters applied",
+      description: "Your preferences have been updated",
+    });
+  };
   
   return (
-    <div className="min-h-screen bg-black pb-20">
-      <div className="page-container hide-scrollbar">
-        <main className="h-full">
-          <div className="flex flex-col items-center h-full">
-            <div className="w-full h-[calc(100vh-160px)] relative">
-              {currentProfile && (
-                <ProfileCard 
-                  profile={currentProfile}
-                  onSwipe={handleSwipe}
-                />
-              )}
-            </div>
-            
-            <SwipeButtons 
-              onSwipe={handleSwipe} 
-              onSuperLike={handleSuperLike}
+    <div className="min-h-screen bg-gradient-to-b from-island-dark via-island to-island-dark pb-20">
+      <div className="page-container">
+        <header className="flex items-center justify-between p-4">
+          <div className="text-xl font-bold text-gradient">Discover</div>
+          <div className="flex items-center space-x-2">
+            <AdvancedFilters 
+              onFilterChange={handleFilterChange}
+              activeFilters={filters}
             />
+            <NotificationBell />
           </div>
+        </header>
+        
+        <main className="pt-4 pb-20">
+          <div className="max-w-md mx-auto h-[calc(100vh-300px)] min-h-[500px] relative">
+            {profiles.map((profile, index) => (
+              <div 
+                key={profile.id} 
+                className={`absolute inset-0 transition-all duration-300 ${
+                  index === currentProfileIndex ? 'opacity-100 z-10' :
+                  index < currentProfileIndex ? 'opacity-0 -translate-x-full' :
+                  'opacity-0 translate-x-full'
+                }`}
+              >
+                <ProfileCard 
+                  profile={profile} 
+                  onSwipe={handleSwipe} 
+                />
+              </div>
+            ))}
+            
+            {currentProfileIndex >= profiles.length && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-4 bg-island rounded-xl shadow-lg">
+                <h2 className="text-2xl font-bold mb-4">That's everyone for now!</h2>
+                <p className="text-muted-foreground mb-6">
+                  Check back later to discover more people, or expand your search criteria.
+                </p>
+                <button 
+                  className="bg-love hover:bg-love-dark text-white px-6 py-2 rounded-full transition-all"
+                  onClick={() => setCurrentProfileIndex(0)}
+                >
+                  Start Over
+                </button>
+              </div>
+            )}
+          </div>
+          
+          <SwipeButtons 
+            onSwipe={handleSwipe}
+            onSuperLike={handleSuperLike}
+            onRewind={handleRewind}
+            onBoost={handleBoost}
+          />
         </main>
       </div>
     </div>
