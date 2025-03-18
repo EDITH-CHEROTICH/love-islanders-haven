@@ -1,4 +1,5 @@
-import { useState } from 'react';
+
+import { useState, useEffect } from 'react';
 import { Profile } from '../utils/dummyData';
 import { useToast } from '@/hooks/use-toast';
 import ProfileImageManager from './ProfileImageManager';
@@ -8,6 +9,8 @@ import RelationshipGoalSelector from './profile/RelationshipGoalSelector';
 import ProfileDetails from './profile/ProfileDetails';
 import ProfileMedia from './profile/ProfileMedia';
 import ProfileActionBar from './profile/ProfileActionBar';
+import { supabase } from '@/integrations/supabase/client';
+import { fetchUserProfile } from '@/services/profiles';
 
 interface ProfileViewProps {
   profile: Profile;
@@ -18,7 +21,35 @@ const ProfileView = ({ profile: initialProfile, isEditable = false }: ProfileVie
   const [profile, setProfile] = useState<Profile>(initialProfile);
   const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState<'images' | 'videos'>('images');
+  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (isEditable) {
+      // Try to load real profile data from Supabase if it's the user's own profile
+      loadUserProfile();
+    }
+  }, [isEditable]);
+
+  const loadUserProfile = async () => {
+    try {
+      const userSession = await supabase.auth.getSession();
+      if (!userSession.data.session) return;
+      
+      const profileData = await fetchUserProfile();
+      if (profileData) {
+        // Only update specific fields from real user profile
+        setProfile(prev => ({
+          ...prev,
+          relationshipGoal: profileData.relationship_goal as any || prev.relationshipGoal,
+          genderPreference: profileData.gender_preference as any || prev.genderPreference,
+          verified: profileData.verified || prev.verified
+        }));
+      }
+    } catch (error) {
+      console.error('Error loading user profile:', error);
+    }
+  };
 
   const handleEdit = () => {
     setIsEditing(!isEditing);
@@ -51,28 +82,66 @@ const ProfileView = ({ profile: initialProfile, isEditable = false }: ProfileVie
     });
   };
 
-  const handleRelationshipGoalChange = (goal: 'long-term' | 'casual' | 'both') => {
-    setProfile({
-      ...profile,
-      relationshipGoal: goal
-    });
-    
-    toast({
-      title: "Relationship Goal Updated",
-      description: `Your relationship goal has been set to ${getGoalDisplayText(goal)}.`,
-    });
+  const handleRelationshipGoalChange = async (goal: 'long-term' | 'casual' | 'both') => {
+    setIsLoading(true);
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ relationship_goal: goal })
+        .eq('id', (await supabase.auth.getUser()).data.user?.id);
+      
+      if (error) throw error;
+      
+      setProfile({
+        ...profile,
+        relationshipGoal: goal
+      });
+      
+      toast({
+        title: "Relationship Goal Updated",
+        description: `Your relationship goal has been set to ${getGoalDisplayText(goal)}.`,
+      });
+    } catch (error) {
+      console.error('Error updating relationship goal:', error);
+      toast({
+        title: "Update Failed",
+        description: "Failed to update your relationship goal. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleGenderPreferenceChange = (preference: 'male' | 'female' | 'both') => {
-    setProfile({
-      ...profile,
-      genderPreference: preference
-    });
-    
-    toast({
-      title: "Preference Updated",
-      description: `You will now see ${getGenderPreferenceText(preference)}.`,
-    });
+  const handleGenderPreferenceChange = async (preference: 'male' | 'female' | 'both') => {
+    setIsLoading(true);
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ gender_preference: preference })
+        .eq('id', (await supabase.auth.getUser()).data.user?.id);
+      
+      if (error) throw error;
+      
+      setProfile({
+        ...profile,
+        genderPreference: preference
+      });
+      
+      toast({
+        title: "Preference Updated",
+        description: `You will now see ${getGenderPreferenceText(preference)}.`,
+      });
+    } catch (error) {
+      console.error('Error updating gender preference:', error);
+      toast({
+        title: "Update Failed",
+        description: "Failed to update your gender preference. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const getGoalDisplayText = (goal?: 'long-term' | 'casual' | 'both') => {
@@ -156,12 +225,14 @@ const ProfileView = ({ profile: initialProfile, isEditable = false }: ProfileVie
             <div className="space-y-6 mt-6">
               <RelationshipGoalSelector 
                 selectedGoal={profile.relationshipGoal || 'both'} 
-                onGoalChange={handleRelationshipGoalChange} 
+                onGoalChange={handleRelationshipGoalChange}
+                isLoading={isLoading}
               />
               
               <GenderSelector
                 selectedPreference={profile.genderPreference || 'both'}
                 onPreferenceChange={handleGenderPreferenceChange}
+                isLoading={isLoading}
               />
             </div>
           </div>
