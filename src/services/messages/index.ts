@@ -11,8 +11,8 @@ export interface Message {
 }
 
 export const sendMessage = async (matchId: string, content: string) => {
-  const user = await supabase.auth.getUser();
-  const userId = user.data.user?.id;
+  const { data: { user } } = await supabase.auth.getUser();
+  const userId = user?.id;
 
   if (!userId) {
     throw new Error('User not authenticated');
@@ -52,8 +52,8 @@ export const getMessagesForMatch = async (matchId: string) => {
 };
 
 export const markMessagesAsRead = async (matchId: string) => {
-  const user = await supabase.auth.getUser();
-  const userId = user.data.user?.id;
+  const { data: { user } } = await supabase.auth.getUser();
+  const userId = user?.id;
 
   if (!userId) {
     throw new Error('User not authenticated');
@@ -74,8 +74,8 @@ export const markMessagesAsRead = async (matchId: string) => {
 };
 
 export const getUnreadMessageCount = async () => {
-  const user = await supabase.auth.getUser();
-  const userId = user.data.user?.id;
+  const { data: { user } } = await supabase.auth.getUser();
+  const userId = user?.id;
 
   if (!userId) {
     throw new Error('User not authenticated');

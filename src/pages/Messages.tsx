@@ -17,7 +17,22 @@ const Messages = () => {
   const [matchInfo, setMatchInfo] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSending, setIsSending] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  useEffect(() => {
+    // Fetch current user ID on component mount
+    const fetchCurrentUser = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        setCurrentUserId(user?.id || null);
+      } catch (error) {
+        console.error('Error fetching current user:', error);
+      }
+    };
+    
+    fetchCurrentUser();
+  }, []);
   
   useEffect(() => {
     if (!matchId) {
@@ -82,7 +97,7 @@ const Messages = () => {
           setMessages(prev => [...prev, payload.new as Message]);
           
           // Mark new messages as read if they are from the other person
-          if (payload.new.sender_id !== supabase.auth.getUser().data.user?.id) {
+          if (payload.new.sender_id !== currentUserId) {
             markMessagesAsRead(matchId);
           }
         }
@@ -109,7 +124,6 @@ const Messages = () => {
       
       if (error) throw error;
       
-      const currentUserId = (await supabase.auth.getUser()).data.user?.id;
       const otherUser = data.user1_id === currentUserId ? data.user2 : data.user1;
       
       setMatchInfo({
@@ -205,7 +219,7 @@ const Messages = () => {
               </div>
             ) : (
               messages.map((msg) => {
-                const isCurrentUser = msg.sender_id === supabase.auth.getUser().data.user?.id;
+                const isCurrentUser = msg.sender_id === currentUserId;
                 return (
                   <div 
                     key={msg.id} 
