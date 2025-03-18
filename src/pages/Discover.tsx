@@ -41,15 +41,11 @@ const Discover = () => {
   const currentProfile = profiles[currentProfileIndex];
   
   return (
-    <div className="min-h-screen bg-gradient-to-b from-island-dark via-island to-island-dark pb-20">
+    <div className="min-h-screen bg-black pb-20">
       <div className="page-container hide-scrollbar">
-        <header className="text-center pt-4 mb-6">
-          <h1 className="text-2xl font-bold text-gradient">Discover</h1>
-        </header>
-        
-        <main className="container max-w-md mx-auto px-4 pb-20">
-          <div className="flex flex-col items-center">
-            <div className="w-full max-w-sm relative">
+        <main className="h-full">
+          <div className="flex flex-col items-center h-full">
+            <div className="w-full h-[calc(100vh-160px)] relative">
               {currentProfile && (
                 <ProfileCard 
                   profile={currentProfile}

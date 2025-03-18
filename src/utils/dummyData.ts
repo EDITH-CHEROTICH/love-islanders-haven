@@ -22,6 +22,7 @@ export interface Profile {
   hasChildren?: boolean;
   childrenCount?: number;
   occupation?: string;
+  activityStatus?: string;
 }
 
 export const profiles: Profile[] = [
@@ -39,7 +40,8 @@ export const profiles: Profile[] = [
     verified: true,
     videos: [],
     gender: 'female',
-    genderPreference: 'both'
+    genderPreference: 'both',
+    activityStatus: 'Recently active'
   },
   {
     id: '2',
@@ -54,23 +56,25 @@ export const profiles: Profile[] = [
     interests: ['Photography', 'Hiking', 'Movies', 'Coffee'],
     videos: [],
     gender: 'male',
-    genderPreference: 'female'
+    genderPreference: 'female',
+    activityStatus: 'Online now'
   },
   {
     id: '3',
-    name: 'Emma',
-    age: 26,
+    name: 'Navie',
+    age: 28,
     location: 'New York, NY',
     bio: 'Art curator by day, jazz enthusiast by night. Looking for someone to explore galleries and late-night venues.',
     images: [
-      'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=774&q=80',
-      'https://images.unsplash.com/photo-1530785602389-07594beb8b73?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=774&q=80'
+      'public/lovable-uploads/5822b9ce-649b-4f0c-af19-c7bc647296a7.png',
+      'https://images.unsplash.com/photo-1615109398623-88346a601842?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=774&q=80'
     ],
-    interests: ['Art', 'Jazz', 'Wine tasting', 'Reading'],
+    interests: ['Home workouts', 'Clubbing', 'Paddle boarding', 'Cooking', 'Swimming'],
     verified: true,
     videos: [],
-    gender: 'female',
-    genderPreference: 'male'
+    gender: 'male',
+    genderPreference: 'female',
+    activityStatus: 'Recently active'
   },
   {
     id: '4',
@@ -85,7 +89,8 @@ export const profiles: Profile[] = [
     interests: ['Coding', 'Cooking', 'Guitar', 'Traveling'],
     videos: [],
     gender: 'male',
-    genderPreference: 'female'
+    genderPreference: 'female',
+    activityStatus: 'Active yesterday'
   },
   {
     id: '5',
@@ -100,7 +105,8 @@ export const profiles: Profile[] = [
     interests: ['Live music', 'Dogs', 'Food', 'Outdoor activities'],
     videos: [],
     gender: 'female',
-    genderPreference: 'both'
+    genderPreference: 'both',
+    activityStatus: 'Recently active'
   }
 ];
 
