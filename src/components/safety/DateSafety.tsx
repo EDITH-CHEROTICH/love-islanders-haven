@@ -14,6 +14,7 @@ import { CalendarIcon, CheckCircle, Shield } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { useDatingSafety, type SafetyContact, type DatePlan } from '@/hooks/use-dating-safety';
 import CalendarView from './CalendarView';
+import EmergencyButton from './EmergencyButton';
 
 interface DateSafetyProps {
   matchId: string;
@@ -93,14 +94,17 @@ const DateSafety = ({ matchId, matchName }: DateSafetyProps) => {
   
   return (
     <Card className="bg-background/80 backdrop-blur-sm shadow-md">
-      <CardHeader>
-        <CardTitle className="flex items-center">
-          <Shield className="h-5 w-5 mr-2 text-love" />
-          Dating Safety Features
-        </CardTitle>
-        <CardDescription>
-          Plan safe dates and share your plans with trusted contacts
-        </CardDescription>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div>
+          <CardTitle className="flex items-center">
+            <Shield className="h-5 w-5 mr-2 text-love" />
+            Dating Safety Features
+          </CardTitle>
+          <CardDescription>
+            Plan safe dates and share your plans with trusted contacts
+          </CardDescription>
+        </div>
+        <EmergencyButton />
       </CardHeader>
       
       <CardContent className="space-y-4">
