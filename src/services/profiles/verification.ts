@@ -1,41 +1,45 @@
 
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from "@/integrations/supabase/client";
 
 /**
- * Updates the verification status of a user profile
- * @param userId The ID of the user to verify
- * @param verified The verification status to set
- * @returns An object containing the updated profile data or an error
+ * Updates a user's verification status in the database
+ * @param userId The user ID to update
+ * @param isVerified The verification status to set
+ * @returns Object containing data or error
  */
-export const updateVerificationStatus = async (
-  userId: string, 
-  verified: boolean = true
-) => {
-  const { data, error } = await supabase
-    .from('profiles')
-    .update({ verified })
-    .eq('id', userId)
-    .select()
-    .single();
+export const updateVerificationStatus = async (userId: string, isVerified: boolean) => {
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .update({ verified: isVerified })
+      .eq('id', userId)
+      .select();
     
-  if (error) throw error;
-  
-  return { data, error: null };
+    return { data, error };
+  } catch (error) {
+    console.error('Error updating verification status:', error);
+    return { data: null, error };
+  }
 };
 
 /**
- * Checks if a user is verified
- * @param userId The ID of the user to check
- * @returns Boolean indicating verification status
+ * Gets the current verification status for a user
+ * @param userId The user ID to check
+ * @returns Boolean indicating if the user is verified or not
  */
-export const isUserVerified = async (userId: string) => {
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('verified')
-    .eq('id', userId)
-    .single();
+export const getVerificationStatus = async (userId: string): Promise<boolean> => {
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('verified')
+      .eq('id', userId)
+      .single();
     
-  if (error) throw error;
-  
-  return data?.verified === true;
+    if (error) throw error;
+    
+    return data?.verified || false;
+  } catch (error) {
+    console.error('Error getting verification status:', error);
+    return false;
+  }
 };

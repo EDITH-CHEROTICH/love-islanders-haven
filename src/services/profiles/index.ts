@@ -6,3 +6,4 @@ export * from './interests';
 export * from './media';
 export * from './location';
 export * from './verification';
+export * from './blocking';
