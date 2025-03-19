@@ -2,34 +2,26 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  // Unique app identifier for app stores
-  appId: 'com.lovable.islandershaven',
-  
-  // Display name of your app
+  appId: 'app.lovable.1ced3d0c5b464aa581e60b645c90d997',
   appName: 'love-islanders-haven',
-  
-  // Build output directory
   webDir: 'dist',
-  
-  // Development server configuration for hot reload
   server: {
     url: 'https://1ced3d0c-5b46-4aa5-81e6-0b645c90d997.lovableproject.com?forceHideBadge=true',
     cleartext: true
   },
-  
-  // iOS specific configuration
+  // Enable hideable address bar in iOS
   ios: {
-    contentInset: 'always', // Enables hideable address bar
+    contentInset: 'always',
   },
-  
-  // Android specific configuration
+  // Enable keyboard resizing in Android
   android: {
-    captureInput: true, // Enables proper keyboard resizing
+    captureInput: true,
+    // Add version information for Play Store
     buildOptions: {
-      keystorePath: undefined,    // You'll set this when creating your keystore
-      keystorePassword: undefined, // You'll set this when creating your keystore
-      keystoreAlias: undefined,    // You'll set this when creating your keystore
-      keystoreAliasPassword: undefined // You'll set this when creating your keystore
+      keystorePath: undefined, // Path to your keystore file
+      keystorePassword: undefined, // Your keystore password
+      keystoreAlias: undefined, // Your key alias
+      keystoreAliasPassword: undefined, // Your alias password
     }
   }
 };
