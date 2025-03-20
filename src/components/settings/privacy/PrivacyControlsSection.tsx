@@ -3,6 +3,7 @@ import { Shield } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { usePrivacy } from './PrivacyContext';
+import { PrivacySettings } from '@/services/settings/types';
 
 interface PrivacyControlSectionProps {
   title: string;
