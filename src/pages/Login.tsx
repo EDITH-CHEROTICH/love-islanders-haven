@@ -24,7 +24,7 @@ const Login = () => {
     
     // If user is authenticated AND was redirected here from a protected route
     if (isAuthenticated && location.state?.from) {
-      const from = location.state.from.pathname || '/ai-companion';
+      const from = location.state.from.pathname || '/discover';
       console.log("Redirecting to:", from);
       navigate(from, { replace: true });
     }

@@ -14,7 +14,7 @@ const Navbar = () => {
   
   const isActivePath = (path: string) => {
     return location.pathname === path || 
-           (path === '/ai-companion' && location.pathname === '/');
+           (path === '/discover' && location.pathname === '/');
   };
 
   return (

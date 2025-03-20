@@ -23,7 +23,7 @@ const App: React.FC = () => {
       <SettingsProvider>
         <Router>
           <Routes>
-            <Route path="/" element={<Navigate to="/ai-companion" replace />} />
+            <Route path="/" element={<Navigate to="/discover" replace />} />
             <Route path="/login" element={<Login />} />
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             <Route path="/ai-companion" element={<ProtectedRoute><AICompanionChat /></ProtectedRoute>} />
