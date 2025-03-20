@@ -1,6 +1,5 @@
 
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Heart, X, Star, MessageCircle, RefreshCcw } from 'lucide-react';
 
 interface SwipeButtonsProps {
@@ -9,6 +8,7 @@ interface SwipeButtonsProps {
   onRewind?: () => void;
   onBoost?: () => void;
   matchId?: string;
+  onMessageClick?: () => void;
 }
 
 const SwipeButtons = ({ 
@@ -16,18 +16,9 @@ const SwipeButtons = ({
   onSuperLike = () => {}, 
   onRewind = () => {}, 
   onBoost = () => {},
-  matchId
+  matchId,
+  onMessageClick
 }: SwipeButtonsProps) => {
-  const navigate = useNavigate();
-
-  const handleMessageClick = () => {
-    if (matchId) {
-      navigate(`/messages/${matchId}`);
-    } else {
-      navigate('/matches');
-    }
-  };
-
   return (
     <div className="flex justify-center gap-3 mt-4 pb-16">
       <button 
@@ -63,7 +54,7 @@ const SwipeButtons = ({
       </button>
       
       <button 
-        onClick={handleMessageClick} 
+        onClick={onMessageClick} 
         className="w-12 h-12 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center border border-purple-500/20 shadow-lg transition-all"
         aria-label="Messages"
       >

@@ -11,8 +11,9 @@ import {
   CardContent,
 } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
-import { blockUser, unblockUser, isUserBlocked } from '@/services/profiles/blocking';
+import { blockUser, unblockUser } from '@/services/profiles/blocking';
 import NotificationBell from '@/components/NotificationBell';
+import InlineChatOverlay from '@/components/messages/InlineChatOverlay';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,6 +24,8 @@ import {
 const Matches = () => {
   const [activeMatches, setActiveMatches] = useState(matches);
   const [blockedUserIds, setBlockedUserIds] = useState<string[]>([]);
+  const [activeChatMatchId, setActiveChatMatchId] = useState<string | null>(null);
+  const [activeChatMatchName, setActiveChatMatchName] = useState<string>('');
   const navigate = useNavigate();
   const { toast } = useToast();
   
@@ -49,7 +52,12 @@ const Matches = () => {
   }, []);
   
   const handleChatClick = (match: any) => {
-    navigate(`/messages/${match.id}`);
+    setActiveChatMatchId(match.id);
+    setActiveChatMatchName(match.profile.name);
+  };
+  
+  const handleCloseChat = () => {
+    setActiveChatMatchId(null);
   };
   
   const handleBlockUser = async (match: any) => {
@@ -229,6 +237,14 @@ const Matches = () => {
           )}
         </main>
       </div>
+      
+      {activeChatMatchId && (
+        <InlineChatOverlay 
+          matchId={activeChatMatchId}
+          matchName={activeChatMatchName}
+          onClose={handleCloseChat}
+        />
+      )}
     </div>
   );
 };
