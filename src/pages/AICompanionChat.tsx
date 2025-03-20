@@ -29,7 +29,6 @@ const AICompanionChat: React.FC = () => {
 
   return (
     <div className="flex flex-col h-screen bg-island-dark">
-      <Navbar />
       <div className={`flex-1 container mx-auto ${isMobile ? 'max-w-full p-0' : 'p-4'}`}>
         {showApiKeyInfo && (
           <Alert className="mb-4 bg-amber-100 border-amber-200 text-amber-800">
@@ -46,7 +45,7 @@ const AICompanionChat: React.FC = () => {
             <div className="flex items-center space-x-2">
               <h2 className="text-lg font-semibold text-white">Chat with Isla</h2>
               <Sparkles className="h-4 w-4 text-love" />
-              <span className="text-xs bg-love/20 text-love px-2 py-0.5 rounded-full">Powered by GPT-4</span>
+              <span className="text-xs bg-love/20 text-love px-2 py-0.5 rounded-full">Powered by GPT-4o</span>
             </div>
           </div>
           <AICompanion />

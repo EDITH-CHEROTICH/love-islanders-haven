@@ -21,7 +21,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex items-center gap-2 p-3 border-t border-island-light">
+    <form onSubmit={handleSubmit} className="flex items-center gap-2 p-3 bg-island border-t border-island-light fixed bottom-16 left-0 right-0 z-10">
       <Input
         value={message}
         onChange={(e) => setMessage(e.target.value)}
