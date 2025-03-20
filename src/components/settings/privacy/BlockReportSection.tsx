@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { toast } from 'sonner';
 import { getBlockedUsers, unblockUser } from '@/services/profiles/blocking';
 import { supabase } from '@/integrations/supabase/client';
+import PrivacyControlsSection from './PrivacyControlsSection';
 
 const BlockReportSection = () => {
   const [isBlockedUsersOpen, setIsBlockedUsersOpen] = useState(false);
@@ -56,8 +57,7 @@ const BlockReportSection = () => {
   };
 
   return (
-    <div className="space-y-4 pt-4 border-t border-island-light/30">
-      <h4 className="text-sm font-medium text-love">Block & Report</h4>
+    <PrivacyControlsSection title="Block & Report" icon={<UserX size={16} className="text-love" />}>
       <Button 
         variant="outline" 
         className="w-full bg-island-light/10 border-island-light/40"
@@ -112,7 +112,7 @@ const BlockReportSection = () => {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+    </PrivacyControlsSection>
   );
 };
 
