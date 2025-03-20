@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -22,11 +21,19 @@ const Login = () => {
     console.log("Login page - isDirectLoginAccess:", isDirectLoginAccess);
     console.log("Login page - location state:", location.state);
     
-    // If user is authenticated AND was redirected here from a protected route
-    if (isAuthenticated && location.state?.from) {
-      const from = location.state.from.pathname || '/discover';
-      console.log("Redirecting to:", from);
-      navigate(from, { replace: true });
+    // If user is authenticated
+    if (isAuthenticated) {
+      // If redirected from a protected route, go back to that route
+      if (location.state?.from) {
+        const from = location.state.from.pathname || '/discover';
+        console.log("Redirecting to:", from);
+        navigate(from, { replace: true });
+      } 
+      // Otherwise redirect to discover
+      else {
+        console.log("Redirecting to discover");
+        navigate('/discover', { replace: true });
+      }
     }
   }, [isAuthenticated, navigate, location, isDirectLoginAccess]);
 
