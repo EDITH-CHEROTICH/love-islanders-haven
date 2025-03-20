@@ -1,5 +1,6 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useMatches } from '@/hooks/use-matches';
 import { useBlockedUsers } from '@/hooks/use-blocked-users';
 import MatchesHeader from '@/components/matches/MatchesHeader';
@@ -11,6 +12,23 @@ const Matches = () => {
   const [activeChatMatchName, setActiveChatMatchName] = useState<string>('');
   const { matches, isLoading, error, refreshMatches } = useMatches();
   const { blockedUserIds, handleBlockUser, handleUnblockUser } = useBlockedUsers();
+  const location = useLocation();
+  
+  // Check if we're coming from a swipe with a match to open
+  useEffect(() => {
+    if (location.state) {
+      const { openChat, matchId, matchName } = location.state as { 
+        openChat?: boolean, 
+        matchId?: string, 
+        matchName?: string 
+      };
+      
+      if (openChat && matchId) {
+        setActiveChatMatchId(matchId);
+        setActiveChatMatchName(matchName || 'Match');
+      }
+    }
+  }, [location]);
   
   const handleChatClick = (matchId: string, matchName: string) => {
     setActiveChatMatchId(matchId);

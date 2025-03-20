@@ -75,7 +75,10 @@ export const useInlineChat = (matchId: string) => {
       .subscribe();
       
     // Mark messages as read when component mounts
-    markMessagesAsRead(matchId);
+    if (matchId) {
+      markMessagesAsRead(matchId)
+        .catch(err => console.error('Error marking messages as read:', err));
+    }
     
     return () => {
       supabase.removeChannel(channel);
