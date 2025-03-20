@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { SettingsProvider } from './context/SettingsContext';
 import { Toaster } from '@/components/ui/sonner';
@@ -23,7 +23,7 @@ const App: React.FC = () => {
       <SettingsProvider>
         <Router>
           <Routes>
-            <Route path="/" element={<ProtectedRoute><AICompanionChat /></ProtectedRoute>} />
+            <Route path="/" element={<Navigate to="/ai" replace />} />
             <Route path="/login" element={<Login />} />
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             <Route path="/ai" element={<ProtectedRoute><AICompanionChat /></ProtectedRoute>} />
