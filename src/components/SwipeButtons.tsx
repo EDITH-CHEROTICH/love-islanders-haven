@@ -1,20 +1,33 @@
 
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Heart, X, Star, MessageCircle, RefreshCcw } from 'lucide-react';
 
 interface SwipeButtonsProps {
-  onSwipe: (direction: 'left' | 'right') => void;
+  onSwipe?: (direction: 'left' | 'right') => void;
   onSuperLike?: () => void;
   onRewind?: () => void;
   onBoost?: () => void;
+  matchId?: string;
 }
 
 const SwipeButtons = ({ 
   onSwipe, 
   onSuperLike = () => {}, 
   onRewind = () => {}, 
-  onBoost = () => {} 
+  onBoost = () => {},
+  matchId
 }: SwipeButtonsProps) => {
+  const navigate = useNavigate();
+
+  const handleMessageClick = () => {
+    if (matchId) {
+      navigate(`/messages/${matchId}`);
+    } else {
+      navigate('/matches');
+    }
+  };
+
   return (
     <div className="flex justify-center gap-3 mt-4 pb-16">
       <button 
@@ -26,7 +39,7 @@ const SwipeButtons = ({
       </button>
       
       <button 
-        onClick={() => onSwipe('left')}
+        onClick={() => onSwipe && onSwipe('left')}
         className="w-14 h-14 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center border border-rose-500/20 shadow-lg transition-all"
         aria-label="Dislike"
       >
@@ -42,7 +55,7 @@ const SwipeButtons = ({
       </button>
       
       <button 
-        onClick={() => onSwipe('right')}
+        onClick={() => onSwipe && onSwipe('right')}
         className="w-14 h-14 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center border border-green-500/20 shadow-lg transition-all"
         aria-label="Like"
       >
@@ -50,9 +63,9 @@ const SwipeButtons = ({
       </button>
       
       <button 
-        onClick={onBoost} 
+        onClick={handleMessageClick} 
         className="w-12 h-12 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center border border-purple-500/20 shadow-lg transition-all"
-        aria-label="Boost"
+        aria-label="Messages"
       >
         <MessageCircle className="text-purple-500 w-7 h-7" />
       </button>

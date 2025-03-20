@@ -73,7 +73,7 @@ export const markMessagesAsRead = async (matchId: string) => {
   return true;
 };
 
-export const getUnreadMessageCount = async () => {
+export const getUnreadMessageCount = async (matchId?: string) => {
   const { data: { user } } = await supabase.auth.getUser();
   const userId = user?.id;
 
@@ -81,16 +81,27 @@ export const getUnreadMessageCount = async () => {
     throw new Error('User not authenticated');
   }
 
-  const { data, error } = await supabase
+  let query = supabase
     .from('messages')
     .select('id', { count: 'exact' })
     .eq('read', false)
     .neq('sender_id', userId);
+  
+  if (matchId) {
+    query = query.eq('match_id', matchId);
+  }
+
+  const { data, error, count } = await query;
 
   if (error) {
     console.error('Error fetching unread message count:', error);
     throw error;
   }
 
-  return data.length || 0;
+  return count || 0;
+};
+
+export const hasUnreadMessages = async (matchId: string) => {
+  const count = await getUnreadMessageCount(matchId);
+  return count > 0;
 };

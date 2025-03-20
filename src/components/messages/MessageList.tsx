@@ -2,21 +2,60 @@
 import { Message } from '@/services/messages';
 import MessageItem from './MessageItem';
 import TypingIndicator from './TypingIndicator';
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface MessageListProps {
   messages: Message[];
   isLoading: boolean;
   currentUserId: string | null;
   isTyping?: boolean;
+  matchId?: string;
 }
 
-const MessageList = ({ messages, isLoading, currentUserId, isTyping = false }: MessageListProps) => {
+const MessageList = ({ 
+  messages, 
+  isLoading, 
+  currentUserId, 
+  isTyping = false,
+  matchId
+}: MessageListProps) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [realTimeMessages, setRealTimeMessages] = useState<Message[]>(messages);
+  
+  useEffect(() => {
+    setRealTimeMessages(messages);
+  }, [messages]);
   
   useEffect(() => {
     scrollToBottom();
-  }, [messages, isTyping]);
+  }, [realTimeMessages, isTyping]);
+  
+  // Set up real-time listener for new messages
+  useEffect(() => {
+    if (!matchId) return;
+    
+    const channel = supabase
+      .channel(`messages:${matchId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+          filter: `match_id=eq.${matchId}`,
+        },
+        (payload) => {
+          const newMessage = payload.new as Message;
+          setRealTimeMessages(prev => [...prev, newMessage]);
+        }
+      )
+      .subscribe();
+      
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [matchId]);
   
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -32,7 +71,7 @@ const MessageList = ({ messages, isLoading, currentUserId, isTyping = false }: M
     );
   }
   
-  if (messages.length === 0) {
+  if (realTimeMessages.length === 0) {
     return (
       <div className="flex-1 overflow-y-auto p-4 space-y-4 hide-scrollbar">
         <div className="text-center text-white/60 py-8">
@@ -44,7 +83,7 @@ const MessageList = ({ messages, isLoading, currentUserId, isTyping = false }: M
   
   return (
     <div className="flex-1 overflow-y-auto p-4 space-y-4 hide-scrollbar">
-      {messages.map((msg) => (
+      {realTimeMessages.map((msg) => (
         <MessageItem 
           key={msg.id} 
           message={msg} 
