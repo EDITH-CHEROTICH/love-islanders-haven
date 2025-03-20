@@ -38,8 +38,8 @@ export const getUserMatches = async () => {
         matched_at,
         user1_id,
         user2_id,
-        user1:user1_id(id, name, age, verified),
-        user2:user2_id(id, name, age, verified)
+        user1:profiles!matches_user1_id_fkey(id, name, age, verified),
+        user2:profiles!matches_user2_id_fkey(id, name, age, verified)
       `)
       .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
       .order('matched_at', { ascending: false });
@@ -110,8 +110,8 @@ export const getMatchById = async (matchId: string) => {
         matched_at,
         user1_id,
         user2_id,
-        user1:user1_id(id, name, age, verified),
-        user2:user2_id(id, name, age, verified)
+        user1:profiles!matches_user1_id_fkey(id, name, age, verified),
+        user2:profiles!matches_user2_id_fkey(id, name, age, verified)
       `)
       .eq('id', matchId)
       .single();
