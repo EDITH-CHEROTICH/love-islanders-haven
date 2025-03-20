@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -100,7 +101,7 @@ const InlineChatOverlay: React.FC<InlineChatOverlayProps> = ({ matchId, matchNam
 
   return (
     <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
-      <div className="bg-island-dark border border-island-light/20 rounded-lg w-full max-w-md h-[90vh] flex flex-col overflow-hidden animate-fade-in">
+      <div className="bg-island-dark border border-island-light/20 rounded-lg w-full max-w-md h-[85vh] flex flex-col overflow-hidden animate-fade-in chat-container">
         {/* Header */}
         <div className="bg-island p-4 border-b border-island-light/20 flex justify-between items-center">
           <h3 className="font-semibold text-white">{matchName}</h3>
