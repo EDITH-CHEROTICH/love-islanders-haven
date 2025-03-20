@@ -2,15 +2,21 @@
 import { useState, useEffect } from 'react';
 import { useDatingSafety, DatePlan } from '@/hooks/use-dating-safety';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/context/AuthContext';
 
 export function useProfileCalendar() {
   const [datePlans, setDatePlans] = useState<DatePlan[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { fetchDatePlans } = useDatingSafety();
+  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
-    loadDatePlans();
-  }, []);
+    if (isAuthenticated) {
+      loadDatePlans();
+    } else {
+      setIsLoading(false);
+    }
+  }, [isAuthenticated]);
 
   const loadDatePlans = async () => {
     setIsLoading(true);
@@ -19,6 +25,7 @@ export function useProfileCalendar() {
       setDatePlans(plans);
     } catch (error) {
       console.error('Error loading date plans:', error);
+      setDatePlans([]);
     } finally {
       setIsLoading(false);
     }

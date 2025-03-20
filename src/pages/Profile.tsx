@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -15,6 +14,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { fetchUserProfile } from '@/services/profiles/core';
 import { Skeleton } from '@/components/ui/skeleton';
 import { profiles } from '@/utils/dummyData';
+import { useAuth } from '@/context/AuthContext';
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -22,10 +22,16 @@ const Profile = () => {
   const [activeTab, setActiveTab] = useState('profile');
   const [profile, setProfile] = useState(profiles[0]); // Default to dummy data
   const [isLoading, setIsLoading] = useState(true);
+  const { isAuthenticated } = useAuth();
   
   useEffect(() => {
-    loadUserProfile();
-  }, []);
+    if (isAuthenticated) {
+      loadUserProfile();
+    } else {
+      // If not authenticated, set loading to false but keep dummy data
+      setIsLoading(false);
+    }
+  }, [isAuthenticated]);
   
   const loadUserProfile = async () => {
     setIsLoading(true);
@@ -51,7 +57,7 @@ const Profile = () => {
       console.error('Error loading profile:', error);
       toast({
         title: "Failed to load profile",
-        description: "Please try again later",
+        description: "Using demo data instead. Please try again later.",
         variant: "destructive"
       });
     } finally {

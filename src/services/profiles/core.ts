@@ -5,8 +5,8 @@ import { SupabaseProfile } from "./types";
 import { requestAndUpdateLocation } from "./location";
 
 export const createOrUpdateProfile = async (preferences: ProfilePreferences, name: string, bio = '') => {
-  const user = supabase.auth.getUser();
-  const userId = (await user).data.user?.id;
+  const { data: { user } } = await supabase.auth.getUser();
+  const userId = user?.id;
 
   if (!userId) {
     throw new Error('User not authenticated');
@@ -59,12 +59,19 @@ export const createOrUpdateProfile = async (preferences: ProfilePreferences, nam
 };
 
 export const fetchUserProfile = async () => {
-  const user = supabase.auth.getUser();
-  const userId = (await user).data.user?.id;
-
-  if (!userId) {
-    throw new Error('User not authenticated');
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  
+  if (authError) {
+    console.error('Authentication error:', authError);
+    throw new Error('Authentication error');
   }
+  
+  if (!user) {
+    console.warn('No authenticated user found');
+    return null;
+  }
+  
+  const userId = user.id;
 
   const { data, error } = await supabase
     .from('profiles')
@@ -74,11 +81,16 @@ export const fetchUserProfile = async () => {
       profile_interests (interests(name))
     `)
     .eq('id', userId)
-    .single();
+    .maybeSingle(); // Using maybeSingle instead of single to avoid errors if no profile exists
 
   if (error) {
     console.error('Error fetching profile:', error);
     throw error;
+  }
+  
+  if (!data) {
+    console.warn('No profile found for user:', userId);
+    return null;
   }
 
   // Cast relationship_goal to the allowed type values or use a default

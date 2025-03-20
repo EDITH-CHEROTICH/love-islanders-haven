@@ -9,10 +9,12 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { useProfileCalendar } from '@/hooks/use-profile-calendar';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/context/AuthContext';
 
 const ProfileCalendar = () => {
   const { upcomingDates, pastDates, isLoading, refresh } = useProfileCalendar();
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
   
   if (isLoading) {
     return (
@@ -20,6 +22,27 @@ const ProfileCalendar = () => {
         <Skeleton className="h-8 w-48" />
         <Skeleton className="h-32 w-full" />
       </div>
+    );
+  }
+  
+  if (!isAuthenticated) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Authentication Required</CardTitle>
+          <CardDescription>
+            Please log in to view and manage your date plans.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button 
+            onClick={() => navigate('/login')} 
+            className="w-full"
+          >
+            Log In
+          </Button>
+        </CardContent>
+      </Card>
     );
   }
   
