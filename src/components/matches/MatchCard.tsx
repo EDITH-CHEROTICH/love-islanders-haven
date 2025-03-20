@@ -1,10 +1,11 @@
 
 import React from 'react';
 import { format } from 'date-fns';
-import { MessageCircle, UserCheck, UserX } from 'lucide-react';
+import { MessageCircle, UserCheck, UserX, MessageCircleDot } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Match } from '@/services/matches';
+import { Badge } from '@/components/ui/badge';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -70,11 +71,23 @@ const MatchCard: React.FC<MatchCardProps> = ({
         <div className="flex items-center ml-2">
           <Button 
             variant="ghost"
-            className="bg-love/10 hover:bg-love/20 p-2 rounded-full transition-all"
+            className="bg-love/10 hover:bg-love/20 p-2 rounded-full transition-all relative"
             onClick={() => onChatClick(match.id, match.otherUser.name)}
             aria-label="Open chat"
           >
-            <MessageCircle size={20} className="text-love" />
+            {match.hasUnreadMessages ? (
+              <>
+                <MessageCircleDot size={20} className="text-love" />
+                <Badge 
+                  variant="destructive" 
+                  className="absolute -top-1 -right-1 h-4 min-w-4 p-0 flex items-center justify-center rounded-full text-[10px]"
+                >
+                  {match.unreadCount > 9 ? '9+' : match.unreadCount}
+                </Badge>
+              </>
+            ) : (
+              <MessageCircle size={20} className="text-love" />
+            )}
           </Button>
           
           <DropdownMenu>
