@@ -90,6 +90,9 @@ export const fetchUserProfile = async () => {
   // Cast gender_preference to match the expected literal types
   const genderPreference = data.gender_preference as 'male' | 'female' | 'both' | undefined;
 
+  // Cast height_unit to the allowed type values or default to undefined
+  const heightUnit = data.height_unit as 'ft' | 'm' | undefined;
+
   // Convert dob string to Date object if it exists
   const dob = data.dob ? new Date(data.dob) : undefined;
 
@@ -100,6 +103,7 @@ export const fetchUserProfile = async () => {
     gender: gender || undefined, // Use undefined if gender is not set
     gender_preference: genderPreference || 'both', // Use 'both' as a default value
     relationship_goal: relationshipGoal || 'both', // Ensure it matches our type
+    height_unit: heightUnit, // Use the properly cast height_unit value
     images: data.profile_images 
       ? data.profile_images
           .sort((a: any, b: any) => a.position - b.position)
