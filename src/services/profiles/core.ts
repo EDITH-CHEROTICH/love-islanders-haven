@@ -90,9 +90,13 @@ export const fetchUserProfile = async () => {
   // Cast gender_preference to match the expected literal types
   const genderPreference = data.gender_preference as 'male' | 'female' | 'both' | undefined;
 
+  // Convert dob string to Date object if it exists
+  const dob = data.dob ? new Date(data.dob) : undefined;
+
   // Transform the data to match our SupabaseProfile type
   const profile: SupabaseProfile = {
     ...data,
+    dob, // Use the converted Date object or undefined
     gender: gender || undefined, // Use undefined if gender is not set
     gender_preference: genderPreference || 'both', // Use 'both' as a default value
     relationship_goal: relationshipGoal || 'both', // Ensure it matches our type
