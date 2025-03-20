@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -11,6 +10,7 @@ import { fetchDiscoverProfiles, recordSwipeAction } from '@/services/discover';
 import { Profile } from '@/utils/dummyData';
 import { trackUserFeedback } from '@/services/recommendations';
 import { useBehaviorTracking } from '@/hooks/use-behavior-tracking';
+import { useAuth } from '@/context/AuthContext';
 
 const Discover = () => {
   const [profiles, setProfiles] = useState<Profile[]>([]);
@@ -32,7 +32,8 @@ const Discover = () => {
     interests: [],
   });
   
-  const { data: { user } } = supabase.auth.getSession() || { data: { user: null } };
+  // Use useAuth to get user information instead of directly accessing supabase
+  const { user } = useAuth();
   const { trackAction } = useBehaviorTracking(user?.id);
   
   // Fetch profiles when component mounts or filters change

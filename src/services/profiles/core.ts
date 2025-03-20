@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { ProfilePreferences } from "@/components/ProfileSetup";
 import { SupabaseProfile } from "./types";
@@ -68,7 +67,11 @@ export const fetchUserProfile = async () => {
 
   const { data, error } = await supabase
     .from('profiles')
-    .select('*')
+    .select(`
+      *,
+      profile_images (url, position),
+      profile_interests (interests(name))
+    `)
     .eq('id', userId)
     .single();
 
@@ -77,7 +80,20 @@ export const fetchUserProfile = async () => {
     throw error;
   }
 
-  return data as SupabaseProfile;
+  // Transform the data to match our SupabaseProfile type
+  const profile: SupabaseProfile = {
+    ...data,
+    images: data.profile_images 
+      ? data.profile_images
+          .sort((a: any, b: any) => a.position - b.position)
+          .map((img: any) => img.url) 
+      : [],
+    interests: data.profile_interests
+      ? data.profile_interests.map((pi: any) => pi.interests.name)
+      : []
+  };
+
+  return profile;
 };
 
 export const updateRelationshipGoal = async (goal: 'long-term' | 'casual' | 'both') => {

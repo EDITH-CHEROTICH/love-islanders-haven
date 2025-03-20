@@ -116,12 +116,14 @@ export const fetchDiscoverProfiles = async (filters: any) => {
     }
     
     // Format the data to match our Profile type
-    const profiles: Profile[] = data.map(p => {
+    const profiles = data.map(p => {
       const interests = p.profile_interests ? 
         p.profile_interests.map((pi: any) => pi.interests.name) : [];
       
       const images = p.profile_images ? 
         p.profile_images.sort((a: any, b: any) => a.position - b.position).map((img: any) => img.url) : [];
+      
+      const relationshipGoal = p.relationship_goal as "long-term" | "casual" | "both" | undefined;
       
       return {
         id: p.id,
@@ -134,7 +136,7 @@ export const fetchDiscoverProfiles = async (filters: any) => {
         verified: p.verified || false,
         gender: p.gender,
         genderPreference: p.gender_preference,
-        relationshipGoal: p.relationship_goal,
+        relationshipGoal: relationshipGoal || 'both',
         education: p.education,
         height: p.height,
         heightCm: p.height_cm,
@@ -145,7 +147,7 @@ export const fetchDiscoverProfiles = async (filters: any) => {
         childrenCount: p.children_count,
         occupation: p.occupation
       };
-    });
+    }) as Profile[];
     
     return profiles;
   } catch (error) {

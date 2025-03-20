@@ -1,11 +1,12 @@
+
 export interface SupabaseProfile {
   id: string;
   name: string;
   age: number;
   location: string;
   bio: string;
-  images: string[];
-  interests: string[];
+  images?: string[]; // Make optional since it's handled separately in the database
+  interests?: string[]; // Make optional since it's handled separately in the database
   verified?: boolean;
   relationship_goal?: 'long-term' | 'casual' | 'both';
   videos?: string[];
@@ -23,6 +24,13 @@ export interface SupabaseProfile {
   children_count?: number;
   occupation?: string;
   activity_status?: string;
+  // Fields from database that weren't in the original interface
+  created_at?: string;
+  updated_at?: string;
+  latitude?: number;
+  longitude?: number;
+  location_updated_at?: string;
+  streak_count?: number;
 }
 
 export interface Like {
