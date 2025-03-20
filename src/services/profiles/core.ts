@@ -83,10 +83,18 @@ export const fetchUserProfile = async () => {
 
   // Cast relationship_goal to the allowed type values or use a default
   const relationshipGoal = data.relationship_goal as 'long-term' | 'casual' | 'both' | undefined;
+  
+  // Cast gender to the allowed type values or use a default
+  const gender = data.gender as 'male' | 'female' | 'other' | undefined;
+  
+  // Cast gender_preference to match any potential type constraints
+  const genderPreference = data.gender_preference as string;
 
   // Transform the data to match our SupabaseProfile type
   const profile: SupabaseProfile = {
     ...data,
+    gender: gender || undefined, // Use undefined if gender is not set
+    gender_preference: genderPreference,
     relationship_goal: relationshipGoal || 'both', // Ensure it matches our type
     images: data.profile_images 
       ? data.profile_images
