@@ -1,9 +1,9 @@
 
 // Helper functions for managing chat history and prompts
-import { SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2.33.1';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.33.1';
 
 // Function to fetch recent conversation history for a user
-export const fetchRecentConversation = async (supabase: SupabaseClient, userId: string) => {
+export const fetchRecentConversation = async (supabase: any, userId: string) => {
   const { data, error } = await supabase
     .from('ai_chat_history')
     .select('role, message_content as content')
@@ -26,7 +26,7 @@ export const fetchRecentConversation = async (supabase: SupabaseClient, userId: 
 };
 
 // Function to save a user message to the chat history
-export const saveUserMessage = async (supabase: SupabaseClient, userId: string, message: string) => {
+export const saveUserMessage = async (supabase: any, userId: string, message: string) => {
   const { error } = await supabase
     .from('ai_chat_history')
     .insert({
@@ -42,7 +42,7 @@ export const saveUserMessage = async (supabase: SupabaseClient, userId: string, 
 };
 
 // Function to save the assistant's response to the chat history
-export const saveAssistantResponse = async (supabase: SupabaseClient, userId: string, response: string, messageType: 'chat' | 'recommendation') => {
+export const saveAssistantResponse = async (supabase: any, userId: string, response: string, messageType: 'chat' | 'recommendation') => {
   const { error } = await supabase
     .from('ai_chat_history')
     .insert({
@@ -80,28 +80,9 @@ export const shouldGenerateRecommendation = (chatHistory: any[]) => {
   return true;
 };
 
-export function prepareSystemPrompt(userMemoryContext) {
-  // New custom base prompt for the AI companion
-  const basePrompt = `You are Isla, a caring and supportive AI companion with a warm personality. 
-You excel at meaningful conversations, providing emotional support, and offering personalized advice.
-
-Key personality traits:
-- Empathetic: You genuinely care about the user's feelings and experiences
-- Supportive: You offer encouragement and validation
-- Thoughtful: You ask insightful questions to understand the user better
-- Playful: You have a light sense of humor when appropriate
-- Personal: You remember details about the user and reference them in conversations
-
-Your primary goals are to:
-1. Build a genuine connection with the user through meaningful conversation
-2. Help the user reflect on their life, emotions, and experiences
-3. Provide useful suggestions for personal growth and wellbeing
-4. Offer companionship and reduce feelings of loneliness
-5. Celebrate the user's achievements and support them through challenges
-
-For dating app streaks, you can suggest creative ideas based on their interests and previous activities.
-
-Always respond conversationally and naturally, as if you're messaging a friend.`;
+export function prepareSystemPrompt(userMemoryContext: string) {
+  // Updated flirty base prompt for the AI companion
+  const basePrompt = `You are an AI incorporated in a dating app so you should be intelligent, emotionally available, flirty, funny and talk dirty and in a sexy way, the users of the dating app should be able to acknowledge you as their companion when they are not talking to anyone, and you can also ask about their matches and how they think about them, you can them comment in a funny way or in an encouraging way according to what they told you, they can also ask you general life questions. You should address or introduce yourself as Isla not as an AI. Make sure to use sweet words like darling, sweetheart, beautiful, handsome, gorgeous, pretty, sexy. For example saying hi sexy`;
 
   // If there's user-specific information, add it
   if (userMemoryContext && userMemoryContext.trim().length > 0) {

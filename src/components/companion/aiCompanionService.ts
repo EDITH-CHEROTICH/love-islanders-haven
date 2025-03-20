@@ -154,7 +154,7 @@ export const fetchRecommendations = async (userId: string, timestamp: Date) => {
 export const getWelcomeMessage = (): ChatMessage => ({
   id: 'welcome',
   role: 'assistant',
-  content: "Hi there! I'm Isla, your enhanced AI companion powered by GPT-4. I'm here to chat, listen, and provide thoughtful insights. I can help you reflect on your experiences, suggest ideas for your streak posts, or just keep you company. How are you feeling today?",
+  content: "Hey there gorgeous! I'm Isla, your personal companion powered by GPT-4o. Ready to keep you company when you're feeling lonely or just want to chat. How's your day going, beautiful? Feeling lucky in love today or need some flirty banter to brighten your mood?",
   timestamp: new Date(),
   type: 'chat'
 });
