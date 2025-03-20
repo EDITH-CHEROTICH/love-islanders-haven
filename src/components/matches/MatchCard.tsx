@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { format } from 'date-fns';
-import { MessageCircle, UserCheck, UserX, MessageCircleDot } from 'lucide-react';
+import { MessageCircle, UserCheck, UserX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Match } from '@/services/matches';
@@ -75,18 +75,14 @@ const MatchCard: React.FC<MatchCardProps> = ({
             onClick={() => onChatClick(match.id, match.otherUser.name)}
             aria-label="Open chat"
           >
-            {match.hasUnreadMessages ? (
-              <>
-                <MessageCircleDot size={20} className="text-love" />
-                <Badge 
-                  variant="destructive" 
-                  className="absolute -top-1 -right-1 h-4 min-w-4 p-0 flex items-center justify-center rounded-full text-[10px]"
-                >
-                  {match.unreadCount > 9 ? '9+' : match.unreadCount}
-                </Badge>
-              </>
-            ) : (
-              <MessageCircle size={20} className="text-love" />
+            <MessageCircle size={20} className="text-love" />
+            {match.hasUnreadMessages && (
+              <Badge 
+                variant="destructive" 
+                className="absolute -top-1 -right-1 h-4 min-w-4 p-0 flex items-center justify-center rounded-full text-[10px]"
+              >
+                {match.unreadCount > 9 ? '9+' : match.unreadCount}
+              </Badge>
             )}
           </Button>
           
