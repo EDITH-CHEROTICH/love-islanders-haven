@@ -77,6 +77,43 @@
 @layer utilities {
   .glass-card {
     @apply bg-island-light/20 backdrop-blur-md border border-love/20 rounded-2xl;
+    animation: glowPulse 2s infinite alternate;
+    position: relative;
+  }
+  
+  .glass-card::after {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: transparent;
+    border-radius: inherit;
+    z-index: -1;
+    box-shadow: 0 0 15px 2px rgba(139, 92, 246, 0.3);
+    opacity: 0;
+    animation: shadowPulse 2.5s ease infinite alternate;
+  }
+  
+  @keyframes glowPulse {
+    0% {
+      border-color: rgba(139, 92, 246, 0.2);
+    }
+    100% {
+      border-color: rgba(139, 92, 246, 0.6);
+    }
+  }
+  
+  @keyframes shadowPulse {
+    0% {
+      opacity: 0.2;
+      box-shadow: 0 0 10px 2px rgba(139, 92, 246, 0.2);
+    }
+    100% {
+      opacity: 0.6;
+      box-shadow: 0 0 20px 3px rgba(139, 92, 246, 0.6);
+    }
   }
   
   .text-gradient {
