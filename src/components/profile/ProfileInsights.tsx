@@ -1,6 +1,4 @@
-
 import { useEffect, useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { 
   Card, 
   CardContent, 
@@ -21,16 +19,7 @@ import {
 } from 'recharts';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Smile, Frown, Users, Clock, Eye, Heart } from 'lucide-react';
-
-interface ProfileStats {
-  likes: number;
-  views: number;
-  matches: number;
-  messageResponses: number;
-  averageResponseTime: number;
-  responseRate: number;
-  conversionRate: number;
-}
+import { fetchProfileStats, fetchDemographics, ProfileStats } from '@/services/profiles/analytics';
 
 interface AgeDistribution {
   age: string;
@@ -53,70 +42,18 @@ const ProfileInsights = () => {
   const [activeTab, setActiveTab] = useState('overview');
 
   useEffect(() => {
-    fetchProfileStats();
-    fetchDemographics();
+    fetchProfileStats(timeRange)
+      .then(data => setStats(data))
+      .catch(error => console.error('Error fetching profile stats:', error))
+      .finally(() => setIsLoading(false));
+    
+    fetchDemographics()
+      .then(data => {
+        setAgeDistribution(data.age);
+        setLocationDistribution(data.location);
+      })
+      .catch(error => console.error('Error fetching demographics:', error));
   }, [timeRange]);
-
-  const fetchProfileStats = async () => {
-    setIsLoading(true);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) throw new Error('Not authenticated');
-      
-      // This would be replaced with an actual API call to get profile stats
-      // For demonstration purposes, we're using mock data
-      
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Mock data based on time range
-      const multiplier = timeRange === 'week' ? 1 : timeRange === 'month' ? 4 : 12;
-      
-      setStats({
-        likes: 24 * multiplier,
-        views: 142 * multiplier,
-        matches: 8 * multiplier,
-        messageResponses: 18 * multiplier,
-        averageResponseTime: 25, // minutes
-        responseRate: 75, // percentage
-        conversionRate: (8 / 24) * 100 * (multiplier > 1 ? 0.8 : 1), // percentage
-      });
-      
-    } catch (error) {
-      console.error('Error fetching profile stats:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const fetchDemographics = async () => {
-    try {
-      // This would be replaced with an actual API call to get demographic data
-      // For demonstration purposes, we're using mock data
-      
-      // Age distribution mock data
-      setAgeDistribution([
-        { age: '18-24', count: 25 },
-        { age: '25-30', count: 40 },
-        { age: '31-35', count: 20 },
-        { age: '36-40', count: 10 },
-        { age: '41+', count: 5 },
-      ]);
-      
-      // Location distribution mock data
-      setLocationDistribution([
-        { location: 'New York', count: 30 },
-        { location: 'Los Angeles', count: 25 },
-        { location: 'Chicago', count: 15 },
-        { location: 'San Francisco', count: 20 },
-        { location: 'Other', count: 10 },
-      ]);
-      
-    } catch (error) {
-      console.error('Error fetching demographics:', error);
-    }
-  };
 
   if (isLoading && !stats) {
     return (

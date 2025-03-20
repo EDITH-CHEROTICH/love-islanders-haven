@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -7,31 +7,73 @@ import ProfileDetails from '@/components/profile/ProfileDetails';
 import ProfileMedia from '@/components/profile/ProfileMedia';
 import ProfileActionBar from '@/components/profile/ProfileActionBar';
 import ProfileInsights from '@/components/profile/ProfileInsights';
+import ProfileCalendar from '@/components/profile/ProfileCalendar';
 import { Button } from '@/components/ui/button';
 import { Calendar, Info, Settings, User } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-
+import { supabase } from '@/integrations/supabase/client';
+import { fetchUserProfile } from '@/services/profiles/core';
+import { Skeleton } from '@/components/ui/skeleton';
 import { profiles } from '@/utils/dummyData';
-
-// For demo purposes, we'll use the first profile in the dummy data
-const currentProfile = profiles[0];
 
 const Profile = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('profile');
+  const [profile, setProfile] = useState(profiles[0]); // Default to dummy data
+  const [isLoading, setIsLoading] = useState(true);
+  
+  useEffect(() => {
+    loadUserProfile();
+  }, []);
+  
+  const loadUserProfile = async () => {
+    setIsLoading(true);
+    try {
+      const userData = await fetchUserProfile();
+      if (userData) {
+        // Update profile with real user data
+        setProfile(prev => ({
+          ...prev,
+          name: userData.name || prev.name,
+          age: userData.age || prev.age,
+          bio: userData.bio || prev.bio,
+          education: userData.education || prev.education,
+          occupation: userData.occupation || prev.occupation,
+          gender: userData.gender || prev.gender,
+          images: userData.images?.length ? userData.images : prev.images,
+          verified: userData.verified || prev.verified,
+          relationshipGoal: userData.relationship_goal,
+          genderPreference: userData.gender_preference
+        }));
+      }
+    } catch (error) {
+      console.error('Error loading profile:', error);
+      toast({
+        title: "Failed to load profile",
+        description: "Please try again later",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
   
   const handleEditProfile = () => {
     navigate('/settings');
   };
   
-  const handleShareProfile = () => {
-    // Logic to share profile would go here
-    toast({
-      title: "Profile Shared",
-      description: "Your profile link has been copied to clipboard",
-    });
-  };
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-island-dark via-island to-island-dark pb-20">
+        <div className="page-container pt-8 space-y-6">
+          <Skeleton className="h-8 w-48 mx-auto" />
+          <Skeleton className="h-80 w-full rounded-xl" />
+          <Skeleton className="h-32 w-full rounded-lg" />
+        </div>
+      </div>
+    );
+  }
   
   return (
     <div className="min-h-screen bg-gradient-to-b from-island-dark via-island to-island-dark pb-20">
@@ -58,9 +100,9 @@ const Profile = () => {
           
           <TabsContent value="profile">
             <div className="space-y-6">
-              <ProfileMedia profile={currentProfile} />
+              <ProfileMedia profile={profile} />
               
-              <ProfileDetails profile={currentProfile} />
+              <ProfileDetails profile={profile} />
               
               <ProfileActionBar 
                 onEdit={handleEditProfile}
@@ -99,13 +141,7 @@ const Profile = () => {
                 Configure Safety Features
               </Button>
               
-              {/* Placeholder for date calendar - would be implemented in a real app */}
-              <div className="border rounded-lg p-8 text-center bg-background/50 backdrop-blur-sm">
-                <h3 className="text-xl font-medium mb-2">No upcoming dates</h3>
-                <p className="text-muted-foreground">
-                  When you plan a date with someone, it will appear here.
-                </p>
-              </div>
+              <ProfileCalendar />
             </div>
           </TabsContent>
         </Tabs>
