@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { matches } from '@/utils/dummyData';
@@ -161,7 +160,7 @@ const Matches = () => {
                           )}
                         </h2>
                         <span className="text-xs text-muted-foreground">
-                          {format(match.matchDate, 'MMM d')}
+                          {format(match.matchDate, 'h:mm a')}
                         </span>
                       </div>
                       
