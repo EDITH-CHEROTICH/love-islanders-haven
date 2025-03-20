@@ -2,7 +2,12 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { Resend } from "npm:resend@2.0.0";
 
-const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+if (!RESEND_API_KEY) {
+  console.error("Missing RESEND_API_KEY environment variable");
+}
+
+const resend = new Resend(RESEND_API_KEY);
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -23,6 +28,10 @@ serve(async (req) => {
 
   try {
     const { email, code }: VerificationEmailRequest = await req.json();
+
+    if (!email || !code) {
+      throw new Error("Email and verification code are required");
+    }
 
     console.log(`Sending verification code ${code} to ${email}`);
 
