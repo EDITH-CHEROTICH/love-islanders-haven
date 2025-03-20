@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +10,7 @@ import * as z from "zod";
 import { useAuth } from "@/context/AuthContext";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { supabase } from "@/integrations/supabase/client";
 
 // Auth schema for login/signup validation
 const authSchema = z.object({
@@ -49,6 +49,7 @@ const LoginForm = ({ isLoginMode, toggleAuthMode, onForgotPassword }: LoginFormP
   const [storedEmail, setStoredEmail] = useState("");
   const [storedPassword, setStoredPassword] = useState("");
   const [generatedCode, setGeneratedCode] = useState("");
+  const [sendingEmail, setSendingEmail] = useState(false);
   const { signIn, signUp, signInWithGoogle } = useAuth();
   const { toast } = useToast();
 
@@ -61,6 +62,33 @@ const LoginForm = ({ isLoginMode, toggleAuthMode, onForgotPassword }: LoginFormP
     },
     mode: "onChange", // Enable validation on change for immediate feedback
   });
+
+  const sendVerificationEmail = async (email: string, code: string) => {
+    setSendingEmail(true);
+    try {
+      const { error } = await supabase.functions.invoke('send-verification-email', {
+        body: { email, code }
+      });
+      
+      if (error) {
+        throw new Error(error.message);
+      }
+      
+      toast({
+        title: "Verification code sent",
+        description: `We've sent a verification code to ${email}. Please check your inbox.`,
+      });
+    } catch (error: any) {
+      console.error("Error sending verification email:", error);
+      toast({
+        title: "Error sending email",
+        description: "We couldn't send the verification code. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setSendingEmail(false);
+    }
+  };
 
   const handleEmailAuth = async (values: z.infer<typeof authSchema>) => {
     setIsLoading(true);
@@ -80,12 +108,8 @@ const LoginForm = ({ isLoginMode, toggleAuthMode, onForgotPassword }: LoginFormP
         const code = Math.floor(1000 + Math.random() * 9000).toString();
         setGeneratedCode(code);
         
-        // In a real app, we would send this code to the user's email
-        // For demo purposes, we'll show it in a toast
-        toast({
-          title: "Verification code sent",
-          description: `For demo purposes, your code is: ${code}`,
-        });
+        // Send the verification code email
+        await sendVerificationEmail(values.email, code);
         
         // Show verification dialog
         setShowVerification(true);
@@ -174,16 +198,13 @@ const LoginForm = ({ isLoginMode, toggleAuthMode, onForgotPassword }: LoginFormP
     setShowConfirmPassword(!showConfirmPassword);
   };
 
-  const handleResendCode = () => {
+  const handleResendCode = async () => {
     // Generate a new 4-digit code
     const newCode = Math.floor(1000 + Math.random() * 9000).toString();
     setGeneratedCode(newCode);
     
-    // In a real app, we would send this code to the user's email
-    toast({
-      title: "New verification code sent",
-      description: `For demo purposes, your new code is: ${newCode}`,
-    });
+    // Send the new code via email
+    await sendVerificationEmail(storedEmail, newCode);
   };
 
   return (
@@ -195,6 +216,7 @@ const LoginForm = ({ isLoginMode, toggleAuthMode, onForgotPassword }: LoginFormP
         
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleEmailAuth)} className="space-y-4">
+            
             <FormField
               control={form.control}
               name="email"
@@ -208,6 +230,7 @@ const LoginForm = ({ isLoginMode, toggleAuthMode, onForgotPassword }: LoginFormP
                 </FormItem>
               )}
             />
+            
             
             <FormField
               control={form.control}
@@ -241,6 +264,7 @@ const LoginForm = ({ isLoginMode, toggleAuthMode, onForgotPassword }: LoginFormP
               )}
             />
 
+            
             {!isLoginMode && (
               <FormField
                 control={form.control}
@@ -275,6 +299,7 @@ const LoginForm = ({ isLoginMode, toggleAuthMode, onForgotPassword }: LoginFormP
               />
             )}
             
+            
             {isLoginMode && (
               <div className="text-right">
                 <Button 
@@ -291,12 +316,15 @@ const LoginForm = ({ isLoginMode, toggleAuthMode, onForgotPassword }: LoginFormP
             <Button 
               type="submit" 
               className="w-full bg-love hover:bg-love-dark"
-              disabled={isLoading}
+              disabled={isLoading || sendingEmail}
             >
-              {isLoading ? "Processing..." : isLoginMode ? "Log In with Email" : "Sign Up with Email"}
+              {isLoading || sendingEmail ? 
+                (isLoginMode ? "Logging in..." : "Preparing verification...") : 
+                (isLoginMode ? "Log In with Email" : "Sign Up with Email")}
             </Button>
           </form>
         </Form>
+        
         
         <div className="relative my-6">
           <div className="absolute inset-0 flex items-center">
@@ -306,6 +334,7 @@ const LoginForm = ({ isLoginMode, toggleAuthMode, onForgotPassword }: LoginFormP
             <span className="px-2 bg-background text-muted-foreground">Or continue with</span>
           </div>
         </div>
+        
         
         <Button
           type="button"
@@ -319,6 +348,7 @@ const LoginForm = ({ isLoginMode, toggleAuthMode, onForgotPassword }: LoginFormP
           </svg>
           {googleLoading ? "Connecting..." : isLoginMode ? "Sign in with Google" : "Sign up with Google"}
         </Button>
+        
         
         <div className="mt-6 text-center text-sm">
           <button 
@@ -340,7 +370,7 @@ const LoginForm = ({ isLoginMode, toggleAuthMode, onForgotPassword }: LoginFormP
             <DialogTitle className="text-white">Verify Your Email</DialogTitle>
             <DialogDescription className="text-muted-foreground">
               We've sent a 4-digit verification code to {storedEmail}.
-              Please enter it below to complete your registration.
+              Please check your inbox and enter the code below.
             </DialogDescription>
           </DialogHeader>
           
@@ -369,8 +399,9 @@ const LoginForm = ({ isLoginMode, toggleAuthMode, onForgotPassword }: LoginFormP
                 onClick={handleResendCode}
                 className="text-love hover:underline"
                 type="button"
+                disabled={sendingEmail}
               >
-                Didn't receive a code? Send again
+                {sendingEmail ? "Sending..." : "Didn't receive a code? Send again"}
               </button>
             </div>
           </div>
