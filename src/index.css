@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -139,6 +138,19 @@
     width: 100%;
     padding-bottom: 80px;
     -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+  }
+
+  /* Password mismatch animation */
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-5px); }
+    40% { transform: translateX(5px); }
+    60% { transform: translateX(-3px); }
+    80% { transform: translateX(3px); }
+  }
+  
+  .animate-shake {
+    animation: shake 0.5s ease-in-out;
   }
 }
 

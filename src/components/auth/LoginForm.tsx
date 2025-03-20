@@ -14,6 +14,16 @@ import { useAuth } from "@/context/AuthContext";
 const authSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address." }),
   password: z.string().min(6, { message: "Password must be at least 6 characters." }),
+  confirmPassword: z.string().optional(),
+}).refine((data) => {
+  // Only validate confirmPassword when in signup mode
+  if (data.confirmPassword !== undefined) {
+    return data.password === data.confirmPassword;
+  }
+  return true;
+}, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"],
 });
 
 type LoginFormProps = {
@@ -26,6 +36,7 @@ const LoginForm = ({ isLoginMode, toggleAuthMode, onForgotPassword }: LoginFormP
   const [isLoading, setIsLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const { signIn, signUp, signInWithGoogle } = useAuth();
   const { toast } = useToast();
 
@@ -34,7 +45,9 @@ const LoginForm = ({ isLoginMode, toggleAuthMode, onForgotPassword }: LoginFormP
     defaultValues: {
       email: "",
       password: "",
+      confirmPassword: "",
     },
+    mode: "onChange", // Enable validation on change for immediate feedback
   });
 
   const handleEmailAuth = async (values: z.infer<typeof authSchema>) => {
@@ -85,6 +98,10 @@ const LoginForm = ({ isLoginMode, toggleAuthMode, onForgotPassword }: LoginFormP
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
+  };
+
+  const toggleConfirmPasswordVisibility = () => {
+    setShowConfirmPassword(!showConfirmPassword);
   };
 
   return (
@@ -140,6 +157,40 @@ const LoginForm = ({ isLoginMode, toggleAuthMode, onForgotPassword }: LoginFormP
               </FormItem>
             )}
           />
+
+          {!isLoginMode && (
+            <FormField
+              control={form.control}
+              name="confirmPassword"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Confirm Password</FormLabel>
+                  <FormControl>
+                    <div className="relative">
+                      <Input 
+                        type={showConfirmPassword ? "text" : "password"} 
+                        placeholder="" 
+                        {...field} 
+                      />
+                      <button 
+                        type="button"
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        onClick={toggleConfirmPasswordVisibility}
+                        tabIndex={-1}
+                      >
+                        {showConfirmPassword ? (
+                          <EyeOff size={18} />
+                        ) : (
+                          <Eye size={18} />
+                        )}
+                      </button>
+                    </div>
+                  </FormControl>
+                  <FormMessage className="animate-shake" />
+                </FormItem>
+              )}
+            />
+          )}
           
           {isLoginMode && (
             <div className="text-right">
