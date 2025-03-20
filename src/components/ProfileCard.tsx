@@ -1,7 +1,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { Profile } from '../utils/dummyData';
-import { ChevronLeft, ChevronRight, Info, Check } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Info, Check, MapPin, Briefcase, GraduationCap } from 'lucide-react';
 
 interface ProfileCardProps {
   profile: Profile;
@@ -13,6 +13,7 @@ const ProfileCard = ({ profile, onSwipe }: ProfileCardProps) => {
   const [startX, setStartX] = useState(0);
   const [offsetX, setOffsetX] = useState(0);
   const [isSwiping, setIsSwiping] = useState(false);
+  const [showMoreInfo, setShowMoreInfo] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
 
   const handleNextImage = (e: React.MouseEvent) => {
@@ -55,6 +56,11 @@ const ProfileCard = ({ profile, onSwipe }: ProfileCardProps) => {
     
     setIsSwiping(false);
     setOffsetX(0);
+  };
+
+  const toggleMoreInfo = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowMoreInfo(!showMoreInfo);
   };
 
   const cardStyle = {
@@ -115,6 +121,121 @@ const ProfileCard = ({ profile, onSwipe }: ProfileCardProps) => {
           )}
         </div>
         
+        {/* More info button */}
+        <div className="absolute top-4 right-4">
+          <button 
+            onClick={toggleMoreInfo}
+            className="w-8 h-8 rounded-full flex items-center justify-center bg-black/20 backdrop-blur-sm"
+          >
+            <Info size={18} className="text-white" />
+          </button>
+        </div>
+        
+        {/* More info panel */}
+        {showMoreInfo && (
+          <div 
+            className="absolute inset-0 bg-black/70 backdrop-blur-sm p-6 overflow-y-auto"
+            onClick={toggleMoreInfo}
+          >
+            <div className="text-white space-y-4">
+              <h2 className="text-2xl font-bold flex items-center">
+                {profile.name}
+                <span className="ml-2">{profile.age}</span>
+                {profile.verified && (
+                  <div className="bg-blue-500 rounded-full p-0.5 ml-2">
+                    <Check size={16} className="text-white" />
+                  </div>
+                )}
+              </h2>
+              
+              {profile.location && (
+                <div className="flex items-center text-white/80">
+                  <MapPin size={16} className="mr-2" />
+                  {profile.location}
+                </div>
+              )}
+              
+              {profile.occupation && (
+                <div className="flex items-center text-white/80">
+                  <Briefcase size={16} className="mr-2" />
+                  {profile.occupation}
+                </div>
+              )}
+              
+              {profile.education && (
+                <div className="flex items-center text-white/80">
+                  <GraduationCap size={16} className="mr-2" />
+                  {profile.education}
+                </div>
+              )}
+              
+              {profile.bio && (
+                <div>
+                  <h3 className="text-sm uppercase text-white/60 mb-1">About me</h3>
+                  <p className="text-white/90">{profile.bio}</p>
+                </div>
+              )}
+              
+              {profile.interests && profile.interests.length > 0 && (
+                <div>
+                  <h3 className="text-sm uppercase text-white/60 mb-1">Interests</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {profile.interests.map((interest, idx) => (
+                      <span 
+                        key={idx} 
+                        className="bg-white/20 text-white text-xs px-3 py-1.5 rounded-full"
+                      >
+                        {interest}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              <div className="grid grid-cols-2 gap-4 mt-4">
+                {profile.relationshipGoal && (
+                  <div>
+                    <h3 className="text-xs uppercase text-white/60 mb-1">Looking for</h3>
+                    <p className="text-white/90 capitalize">{profile.relationshipGoal.replace('-', ' ')}</p>
+                  </div>
+                )}
+                
+                {profile.heightCm && (
+                  <div>
+                    <h3 className="text-xs uppercase text-white/60 mb-1">Height</h3>
+                    <p className="text-white/90">
+                      {profile.heightCm} cm
+                      {profile.height ? ` (${profile.height} ${profile.heightUnit || 'ft'})` : ''}
+                    </p>
+                  </div>
+                )}
+                
+                {profile.hasChildren !== undefined && (
+                  <div>
+                    <h3 className="text-xs uppercase text-white/60 mb-1">Children</h3>
+                    <p className="text-white/90">
+                      {profile.hasChildren ? 
+                        (profile.childrenCount ? `${profile.childrenCount} children` : 'Has children') : 
+                        'No children'}
+                    </p>
+                  </div>
+                )}
+                
+                {profile.hasPets !== undefined && (
+                  <div>
+                    <h3 className="text-xs uppercase text-white/60 mb-1">Pets</h3>
+                    <p className="text-white/90">
+                      {profile.hasPets ? 
+                        (profile.petType ? `Has ${profile.petType}` : 'Has pets') : 
+                        'No pets'}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+        
         {/* Activity status */}
         {profile.activityStatus && (
           <div className="absolute top-6 left-4">
@@ -139,10 +260,17 @@ const ProfileCard = ({ profile, onSwipe }: ProfileCardProps) => {
             )}
           </div>
           
-          <div className="mt-1">
+          {profile.location && (
+            <div className="flex items-center text-white/80 text-sm mt-1">
+              <MapPin size={14} className="mr-1" />
+              {profile.location}
+            </div>
+          )}
+          
+          <div className="mt-2">
             <h3 className="text-white/80 text-sm">Interests</h3>
             <div className="flex flex-wrap mt-1 gap-2">
-              {profile.interests.slice(0, 5).map((interest, i) => (
+              {profile.interests && profile.interests.slice(0, 5).map((interest, i) => (
                 <span 
                   key={i} 
                   className="bg-black/30 backdrop-blur-sm text-white text-xs px-3 py-1.5 rounded-full"
