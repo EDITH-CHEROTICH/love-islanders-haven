@@ -1,18 +1,15 @@
 
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { matches } from '@/utils/dummyData';
 import { format } from 'date-fns';
 import { MessageCircle, UserCheck, UserX } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-} from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
-import { blockUser, unblockUser, isUserBlocked } from '@/services/profiles/blocking';
+import { blockUser, unblockUser } from '@/services/profiles/blocking';
 import NotificationBell from '@/components/NotificationBell';
+import InlineChat from '@/components/matches/InlineChat';
+import { useMatches } from '@/hooks/use-matches';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,9 +18,10 @@ import {
 } from '@/components/ui/dropdown-menu';
 
 const Matches = () => {
-  const [activeMatches, setActiveMatches] = useState(matches);
   const [blockedUserIds, setBlockedUserIds] = useState<string[]>([]);
-  const navigate = useNavigate();
+  const [activeChatMatchId, setActiveChatMatchId] = useState<string | null>(null);
+  const [activeChatMatchName, setActiveChatMatchName] = useState<string>('');
+  const { matches, isLoading, error, refreshMatches } = useMatches();
   const { toast } = useToast();
   
   useEffect(() => {
@@ -32,13 +30,14 @@ const Matches = () => {
       if (!user) return;
       
       try {
-        const blockedUsers = await supabase
+        const { data: blockedUsers, error } = await supabase
           .from('blocked_users')
           .select('blocked_user_id')
           .eq('user_id', user.id);
           
-        if (blockedUsers.data) {
-          setBlockedUserIds(blockedUsers.data.map(u => u.blocked_user_id));
+        if (error) throw error;
+        if (blockedUsers) {
+          setBlockedUserIds(blockedUsers.map(u => u.blocked_user_id));
         }
       } catch (error) {
         console.error('Error fetching blocked users:', error);
@@ -48,15 +47,20 @@ const Matches = () => {
     fetchBlockedUsers();
   }, []);
   
-  const handleChatClick = (match: any) => {
-    navigate(`/messages/${match.id}`);
+  const handleChatClick = (matchId: string, matchName: string) => {
+    setActiveChatMatchId(matchId);
+    setActiveChatMatchName(matchName);
+  };
+  
+  const handleCloseChat = () => {
+    setActiveChatMatchId(null);
   };
   
   const handleBlockUser = async (match: any) => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
     
-    const matchUserId = match.profile.id;
+    const matchUserId = match.otherUser.id;
     
     try {
       const { error } = await blockUser(user.id, matchUserId);
@@ -70,8 +74,13 @@ const Matches = () => {
       
       toast({
         title: "User Blocked",
-        description: `You have blocked ${match.profile.name}`,
+        description: `You have blocked ${match.otherUser.name}`,
       });
+      
+      // Close chat if the blocked user's chat is open
+      if (activeChatMatchId === match.id) {
+        handleCloseChat();
+      }
     } catch (error) {
       console.error('Error blocking user:', error);
       toast({
@@ -86,7 +95,7 @@ const Matches = () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
     
-    const matchUserId = match.profile.id;
+    const matchUserId = match.otherUser.id;
     
     try {
       const { error } = await unblockUser(user.id, matchUserId);
@@ -100,7 +109,7 @@ const Matches = () => {
       
       toast({
         title: "User Unblocked",
-        description: `You have unblocked ${match.profile.name}`,
+        description: `You have unblocked ${match.otherUser.name}`,
       });
     } catch (error) {
       console.error('Error unblocking user:', error);
@@ -113,8 +122,8 @@ const Matches = () => {
   };
   
   // Filter out blocked matches
-  const filteredMatches = activeMatches.filter(match => 
-    !blockedUserIds.includes(match.profile.id)
+  const filteredMatches = matches.filter(match => 
+    !blockedUserIds.includes(match.otherUser.id)
   );
   
   return (
@@ -126,7 +135,26 @@ const Matches = () => {
         </header>
         
         <main className="container max-w-md mx-auto px-4">
-          {filteredMatches.length > 0 ? (
+          {isLoading ? (
+            <div className="flex justify-center py-8">
+              <div className="animate-spin w-8 h-8 border-4 border-love border-t-transparent rounded-full" />
+            </div>
+          ) : error ? (
+            <Card className="border-love/20 backdrop-blur-md bg-island-light/20">
+              <CardContent className="p-8 text-center">
+                <h2 className="text-xl font-semibold mb-2">Error Loading Matches</h2>
+                <p className="text-muted-foreground mb-6">
+                  There was a problem loading your matches. Please try again.
+                </p>
+                <Button 
+                  onClick={refreshMatches}
+                  className="bg-love hover:bg-love-dark text-white px-6 py-2 rounded-full transition-all"
+                >
+                  Retry
+                </Button>
+              </CardContent>
+            </Card>
+          ) : filteredMatches.length > 0 ? (
             <div className="space-y-4 animate-fade-in">
               {filteredMatches.map((match) => (
                 <Card 
@@ -136,8 +164,10 @@ const Matches = () => {
                   <CardContent className="p-4 flex items-center">
                     <div className="w-16 h-16 rounded-full overflow-hidden mr-4 flex-shrink-0">
                       <img 
-                        src={match.profile.images[0]} 
-                        alt={match.profile.name} 
+                        src={match.otherUser.images && match.otherUser.images.length > 0 
+                          ? match.otherUser.images[0] 
+                          : '/placeholder.svg'} 
+                        alt={match.otherUser.name} 
                         className="w-full h-full object-cover"
                       />
                     </div>
@@ -145,21 +175,22 @@ const Matches = () => {
                     <div className="flex-grow">
                       <div className="flex items-center justify-between">
                         <h2 className="font-semibold flex items-center">
-                          {match.profile.name}, {match.profile.age}
-                          {match.profile.verified && (
+                          {match.otherUser.name}
+                          {match.otherUser.age && `, ${match.otherUser.age}`}
+                          {match.otherUser.verified && (
                             <div className="ml-1 bg-blue-500 text-white rounded-full p-0.5">
                               <UserCheck size={12} />
                             </div>
                           )}
                         </h2>
                         <span className="text-xs text-muted-foreground">
-                          {format(match.matchDate, 'MMM d')}
+                          {format(new Date(match.matched_at), 'MMM d')}
                         </span>
                       </div>
                       
                       {match.lastMessage ? (
                         <p className="text-sm text-muted-foreground truncate mt-1">
-                          {match.lastMessage.text}
+                          {match.lastMessage.content}
                         </p>
                       ) : (
                         <p className="text-sm text-love-light mt-1">
@@ -172,7 +203,7 @@ const Matches = () => {
                       <Button 
                         variant="ghost"
                         className="bg-love/10 hover:bg-love/20 p-2 rounded-full transition-all"
-                        onClick={() => handleChatClick(match)}
+                        onClick={() => handleChatClick(match.id, match.otherUser.name)}
                         aria-label="Open chat"
                       >
                         <MessageCircle size={20} className="text-love" />
@@ -193,7 +224,7 @@ const Matches = () => {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          {!blockedUserIds.includes(match.profile.id) ? (
+                          {!blockedUserIds.includes(match.otherUser.id) ? (
                             <DropdownMenuItem onClick={() => handleBlockUser(match)}>
                               <UserX className="mr-2 h-4 w-4" />
                               <span>Block</span>
@@ -219,7 +250,7 @@ const Matches = () => {
                   Keep swiping to find your match!
                 </p>
                 <Button 
-                  onClick={() => navigate('/discover')}
+                  onClick={() => window.location.href = '/discover'}
                   className="bg-love hover:bg-love-dark text-white px-6 py-2 rounded-full transition-all"
                 >
                   Continue Swiping
@@ -229,6 +260,14 @@ const Matches = () => {
           )}
         </main>
       </div>
+      
+      {activeChatMatchId && (
+        <InlineChat 
+          matchId={activeChatMatchId} 
+          matchName={activeChatMatchName}
+          onClose={handleCloseChat} 
+        />
+      )}
     </div>
   );
 };
