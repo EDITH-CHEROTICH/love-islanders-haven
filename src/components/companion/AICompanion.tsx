@@ -150,10 +150,7 @@ const AICompanion: React.FC = () => {
 
   if (initialLoading) {
     return (
-      <div className="flex flex-col h-full max-h-[calc(100vh-76px)] bg-island-dark text-white">
-        <div className="p-3 bg-island text-center border-b border-island-light">
-          <h2 className="text-lg font-semibold text-white">Chat with Isla</h2>
-        </div>
+      <div className="flex flex-col h-full max-h-[calc(100vh-114px)] bg-island-dark text-white">
         <div className="flex-1 flex items-center justify-center">
           <div className="animate-pulse flex space-x-4">
             <div className="h-12 w-12 bg-island-light rounded-full"></div>
@@ -168,11 +165,7 @@ const AICompanion: React.FC = () => {
   }
 
   return (
-    <div className="flex flex-col h-full max-h-[calc(100vh-76px)] bg-island-dark text-white">
-      <div className="p-3 bg-island text-center border-b border-island-light">
-        <h2 className="text-lg font-semibold text-white">Chat with Isla</h2>
-      </div>
-
+    <div className="flex flex-col h-full max-h-[calc(100vh-114px)] bg-island-dark text-white">
       <div className="flex-1 overflow-y-auto p-4">
         {messages.map(message => (
           <div key={message.id} className="mb-4">

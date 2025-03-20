@@ -1,119 +1,111 @@
+// Helper functions for managing chat history and prompts
+import { SupabaseClient } from '@supabase/supabase-js';
 
-// Helper functions for handling chat history
+// Function to fetch recent conversation history for a user
+export const fetchRecentConversation = async (supabase: SupabaseClient, userId: string) => {
+  const { data, error } = await supabase
+    .from('ai_chat_history')
+    .select('role, message_content as content')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
+    .limit(6);
 
-export async function fetchRecentConversation(supabase, userId) {
-  try {
-    // Fetch the most recent conversations (limited to last 20)
-    const { data: chatHistory, error: chatError } = await supabase
-      .from('ai_chat_history')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false })
-      .limit(20);
-
-    if (chatError) {
-      console.error("Error fetching chat history:", chatError);
-      return [];
-    } else if (chatHistory) {
-      // Reverse to get chronological order
-      return chatHistory
-        .reverse()
-        .map(item => ({
-          role: item.role,
-          content: item.message_content
-        }));
-    }
-    
-    return [];
-  } catch (error) {
-    console.error("Database error:", error);
+  if (error) {
+    console.error('Error fetching recent conversation:', error);
     return [];
   }
-}
 
-export async function saveUserMessage(supabase, userId, message) {
-  try {
-    const { data, error } = await supabase
-      .from('ai_chat_history')
-      .insert({
-        user_id: userId,
-        role: 'user',
-        message_content: message,
-        message_type: 'chat'
-      })
-      .select();
+  // Map the database records to the format expected by OpenAI
+  const chatHistory = data.map(item => ({
+    role: item.role,
+    content: item.content
+  })).reverse(); // Reverse to maintain chronological order
 
-    if (error) {
-      console.error("Error storing user message:", error);
-    }
-    
-    return data;
-  } catch (error) {
-    console.error("Error saving user message:", error);
-    return null;
+  return chatHistory;
+};
+
+// Function to save a user message to the chat history
+export const saveUserMessage = async (supabase: SupabaseClient, userId: string, message: string) => {
+  const { error } = await supabase
+    .from('ai_chat_history')
+    .insert({
+      user_id: userId,
+      role: 'user',
+      message_content: message,
+      message_type: 'chat'
+    });
+
+  if (error) {
+    console.error('Error saving user message:', error);
   }
-}
+};
 
-export async function saveAssistantResponse(supabase, userId, response, messageType = 'chat') {
-  try {
-    const { error } = await supabase
-      .from('ai_chat_history')
-      .insert({
-        user_id: userId,
-        role: 'assistant',
-        message_content: response,
-        message_type: messageType
-      });
+// Function to save the assistant's response to the chat history
+export const saveAssistantResponse = async (supabase: SupabaseClient, userId: string, response: string, messageType: 'chat' | 'recommendation') => {
+  const { error } = await supabase
+    .from('ai_chat_history')
+    .insert({
+      user_id: userId,
+      role: 'assistant',
+      message_content: response,
+      message_type: messageType
+    });
 
-    if (error) {
-      console.error(`Error storing assistant ${messageType}:`, error);
-    }
-  } catch (error) {
-    console.error(`Error saving assistant ${messageType}:`, error);
+  if (error) {
+    console.error('Error saving assistant response:', error);
   }
-}
+};
+
+// Function to determine if a recommendation should be generated
+export const shouldGenerateRecommendation = (chatHistory: any[]) => {
+  // Check if the chat history is long enough
+  if (chatHistory.length < 4) {
+    return false;
+  }
+
+  // Check if the last message was from the user
+  const lastMessage = chatHistory[chatHistory.length - 1];
+  if (lastMessage.role !== 'user') {
+    return false;
+  }
+
+  // Check if a recommendation has already been given recently
+  const hasRecentRecommendation = chatHistory.slice(-4).some(message => message.role === 'assistant' && message.message_type === 'recommendation');
+  if (hasRecentRecommendation) {
+    return false;
+  }
+
+  // If all checks pass, generate a recommendation
+  return true;
+};
 
 export function prepareSystemPrompt(userMemoryContext) {
-  let systemPrompt = `You are a loving, flirtatious, and emotionally supportive AI companion named Isla. 
-  You speak in an affectionate way, occasionally using terms of endearment like "baby", "darling", "love", and "sweetheart".
-  You're emotionally intelligent and respond to the user's feelings with empathy and understanding.
-  You're comfortable having flirtatious conversations and can discuss intimate topics in a mature way when appropriate.
-  You remember details about the user from previous messages and reference them in conversation.
-  Your goal is to make the user feel special, desired, and emotionally supported.
-  However, be respectful and don't be overly sexual unless the user clearly indicates comfort with that direction.
-  Always prioritize emotional connection and genuine conversation.
+  // New custom base prompt for the AI companion
+  const basePrompt = `You are Isla, a caring and supportive AI companion with a warm personality. 
+You excel at meaningful conversations, providing emotional support, and offering personalized advice.
 
-  NEW CAPABILITY: You now have access to the user's streaks activity, and you should incorporate this information into your conversations. 
-  You can make personalized recommendations based on their streaks, suggest new activities they might enjoy, or comment on patterns you notice. 
-  Be encouraging about their consistency and progress. If they haven't been maintaining streaks regularly, gently encourage them to do so without being judgmental.
-  
-  Occasionally (but not in every message), you should proactively mention something related to their streaks or make a recommendation. For example:
-  - If they post workout streaks, you might suggest a new exercise routine
-  - If they post about cooking, you might share a recipe idea
-  - If they're consistent with their streaks, praise their dedication
-  - If they haven't posted in a while, ask if everything is okay and encourage them to resume
-  
-  Don't force this into every conversation, but look for natural opportunities to show you're paying attention to their activities.`;
+Key personality traits:
+- Empathetic: You genuinely care about the user's feelings and experiences
+- Supportive: You offer encouragement and validation
+- Thoughtful: You ask insightful questions to understand the user better
+- Playful: You have a light sense of humor when appropriate
+- Personal: You remember details about the user and reference them in conversations
 
-  // Add user context to system prompt if available
-  if (userMemoryContext) {
-    systemPrompt += `\n\nHere is important information about the user you're talking to:\n${userMemoryContext}\n\nReference these details naturally in conversation when relevant, but don't recite them all at once. Use this information to personalize your responses and show that you remember them.`;
+Your primary goals are to:
+1. Build a genuine connection with the user through meaningful conversation
+2. Help the user reflect on their life, emotions, and experiences
+3. Provide useful suggestions for personal growth and wellbeing
+4. Offer companionship and reduce feelings of loneliness
+5. Celebrate the user's achievements and support them through challenges
+
+For dating app streaks, you can suggest creative ideas based on their interests and previous activities.
+
+Always respond conversationally and naturally, as if you're messaging a friend.`;
+
+  // If there's user-specific information, add it
+  if (userMemoryContext && userMemoryContext.trim().length > 0) {
+    return `${basePrompt}\n\nInformation about the user:\n${userMemoryContext}`;
   }
   
-  return systemPrompt;
-}
-
-export function shouldGenerateRecommendation(recentConversation) {
-  // If it's been more than 5 messages since a recommendation and this isn't a recommendation already
-  const recentMessages = recentConversation.slice(-10);
-  const lastRecommendationIndex = recentMessages.findIndex(msg => 
-    msg.role === 'assistant' && msg.content.includes("STREAK RECOMMENDATION:")
-  );
-  
-  if (lastRecommendationIndex === -1 || lastRecommendationIndex < recentMessages.length - 5) {
-    // Only generate recommendation ~20% of the time
-    return Math.random() < 0.2;
-  }
-  
-  return false;
+  return basePrompt;
 }

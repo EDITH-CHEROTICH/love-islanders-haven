@@ -4,7 +4,7 @@ import AICompanion from '@/components/companion/AICompanion';
 import { useIsMobile } from '@/hooks/use-mobile';
 import Navbar from '@/components/Navbar';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { InfoIcon } from "lucide-react";
+import { InfoIcon, Sparkles } from "lucide-react";
 
 const AICompanionChat: React.FC = () => {
   const isMobile = useIsMobile();
@@ -42,6 +42,13 @@ const AICompanionChat: React.FC = () => {
           </Alert>
         )}
         <div className="bg-island rounded-lg overflow-hidden shadow-xl h-full">
+          <div className="bg-island p-3 border-b border-island-light flex items-center justify-center">
+            <div className="flex items-center space-x-2">
+              <h2 className="text-lg font-semibold text-white">Chat with Isla</h2>
+              <Sparkles className="h-4 w-4 text-love" />
+              <span className="text-xs bg-love/20 text-love px-2 py-0.5 rounded-full">Powered by GPT-4</span>
+            </div>
+          </div>
           <AICompanion />
         </div>
       </div>

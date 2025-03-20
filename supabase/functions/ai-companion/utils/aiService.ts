@@ -36,9 +36,9 @@ export async function generateAIResponse(openaiClient, systemPrompt, chatHistory
     
     console.log("Sending", messages.length, "messages to OpenAI");
 
-    // Call OpenAI API
+    // Call OpenAI API - Now using gpt-4o
     const completion = await openaiClient.chat.completions.create({
-      model: "gpt-4o-mini", // Using GPT-4o mini for cost efficiency
+      model: "gpt-4o", // Upgraded to gpt-4o for better capabilities
       messages: messages,
       temperature: 0.7,
       max_tokens: 800,
@@ -80,9 +80,9 @@ export async function generateRecommendation(openaiClient, userStreakActivity) {
     
     User's recent streaks and interests: ${JSON.stringify(userStreakActivity.slice(0, 3))}`;
     
-    // Generate a recommendation
+    // Generate a recommendation using gpt-4o
     const completion = await openaiClient.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: "gpt-4o", // Upgraded to gpt-4o for better recommendations
       messages: [
         { role: "user", content: recommendationPrompt }
       ],
