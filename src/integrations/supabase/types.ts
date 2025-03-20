@@ -288,24 +288,30 @@ export type Database = {
       messages: {
         Row: {
           content: string
+          content_type: string | null
           id: string
           match_id: string | null
+          media_url: string | null
           read: boolean | null
           sender_id: string | null
           sent_at: string
         }
         Insert: {
           content: string
+          content_type?: string | null
           id?: string
           match_id?: string | null
+          media_url?: string | null
           read?: boolean | null
           sender_id?: string | null
           sent_at?: string
         }
         Update: {
           content?: string
+          content_type?: string | null
           id?: string
           match_id?: string | null
+          media_url?: string | null
           read?: boolean | null
           sender_id?: string | null
           sent_at?: string

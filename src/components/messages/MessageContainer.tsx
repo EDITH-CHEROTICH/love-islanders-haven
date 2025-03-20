@@ -110,6 +110,7 @@ const MessageContainer = ({ matchId, currentUserId, onSendMessage }: MessageCont
         onSendMessage={handleSendMessage} 
         isSending={isSending}
         onTypingStatus={handleTypingStatus}
+        matchId={matchId || ''}
       />
     </main>
   );
