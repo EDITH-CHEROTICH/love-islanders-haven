@@ -150,7 +150,7 @@ const Matches = () => {
                       />
                     </div>
                     
-                    <div className="flex-grow">
+                    <div className="flex-grow min-w-0">
                       <div className="flex items-center justify-between">
                         <h2 className="font-semibold flex items-center">
                           {match.profile.name}, {match.profile.age}
@@ -166,17 +166,17 @@ const Matches = () => {
                       </div>
                       
                       {match.lastMessage ? (
-                        <p className="text-sm text-muted-foreground truncate mt-1">
+                        <p className="text-sm text-muted-foreground truncate mt-1 max-w-[calc(100%-60px)]">
                           {match.lastMessage.text}
                         </p>
                       ) : (
-                        <p className="text-sm text-love-light mt-1">
+                        <p className="text-sm text-love-light mt-1 truncate max-w-[calc(100%-60px)]">
                           New match! Say hello
                         </p>
                       )}
                     </div>
                     
-                    <div className="flex items-center ml-2">
+                    <div className="flex items-center ml-2 flex-shrink-0">
                       <Button 
                         variant="ghost"
                         className="bg-love/10 hover:bg-love/20 p-2 rounded-full transition-all"
