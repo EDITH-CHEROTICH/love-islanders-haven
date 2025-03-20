@@ -25,10 +25,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const { toast } = useToast();
 
   useEffect(() => {
+    console.log("AuthProvider initialization");
+    
     // Check for localStorage authentication first
     const localAuth = localStorage.getItem('isAuthenticated');
     
     if (localAuth === 'true') {
+      console.log("Local authentication found");
       setIsLocalAuth(true);
       setLoading(false);
       return;
@@ -67,6 +70,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log("Existing session check:", session ? "Found" : "Not found");
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);

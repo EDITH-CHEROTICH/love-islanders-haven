@@ -28,8 +28,11 @@ const Login = () => {
   
   // Check if user is already authenticated and redirect if needed
   useEffect(() => {
+    console.log("Login page - isAuthenticated:", isAuthenticated);
+    
     if (isAuthenticated) {
       const from = location.state?.from?.pathname || '/ai';
+      console.log("Redirecting to:", from);
       navigate(from, { replace: true });
     }
   }, [isAuthenticated, navigate, location]);
