@@ -2,23 +2,25 @@
 import { Message } from '@/services/messages';
 import MessageItem from './MessageItem';
 import TypingIndicator from './TypingIndicator';
-import { useEffect, RefObject } from 'react';
+import { useRef, useEffect } from 'react';
 
 interface MessageListProps {
   messages: Message[];
   isLoading: boolean;
   currentUserId: string | null;
   isTyping?: boolean;
-  messagesEndRef?: RefObject<HTMLDivElement>;
 }
 
-const MessageList = ({ 
-  messages, 
-  isLoading, 
-  currentUserId, 
-  isTyping = false,
-  messagesEndRef
-}: MessageListProps) => {
+const MessageList = ({ messages, isLoading, currentUserId, isTyping = false }: MessageListProps) => {
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, isTyping]);
+  
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
   
   if (isLoading) {
     return (

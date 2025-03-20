@@ -1,127 +1,61 @@
 
 import React from 'react';
-import { Heart, X, MessageCircle, Star, Undo } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { useToast } from '@/hooks/use-toast';
-import { Button } from '@/components/ui/button';
+import { Heart, X, Star, MessageCircle, RefreshCcw } from 'lucide-react';
 
 interface SwipeButtonsProps {
-  onLike?: () => void;
-  onDislike?: () => void;
-  onSwipe?: (direction: 'left' | 'right') => void; // Add this new prop
+  onSwipe: (direction: 'left' | 'right') => void;
   onSuperLike?: () => void;
-  onUndo?: () => void;
-  onRewind?: () => void; // Add this prop for backwards compatibility
-  onBoost?: () => void; // Add this prop for backwards compatibility
-  onMessage?: () => void;
-  matchId?: string;
-  matchName?: string;
-  isMatch?: boolean;
+  onRewind?: () => void;
+  onBoost?: () => void;
 }
 
-const SwipeButtons: React.FC<SwipeButtonsProps> = ({
-  onLike,
-  onDislike,
-  onSwipe,
-  onSuperLike,
-  onUndo,
-  onRewind, // Include the new props
-  onBoost,
-  onMessage,
-  matchId,
-  matchName,
-  isMatch = false,
-}) => {
-  const { toast } = useToast();
-  const navigate = useNavigate();
-
-  // Handle the like action with compatibility for both onLike and onSwipe
-  const handleLike = () => {
-    if (onLike) {
-      onLike();
-    }
-    if (onSwipe) {
-      onSwipe('right');
-    }
-  };
-
-  // Handle the dislike action with compatibility for both onDislike and onSwipe
-  const handleDislike = () => {
-    if (onDislike) {
-      onDislike();
-    }
-    if (onSwipe) {
-      onSwipe('left');
-    }
-  };
-
-  // Handle undo with compatibility for both props
-  const handleUndo = () => {
-    if (onUndo) {
-      onUndo();
-    }
-    if (onRewind) {
-      onRewind();
-    }
-  };
-
-  const handleMessageClick = () => {
-    if (onMessage) {
-      onMessage();
-    } else if (matchId) {
-      // Navigate to the matches page with this match opened
-      navigate('/matches', { 
-        state: { 
-          openChat: true, 
-          matchId, 
-          matchName: matchName || 'Match' 
-        } 
-      });
-    } else {
-      toast({
-        description: "No match available to message",
-        variant: "destructive",
-      });
-    }
-  };
-
+const SwipeButtons = ({ 
+  onSwipe, 
+  onSuperLike = () => {}, 
+  onRewind = () => {}, 
+  onBoost = () => {} 
+}: SwipeButtonsProps) => {
   return (
-    <div className="flex justify-center space-x-4 my-4">
-      {(onUndo || onRewind) && (
-        <Button onClick={handleUndo} className="p-3 rounded-full bg-yellow-400 hover:bg-yellow-500">
-          <Undo className="text-white w-7 h-7" />
-        </Button>
-      )}
+    <div className="flex justify-center gap-3 mt-4 pb-16">
+      <button 
+        onClick={onRewind} 
+        className="w-12 h-12 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center border border-yellow-500/20 shadow-lg transition-all"
+        aria-label="Rewind"
+      >
+        <RefreshCcw className="text-yellow-500 w-7 h-7" />
+      </button>
       
-      {(onDislike || (onSwipe && !onDislike)) && (
-        <Button onClick={handleDislike} className="p-3 rounded-full bg-red-400 hover:bg-red-500">
-          <X className="text-white w-7 h-7" />
-        </Button>
-      )}
+      <button 
+        onClick={() => onSwipe('left')}
+        className="w-14 h-14 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center border border-rose-500/20 shadow-lg transition-all"
+        aria-label="Dislike"
+      >
+        <X className="text-rose-500 w-7 h-7" />
+      </button>
       
-      {isMatch && (
-        <Button 
-          onClick={handleMessageClick} 
-          className="p-3 rounded-full bg-purple-400 hover:bg-purple-500"
-        >
-          <MessageCircle className="text-white w-7 h-7" />
-        </Button>
-      )}
+      <button 
+        onClick={onSuperLike} 
+        className="w-12 h-12 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center border border-blue-500/20 shadow-lg transition-all"
+        aria-label="Super Like"
+      >
+        <Star className="text-blue-500 w-7 h-7" />
+      </button>
       
-      {(onSuperLike || onBoost) && (
-        <Button 
-          onClick={onSuperLike || onBoost} 
-          className="p-3 rounded-full bg-blue-400 hover:bg-blue-500"
-        >
-          <Star className="text-white w-7 h-7" />
-        </Button>
-      )}
+      <button 
+        onClick={() => onSwipe('right')}
+        className="w-14 h-14 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center border border-green-500/20 shadow-lg transition-all"
+        aria-label="Like"
+      >
+        <Heart className="text-green-500 w-7 h-7" />
+      </button>
       
-      {(onLike || (onSwipe && !onLike)) && (
-        <Button onClick={handleLike} className="p-3 rounded-full bg-green-400 hover:bg-green-500">
-          <Heart className="text-white w-7 h-7" />
-        </Button>
-      )}
+      <button 
+        onClick={onBoost} 
+        className="w-12 h-12 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center border border-purple-500/20 shadow-lg transition-all"
+        aria-label="Boost"
+      >
+        <MessageCircle className="text-purple-500 w-7 h-7" />
+      </button>
     </div>
   );
 };
