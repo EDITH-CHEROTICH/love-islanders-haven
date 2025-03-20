@@ -7,6 +7,11 @@ const Navbar = () => {
   const location = useLocation();
   const isMobile = useIsMobile();
   
+  // Hide navbar on login page
+  if (location.pathname === '/login') {
+    return null;
+  }
+  
   const isActivePath = (path: string) => {
     return location.pathname === path || 
            (path === '/ai-companion' && location.pathname === '/');
