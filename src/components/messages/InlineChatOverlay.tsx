@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -101,7 +100,8 @@ const InlineChatOverlay: React.FC<InlineChatOverlayProps> = ({ matchId, matchNam
 
   return (
     <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
-      <div className="bg-island-dark border border-island-light/20 rounded-lg w-full max-w-md max-h-[90vh] h-[90vh] flex flex-col overflow-hidden animate-fade-in">
+      <div className="bg-island-dark border border-island-light/20 rounded-lg w-full max-w-md h-[90vh] flex flex-col overflow-hidden animate-fade-in">
+        {/* Header */}
         <div className="bg-island p-4 border-b border-island-light/20 flex justify-between items-center">
           <h3 className="font-semibold text-white">{matchName}</h3>
           <Button variant="ghost" size="icon" onClick={onClose} className="text-white hover:bg-island-light/20">
@@ -109,6 +109,7 @@ const InlineChatOverlay: React.FC<InlineChatOverlayProps> = ({ matchId, matchNam
           </Button>
         </div>
 
+        {/* Messages container with flex-1 to take available space */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4 hide-scrollbar">
           {isLoading ? (
             <div className="text-center text-white/60 py-8">
@@ -131,10 +132,13 @@ const InlineChatOverlay: React.FC<InlineChatOverlayProps> = ({ matchId, matchNam
           <div ref={messagesEndRef} />
         </div>
 
-        <MessageInput
-          onSendMessage={handleSendMessage}
-          isSending={isSending}
-        />
+        {/* Input area with fixed position at bottom */}
+        <div className="mt-auto">
+          <MessageInput
+            onSendMessage={handleSendMessage}
+            isSending={isSending}
+          />
+        </div>
       </div>
     </div>
   );
