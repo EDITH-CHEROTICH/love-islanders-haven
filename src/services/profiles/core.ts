@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { ProfilePreferences } from "@/components/ProfileSetup";
 import { SupabaseProfile } from "./types";
@@ -80,9 +81,13 @@ export const fetchUserProfile = async () => {
     throw error;
   }
 
+  // Cast relationship_goal to the allowed type values or use a default
+  const relationshipGoal = data.relationship_goal as 'long-term' | 'casual' | 'both' | undefined;
+
   // Transform the data to match our SupabaseProfile type
   const profile: SupabaseProfile = {
     ...data,
+    relationship_goal: relationshipGoal || 'both', // Ensure it matches our type
     images: data.profile_images 
       ? data.profile_images
           .sort((a: any, b: any) => a.position - b.position)
