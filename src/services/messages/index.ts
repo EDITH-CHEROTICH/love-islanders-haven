@@ -8,9 +8,11 @@ export interface Message {
   match_id: string;
   sent_at: string;
   read: boolean;
+  content_type?: 'text' | 'image' | 'audio';
+  media_url?: string;
 }
 
-export const sendMessage = async (matchId: string, content: string) => {
+export const sendMessage = async (matchId: string, content: string, contentType: 'text' | 'image' | 'audio' = 'text', mediaUrl?: string) => {
   const { data: { user } } = await supabase.auth.getUser();
   const userId = user?.id;
 
@@ -23,7 +25,9 @@ export const sendMessage = async (matchId: string, content: string) => {
     .insert({
       match_id: matchId,
       sender_id: userId,
-      content
+      content,
+      content_type: contentType,
+      media_url: mediaUrl
     })
     .select('*')
     .single();

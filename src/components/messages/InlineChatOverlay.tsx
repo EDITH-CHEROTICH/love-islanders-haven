@@ -3,10 +3,11 @@ import React, { useState, useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import Message from '@/components/companion/Message';
-import MessageInput from '@/components/messages/MessageInput';
 import { sendMessage, getMessagesForMatch, Message as MessageType } from '@/services/messages';
 import { supabase } from '@/integrations/supabase/client';
+import MessageInput from '@/components/messages/MessageInput';
+import MessageItem from '@/components/messages/MessageItem';
+import { AudioPlayerProvider } from '@/hooks/use-audio-player';
 
 interface InlineChatOverlayProps {
   matchId: string;
@@ -78,10 +79,10 @@ const InlineChatOverlay: React.FC<InlineChatOverlayProps> = ({ matchId, matchNam
       .subscribe();
   };
 
-  const handleSendMessage = async (content: string) => {
+  const handleSendMessage = async (content: string, contentType: 'text' | 'image' | 'audio' = 'text', mediaUrl?: string) => {
     setIsSending(true);
     try {
-      await sendMessage(matchId, content);
+      await sendMessage(matchId, content, contentType, mediaUrl);
       // No need to manually add the message, it will come via the realtime subscription
     } catch (error) {
       toast({
@@ -101,46 +102,48 @@ const InlineChatOverlay: React.FC<InlineChatOverlayProps> = ({ matchId, matchNam
 
   return (
     <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
-      <div className="bg-island-dark border border-island-light/20 rounded-lg w-full max-w-md h-[85vh] flex flex-col overflow-hidden animate-fade-in chat-container">
-        {/* Header */}
-        <div className="bg-island p-4 border-b border-island-light/20 flex justify-between items-center">
-          <h3 className="font-semibold text-white">{matchName}</h3>
-          <Button variant="ghost" size="icon" onClick={onClose} className="text-white hover:bg-island-light/20">
-            <X size={18} />
-          </Button>
-        </div>
+      <AudioPlayerProvider>
+        <div className="bg-island-dark border border-island-light/20 rounded-lg w-full max-w-md h-[85vh] flex flex-col overflow-hidden animate-fade-in chat-container">
+          {/* Header */}
+          <div className="bg-island p-4 border-b border-island-light/20 flex justify-between items-center">
+            <h3 className="font-semibold text-white">{matchName}</h3>
+            <Button variant="ghost" size="icon" onClick={onClose} className="text-white hover:bg-island-light/20">
+              <X size={18} />
+            </Button>
+          </div>
 
-        {/* Messages container with flex-1 to take available space */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4 hide-scrollbar">
-          {isLoading ? (
-            <div className="text-center text-white/60 py-8">
-              Loading messages...
-            </div>
-          ) : messages.length === 0 ? (
-            <div className="text-center text-white/60 py-8">
-              No messages yet. Say hello to start the conversation!
-            </div>
-          ) : (
-            messages.map((msg) => (
-              <Message
-                key={msg.id}
-                message={msg.content}
-                isUser={msg.sender_id === currentUserId}
-                timestamp={new Date(msg.sent_at)}
-              />
-            ))
-          )}
-          <div ref={messagesEndRef} />
-        </div>
+          {/* Messages container with flex-1 to take available space */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-4 hide-scrollbar">
+            {isLoading ? (
+              <div className="text-center text-white/60 py-8">
+                Loading messages...
+              </div>
+            ) : messages.length === 0 ? (
+              <div className="text-center text-white/60 py-8">
+                No messages yet. Say hello to start the conversation!
+              </div>
+            ) : (
+              messages.map((msg) => (
+                <MessageItem
+                  key={msg.id}
+                  message={msg}
+                  isCurrentUser={msg.sender_id === currentUserId}
+                />
+              ))
+            )}
+            <div ref={messagesEndRef} />
+          </div>
 
-        {/* Input area with fixed position at bottom */}
-        <div className="mt-auto">
-          <MessageInput
-            onSendMessage={handleSendMessage}
-            isSending={isSending}
-          />
+          {/* Input area with fixed position at bottom */}
+          <div className="mt-auto">
+            <MessageInput
+              onSendMessage={handleSendMessage}
+              isSending={isSending}
+              matchId={matchId}
+            />
+          </div>
         </div>
-      </div>
+      </AudioPlayerProvider>
     </div>
   );
 };
