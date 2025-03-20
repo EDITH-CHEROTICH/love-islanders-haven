@@ -12,6 +12,7 @@ interface AuthContextType {
   signInWithGoogle: () => Promise<void>;
   signUp: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
   isAuthenticated: boolean;
 }
 
@@ -129,6 +130,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const resetPassword = async (email: string) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/login`,
+    });
+    
+    if (error) throw error;
+  };
+
   const signOut = async () => {
     localStorage.removeItem('isAuthenticated');
     localStorage.removeItem('authMethod');
@@ -148,6 +157,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     signInWithGoogle,
     signUp,
     signOut,
+    resetPassword,
     isAuthenticated: !!user || isLocalAuth
   };
 
