@@ -119,7 +119,7 @@ const LoginForm = ({ isLoginMode, toggleAuthMode, onForgotPassword }: LoginFormP
                   <div className="relative">
                     <Input 
                       type={showPassword ? "text" : "password"} 
-                      placeholder="••••••••" 
+                      placeholder="" 
                       {...field} 
                     />
                     <button 
