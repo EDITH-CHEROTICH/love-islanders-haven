@@ -31,7 +31,7 @@ const Login = () => {
     console.log("Login page - isAuthenticated:", isAuthenticated);
     
     if (isAuthenticated) {
-      const from = location.state?.from?.pathname || '/ai';
+      const from = location.state?.from?.pathname || '/ai-companion';
       console.log("Redirecting to:", from);
       navigate(from, { replace: true });
     }

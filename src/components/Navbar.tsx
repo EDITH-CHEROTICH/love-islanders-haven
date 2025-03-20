@@ -1,3 +1,4 @@
+
 import { Link, useLocation } from 'react-router-dom';
 import { Heart, User, Compass, Bot, Settings, Flame } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -8,7 +9,7 @@ const Navbar = () => {
   
   const isActivePath = (path: string) => {
     return location.pathname === path || 
-           (path === '/ai-companion' && (location.pathname === '/ai' || location.pathname === '/'));
+           (path === '/ai-companion' && location.pathname === '/');
   };
 
   return (
