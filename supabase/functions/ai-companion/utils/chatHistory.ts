@@ -1,5 +1,6 @@
+
 // Helper functions for managing chat history and prompts
-import { SupabaseClient } from '@supabase/supabase-js';
+import { SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2.33.1';
 
 // Function to fetch recent conversation history for a user
 export const fetchRecentConversation = async (supabase: SupabaseClient, userId: string) => {
