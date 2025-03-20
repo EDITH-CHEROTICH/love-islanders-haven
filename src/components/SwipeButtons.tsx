@@ -8,8 +8,11 @@ import { Button } from '@/components/ui/button';
 interface SwipeButtonsProps {
   onLike?: () => void;
   onDislike?: () => void;
+  onSwipe?: (direction: 'left' | 'right') => void; // Add this new prop
   onSuperLike?: () => void;
   onUndo?: () => void;
+  onRewind?: () => void; // Add this prop for backwards compatibility
+  onBoost?: () => void; // Add this prop for backwards compatibility
   onMessage?: () => void;
   matchId?: string;
   matchName?: string;
@@ -19,8 +22,11 @@ interface SwipeButtonsProps {
 const SwipeButtons: React.FC<SwipeButtonsProps> = ({
   onLike,
   onDislike,
+  onSwipe,
   onSuperLike,
   onUndo,
+  onRewind, // Include the new props
+  onBoost,
   onMessage,
   matchId,
   matchName,
@@ -28,6 +34,36 @@ const SwipeButtons: React.FC<SwipeButtonsProps> = ({
 }) => {
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  // Handle the like action with compatibility for both onLike and onSwipe
+  const handleLike = () => {
+    if (onLike) {
+      onLike();
+    }
+    if (onSwipe) {
+      onSwipe('right');
+    }
+  };
+
+  // Handle the dislike action with compatibility for both onDislike and onSwipe
+  const handleDislike = () => {
+    if (onDislike) {
+      onDislike();
+    }
+    if (onSwipe) {
+      onSwipe('left');
+    }
+  };
+
+  // Handle undo with compatibility for both props
+  const handleUndo = () => {
+    if (onUndo) {
+      onUndo();
+    }
+    if (onRewind) {
+      onRewind();
+    }
+  };
 
   const handleMessageClick = () => {
     if (onMessage) {
@@ -51,14 +87,14 @@ const SwipeButtons: React.FC<SwipeButtonsProps> = ({
 
   return (
     <div className="flex justify-center space-x-4 my-4">
-      {onUndo && (
-        <Button onClick={onUndo} className="p-3 rounded-full bg-yellow-400 hover:bg-yellow-500">
+      {(onUndo || onRewind) && (
+        <Button onClick={handleUndo} className="p-3 rounded-full bg-yellow-400 hover:bg-yellow-500">
           <Undo className="text-white w-7 h-7" />
         </Button>
       )}
       
-      {onDislike && (
-        <Button onClick={onDislike} className="p-3 rounded-full bg-red-400 hover:bg-red-500">
+      {(onDislike || (onSwipe && !onDislike)) && (
+        <Button onClick={handleDislike} className="p-3 rounded-full bg-red-400 hover:bg-red-500">
           <X className="text-white w-7 h-7" />
         </Button>
       )}
@@ -68,18 +104,21 @@ const SwipeButtons: React.FC<SwipeButtonsProps> = ({
           onClick={handleMessageClick} 
           className="p-3 rounded-full bg-purple-400 hover:bg-purple-500"
         >
-          <MessageCircle className="text-purple-500 w-7 h-7" />
+          <MessageCircle className="text-white w-7 h-7" />
         </Button>
       )}
       
-      {onSuperLike && (
-        <Button onClick={onSuperLike} className="p-3 rounded-full bg-blue-400 hover:bg-blue-500">
+      {(onSuperLike || onBoost) && (
+        <Button 
+          onClick={onSuperLike || onBoost} 
+          className="p-3 rounded-full bg-blue-400 hover:bg-blue-500"
+        >
           <Star className="text-white w-7 h-7" />
         </Button>
       )}
       
-      {onLike && (
-        <Button onClick={onLike} className="p-3 rounded-full bg-green-400 hover:bg-green-500">
+      {(onLike || (onSwipe && !onLike)) && (
+        <Button onClick={handleLike} className="p-3 rounded-full bg-green-400 hover:bg-green-500">
           <Heart className="text-white w-7 h-7" />
         </Button>
       )}
