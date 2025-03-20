@@ -68,14 +68,14 @@ export const useInlineChat = (matchId: string) => {
           
           // Mark messages as read if they are from the other person
           if (payload.new.sender_id !== currentUserId) {
-            markMessagesAsRead();
+            markMessagesAsRead(matchId);
           }
         }
       )
       .subscribe();
       
     // Mark messages as read when component mounts
-    markMessagesAsRead();
+    markMessagesAsRead(matchId);
     
     return () => {
       supabase.removeChannel(channel);
