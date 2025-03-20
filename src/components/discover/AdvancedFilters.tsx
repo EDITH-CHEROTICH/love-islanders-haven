@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Filter, Coffee, Briefcase, GraduationCap, Cigarette, Plus, Minus } from 'lucide-react';
 import {
@@ -347,16 +348,16 @@ const AdvancedFilters = ({ onFilterChange, activeFilters }: AdvancedFiltersProps
                   <Label>Education</Label>
                 </div>
                 <Select
-                  value={filters.education || ""}
+                  value={filters.education || "any"}
                   onValueChange={(value) => 
-                    setFilters({ ...filters, education: value || null })
+                    setFilters({ ...filters, education: value === "any" ? null : value })
                   }
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Any Education Level" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Any Education Level</SelectItem>
+                    <SelectItem value="any">Any Education Level</SelectItem>
                     {EDUCATION_LEVELS.map(level => (
                       <SelectItem key={level} value={level}>{level}</SelectItem>
                     ))}

@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { Profile } from "@/utils/dummyData";
 import { useAuth } from "@/context/AuthContext";
@@ -17,10 +16,12 @@ export const fetchDiscoverProfiles = async (filters: any) => {
       .from('profiles')
       .select('gender, gender_preference')
       .eq('id', user.id)
-      .single();
+      .maybeSingle();
     
     if (!userProfile) {
-      throw new Error('User profile not found');
+      console.warn('User profile not found, using default preferences');
+      // Return some dummy data or an empty array instead of throwing an error
+      return [];
     }
     
     // Start building the query
@@ -152,7 +153,8 @@ export const fetchDiscoverProfiles = async (filters: any) => {
     return profiles;
   } catch (error) {
     console.error('Error in fetchDiscoverProfiles:', error);
-    throw error;
+    // Return an empty array instead of throwing an error
+    return [];
   }
 };
 
