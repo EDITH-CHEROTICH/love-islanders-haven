@@ -1,71 +1,32 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.33.1';
-import OpenAI from "https://esm.sh/openai@4.24.1";
 
 // Import utility functions
-import { 
-  fetchUserProfile, 
-  fetchUserSettings, 
-  fetchUserStreakActivity,
-  fetchUserInterests,
-  buildUserMemoryContext 
-} from './utils/userContext.ts';
-
-import {
-  fetchRecentConversation,
-  saveUserMessage,
-  saveAssistantResponse,
-  prepareSystemPrompt,
-  shouldGenerateRecommendation
-} from './utils/chatHistory.ts';
-
-import {
-  generateAIResponse,
-  generateRecommendation,
-  getDemoResponse
-} from './utils/aiService.ts';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
-
-// Initialize OpenAI
-const API_KEY = Deno.env.get('OPENAI_API_KEY');
+import { handleCorsPreflightRequest, validateRequestBody } from './utils/middleware.ts';
+import { createSuccessResponse, createErrorResponse } from './utils/responseHandler.ts';
+import { initializeSupabaseClient, fetchUserContextData } from './services/userDataService.ts';
+import { processConversation } from './services/aiConversationService.ts';
+import { corsHeaders } from './utils/constants.ts';
 
 // Initialize Supabase client
-const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
-const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
-const supabase = createClient(supabaseUrl, supabaseKey);
+const supabase = initializeSupabaseClient();
 
 serve(async (req) => {
-  // Handle CORS preflight requests
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
-
   try {
     console.log("Received request to AI companion");
     
-    // Parse the request body
-    let requestBody;
-    try {
-      requestBody = await req.json();
-      console.log("Request body parsed successfully");
-    } catch (error) {
-      console.error("Error parsing request body:", error);
-      return new Response(JSON.stringify({ 
-        error: "Invalid request format", 
-        response: "I'm sorry, I couldn't process your request due to a formatting issue."
-      }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+    // Handle CORS preflight requests
+    const corsResponse = handleCorsPreflightRequest(req);
+    if (corsResponse) return corsResponse;
+    
+    // Validate and parse the request body
+    const validation = await validateRequestBody(req);
+    if (!validation.isValid) {
+      return validation.errorResponse;
     }
     
-    const { message, conversationHistory = [], userId } = requestBody;
+    const { message, conversationHistory, userId } = validation.data;
     
     console.log("Request params:", { 
       message: message ? "Present" : "Missing", 
@@ -73,147 +34,25 @@ serve(async (req) => {
       userId: userId ? "Present" : "Missing"
     });
 
-    // Validate essential parameters
-    if (!message) {
-      console.error("Missing required parameter: message");
-      return new Response(JSON.stringify({ 
-        error: "Missing message parameter",
-        response: "I'm sorry, I couldn't process your request because the message was missing."
-      }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    // Check for API key and initialize OpenAI client
-    if (!API_KEY || API_KEY.trim() === '') {
-      console.log("No OpenAI API key found in environment variables");
-      
-      // Return a demo response instead of calling the API
-      return new Response(JSON.stringify({ 
-        response: getDemoResponse(),
-        demo: true
-      }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    console.log("Using OpenAI API key:", API_KEY.substring(0, 5) + "...");
+    // Fetch user context data if userId is provided
+    const {
+      userMemoryContext,
+      userStreakActivity
+    } = await fetchUserContextData(supabase, userId);
     
-    // Initialize OpenAI client
-    const openaiClient = new OpenAI({
-      apiKey: API_KEY,
-    });
-    
-    // Fetch user profile and settings if userId is provided
-    let userProfile = null;
-    let userSettings = null;
-    let userStreakActivity = null;
-    let userMemoryContext = "";
-    let userInterests = [];
+    // Process the conversation and generate an AI response
+    const result = await processConversation(
+      message,
+      conversationHistory,
+      userId,
+      supabase,
+      userMemoryContext,
+      userStreakActivity
+    );
 
-    if (userId) {
-      try {
-        // Fetch user data
-        userProfile = await fetchUserProfile(supabase, userId);
-        userSettings = await fetchUserSettings(supabase, userId);
-        userStreakActivity = await fetchUserStreakActivity(supabase, userId);
-        
-        // Fetch user interests if profile exists
-        if (userProfile) {
-          userInterests = await fetchUserInterests(supabase, userId);
-        }
-        
-        // Build memory context from profile and settings
-        userMemoryContext = buildUserMemoryContext(
-          userProfile, 
-          userSettings, 
-          userStreakActivity, 
-          userInterests
-        );
-      } catch (error) {
-        console.error("Error building user context:", error);
-      }
-    }
-
-    // If userId is provided, fetch recent conversation history from database
-    let recentConversation = [];
-    if (userId) {
-      try {
-        // Store the new user message in the chat history
-        await saveUserMessage(supabase, userId, message);
-        
-        // Fetch recent conversation
-        recentConversation = await fetchRecentConversation(supabase, userId);
-      } catch (error) {
-        console.error("Database error:", error);
-      }
-    }
-    
-    // Prepare the chat history for OpenAI
-    const chatHistory = recentConversation.length > 0 
-      ? recentConversation 
-      : conversationHistory;
-
-    // Create system prompt
-    const systemPrompt = prepareSystemPrompt(userMemoryContext);
-
-    try {
-      // Generate AI response using OpenAI
-      const aiResponse = await generateAIResponse(
-        openaiClient, 
-        systemPrompt, 
-        chatHistory, 
-        message
-      );
-
-      // If userId is provided, save the assistant's response to the database
-      if (userId) {
-        try {
-          await saveAssistantResponse(supabase, userId, aiResponse, 'chat');
-          
-          // Check if we should generate a recommendation
-          const shouldRecommend = shouldGenerateRecommendation(recentConversation);
-          
-          // If we should generate a recommendation and we have streak data
-          if (shouldRecommend && userStreakActivity && userStreakActivity.length > 0) {
-            try {
-              // Generate a recommendation using OpenAI
-              const recommendationText = await generateRecommendation(openaiClient, userStreakActivity);
-              
-              // Save the recommendation as a separate message
-              await saveAssistantResponse(supabase, userId, recommendationText, 'recommendation');
-            } catch (recError) {
-              console.error("Error generating recommendation:", recError);
-            }
-          }
-        } catch (error) {
-          console.error("Error saving assistant response:", error);
-        }
-      }
-
-      console.log("Successfully generated AI response");
-      return new Response(JSON.stringify({ response: aiResponse }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    } catch (aiError) {
-      console.error("AI generation error:", aiError);
-      return new Response(JSON.stringify({ 
-        error: aiError.message, 
-        response: "I'm sorry, I encountered an error while processing your request. Please try again in a moment."
-      }), {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
+    console.log("Successfully generated AI response");
+    return createSuccessResponse(result);
   } catch (error) {
-    console.error("General error:", error);
-    return new Response(JSON.stringify({ 
-      error: error.message,
-      response: "I'm sorry, I encountered an unexpected error. Please try again later."
-    }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    return createErrorResponse(error);
   }
 });
