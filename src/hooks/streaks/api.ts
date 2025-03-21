@@ -251,9 +251,11 @@ export const likeStreakPost = async (userId: string, postId: string) => {
       throw error;
     }
     
-    // Update likes_count in streaks table
+    // Update likes_count in streaks table directly instead of using RPC
     const { error: updateError } = await supabase
-      .rpc('increment_streak_likes', { streak_id: postId });
+      .from('streaks')
+      .update({ likes_count: supabase.sql`likes_count + 1` })
+      .eq('id', postId);
       
     if (updateError) {
       console.error("Error incrementing likes count:", updateError);
