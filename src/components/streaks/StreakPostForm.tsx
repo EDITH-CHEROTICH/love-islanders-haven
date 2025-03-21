@@ -13,7 +13,7 @@ import useSongSearch from "@/hooks/use-song-search";
 import { Slider } from "@/components/ui/slider";
 
 interface StreakPostFormProps {
-  onSubmit: (data: { content: string; caption?: string; song?: SongData; duration?: number }) => void;
+  onSubmit: (data: { content: string; caption?: string; song?: SongData; duration?: number }) => Promise<boolean>;
   onCancel: () => void;
 }
 
@@ -22,6 +22,7 @@ const StreakPostForm = ({ onSubmit, onCancel }: StreakPostFormProps) => {
   const [caption, setCaption] = useState<string>("");
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSongInput, setShowSongInput] = useState(false);
   const [song, setSong] = useState<SongData | null>(null);
   const [duration, setDuration] = useState<number>(24); // Default to 24 hours
@@ -49,7 +50,7 @@ const StreakPostForm = ({ onSubmit, onCancel }: StreakPostFormProps) => {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!content) {
@@ -61,12 +62,34 @@ const StreakPostForm = ({ onSubmit, onCancel }: StreakPostFormProps) => {
       return;
     }
     
-    onSubmit({ 
-      content, 
-      caption: caption || undefined,
-      song: song || undefined,
-      duration: duration
-    });
+    try {
+      setIsSubmitting(true);
+      const success = await onSubmit({ 
+        content, 
+        caption: caption || undefined,
+        song: song || undefined,
+        duration: duration
+      });
+      
+      if (success) {
+        setContent("");
+        setCaption("");
+        setPreviewUrl(null);
+        setSong(null);
+        setDuration(24);
+        setIsSubmitting(false);
+      } else {
+        setIsSubmitting(false);
+      }
+    } catch (error) {
+      console.error("Error submitting post:", error);
+      toast({
+        title: "Error",
+        description: "Failed to post your streak. Please try again.",
+        variant: "destructive",
+      });
+      setIsSubmitting(false);
+    }
   };
 
   const handleSongAdd = () => {
@@ -110,7 +133,10 @@ const StreakPostForm = ({ onSubmit, onCancel }: StreakPostFormProps) => {
         previewUrl={previewUrl}
         isUploading={isUploading}
         onImageSelect={handleImageSelect}
-        onClearPreview={() => setPreviewUrl(null)}
+        onClearPreview={() => {
+          setPreviewUrl(null);
+          setContent("");
+        }}
       />
       
       <div>
@@ -171,7 +197,8 @@ const StreakPostForm = ({ onSubmit, onCancel }: StreakPostFormProps) => {
       
       <FormControls
         onCancel={onCancel}
-        isSubmitDisabled={!content}
+        isSubmitDisabled={!content || isUploading}
+        isSubmitting={isSubmitting}
       />
     </form>
   );

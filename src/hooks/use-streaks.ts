@@ -52,7 +52,9 @@ export const useStreaks = () => {
     userStreakCount,
     topStreaks,
     handlePostSubmit,
-    handleLikePost
+    handleLikePost,
+    fetchPosts,
+    checkUserStreak
   };
 };
 

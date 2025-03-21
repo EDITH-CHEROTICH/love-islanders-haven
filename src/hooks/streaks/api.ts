@@ -28,7 +28,10 @@ export const fetchStreakPosts = async () => {
     .order('created_at', { ascending: false })
     .limit(10);
 
-  if (error) throw error;
+  if (error) {
+    console.error("Error fetching streak posts:", error);
+    throw error;
+  }
   
   // Then, get user names for each post
   const streakDataWithUsernames = await Promise.all(
@@ -57,7 +60,10 @@ export const fetchTopStreaks = async () => {
     .order('streak_count', { ascending: false })
     .limit(3);
     
-  if (error) throw error;
+  if (error) {
+    console.error("Error fetching top streaks:", error);
+    throw error;
+  }
   
   // Transform the data to match our ProfileWithStreak type
   return data.map(profile => ({
@@ -80,7 +86,10 @@ export const checkUserDailyPost = async (userId: string) => {
     .order('created_at', { ascending: false })
     .limit(1);
     
-  if (error) throw error;
+  if (error) {
+    console.error("Error checking user daily post:", error);
+    throw error;
+  }
   
   return {
     hasPostedToday: data && data.length > 0,
@@ -109,7 +118,10 @@ export const getUserLatestStreakCount = async (userId: string) => {
     .order('created_at', { ascending: false })
     .limit(1);
     
-  if (error) throw error;
+  if (error) {
+    console.error("Error getting user latest streak count:", error);
+    throw error;
+  }
   
   return data && data.length > 0 ? data[0].streak_count : 0;
 };
@@ -123,10 +135,21 @@ export const createStreakPost = async (
   caption?: string, 
   song?: SongData
 ) => {
+  console.log("Creating streak post with data:", {
+    userId,
+    content: content.substring(0, 20) + "...", // Log just the start of the content
+    streakCount,
+    expiresAt,
+    caption,
+    songTitle: song?.title
+  });
+
+  const postId = uuidv4();
+  
   const { data, error } = await supabase
     .from('streaks')
     .insert({
-      id: uuidv4(),
+      id: postId,
       user_id: userId,
       content: content,
       caption: caption || null,
@@ -143,7 +166,13 @@ export const createStreakPost = async (
     console.error("Error creating streak post:", error);
     throw error;
   }
+
+  if (!data || data.length === 0) {
+    console.error("No data returned after creating streak post");
+    throw new Error("Failed to create streak post");
+  }
   
+  console.log("Streak post created successfully:", data[0]);
   return data[0] as StreakData;
 };
 
@@ -157,7 +186,10 @@ export const likeStreakPost = async (userId: string, postId: string) => {
     .eq('user_id', userId)
     .maybeSingle();
     
-  if (checkError) throw checkError;
+  if (checkError) {
+    console.error("Error checking if user already liked post:", checkError);
+    throw checkError;
+  }
   
   if (existingLike) {
     return false; // Already liked
@@ -171,7 +203,10 @@ export const likeStreakPost = async (userId: string, postId: string) => {
       user_id: userId
     });
     
-  if (error) throw error;
+  if (error) {
+    console.error("Error liking post:", error);
+    throw error;
+  }
   
   return true; // Successfully liked
 };

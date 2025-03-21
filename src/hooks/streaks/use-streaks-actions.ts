@@ -32,6 +32,13 @@ export const useStreaksActions = (
     }
     
     try {
+      console.log("Submitting post with data:", {
+        content: postData.content.substring(0, 20) + "...",
+        caption: postData.caption,
+        song: postData.song?.title,
+        duration: postData.duration
+      });
+      
       // Calculate the new streak count
       const newStreakCount = userStreakCount + 1;
       

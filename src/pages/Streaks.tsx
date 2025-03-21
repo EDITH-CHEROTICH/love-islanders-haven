@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Camera } from "lucide-react";
 import StreakPostForm from "@/components/streaks/StreakPostForm";
 import useStreaks from "@/hooks/use-streaks";
@@ -25,7 +25,8 @@ const Streaks = () => {
     userStreakCount, 
     topStreaks,
     handlePostSubmit,
-    handleLikePost
+    handleLikePost,
+    fetchPosts
   } = useStreaks();
   const [showPostForm, setShowPostForm] = useState(false);
 
@@ -38,7 +39,7 @@ const Streaks = () => {
     caption?: string; 
     song?: SongData;
     duration?: number 
-  }) => {
+  }): Promise<boolean> => {
     if (!user) {
       toast({
         title: "Error",
@@ -52,10 +53,8 @@ const Streaks = () => {
       const success = await handlePostSubmit(postData);
       if (success) {
         setShowPostForm(false);
-        toast({
-          title: "Success!",
-          description: "Your streak post has been shared!",
-        });
+        // Refresh the posts to show the newly created one
+        await fetchPosts();
         return true;
       }
       return false;
