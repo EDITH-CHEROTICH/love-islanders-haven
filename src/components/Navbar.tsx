@@ -23,7 +23,7 @@ const Navbar = () => {
         <div className="flex justify-between w-full">
           <NavItem path="/discover" icon={<Compass size={18} />} label="Discover" isActive={isActivePath('/discover')} />
           <NavItem path="/matches" icon={<Heart size={18} />} label="Matches" isActive={isActivePath('/matches')} />
-          <NavItem path="/ai-companion" icon={<Bot size={18} />} label="Isla AI" isActive={isActivePath('/ai-companion')} />
+          <NavItem path="/ai-companion" icon={<Bot size={18} />} label="Isla" isActive={isActivePath('/ai-companion')} />
           <NavItem path="/streaks" icon={<Flame size={18} />} label="Streaks" isActive={isActivePath('/streaks')} />
           <NavItem path="/profile" icon={<User size={18} />} label="Profile" isActive={isActivePath('/profile')} />
         </div>
