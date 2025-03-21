@@ -46,7 +46,7 @@ const Streaks = () => {
     <AudioPlayerProvider>
       <div className="min-h-screen bg-gradient-to-b from-island-dark via-island to-island-dark">
         <div className="page-container hide-scrollbar">
-          <div className="container max-w-md mx-auto px-4 pt-4">
+          <div className="container max-w-md mx-auto px-4 pt-4 pb-20">
             <div className="flex justify-between items-center mb-6">
               <h1 className="text-2xl font-bold">Streaks</h1>
               {!showPostForm && !hasPostedToday && (

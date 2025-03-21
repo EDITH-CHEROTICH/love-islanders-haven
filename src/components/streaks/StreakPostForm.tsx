@@ -17,7 +17,6 @@ interface StreakPostFormProps {
 }
 
 const StreakPostForm = ({ onSubmit, onCancel }: StreakPostFormProps) => {
-  // Instead of placeholder.svg, use a real demo image
   const [content, setContent] = useState<string>("https://images.unsplash.com/photo-1721322800607-8c38375eef04?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&q=80");
   const [caption, setCaption] = useState<string>("");
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -26,7 +25,7 @@ const StreakPostForm = ({ onSubmit, onCancel }: StreakPostFormProps) => {
   const [song, setSong] = useState<SongData | null>(null);
   const { toast } = useToast();
   
-  // Use our new custom hook for song search
+  // Use our custom hook for song search
   const { songTitle, setSongTitle, isSearching, songOptions, clearSearch } = useSongSearch();
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -48,9 +47,19 @@ const StreakPostForm = ({ onSubmit, onCancel }: StreakPostFormProps) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!content) {
+      toast({
+        title: "Missing content",
+        description: "Please select an image for your streak post.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     onSubmit({ 
       content, 
-      caption,
+      caption: caption || undefined,
       song: song || undefined
     });
   };
@@ -137,7 +146,7 @@ const StreakPostForm = ({ onSubmit, onCancel }: StreakPostFormProps) => {
       
       <FormControls
         onCancel={onCancel}
-        isSubmitDisabled={!previewUrl && !content}
+        isSubmitDisabled={!content}
       />
     </form>
   );
