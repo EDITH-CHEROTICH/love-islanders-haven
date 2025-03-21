@@ -25,7 +25,7 @@ export const fetchChatHistory = async (userId: string | undefined) => {
       role: item.role as 'user' | 'assistant',
       content: item.message_content,
       timestamp: new Date(item.created_at),
-      type: (item.message_type as 'chat' | 'recommendation') || 'chat'
+      type: (item.message_type as 'chat' | 'recommendation' | 'proactive') || 'chat'
     }));
   }
 
@@ -123,6 +123,35 @@ export const sendAIMessage = async (
   }
 };
 
+export const fetchProactiveMessages = async (userId: string, timestamp: Date) => {
+  // Fetch proactive messages that were created after the specified timestamp
+  const { data: newMessages, error: fetchError } = await supabase
+    .from('ai_chat_history')
+    .select('*')
+    .eq('user_id', userId)
+    .eq('message_type', 'proactive')
+    .gt('created_at', timestamp.toISOString())
+    .order('created_at', { ascending: true });
+
+  if (fetchError) {
+    console.error('Error fetching proactive messages:', fetchError);
+    throw fetchError;
+  }
+
+  if (newMessages && newMessages.length > 0) {
+    // Convert to chat message format
+    return newMessages.map((item) => ({
+      id: item.id,
+      role: 'assistant' as const,
+      content: item.message_content,
+      timestamp: new Date(item.created_at),
+      type: 'proactive' as const
+    }));
+  }
+
+  return [];
+};
+
 export const fetchRecommendations = async (userId: string, timestamp: Date) => {
   const { data: newMessages, error: fetchError } = await supabase
     .from('ai_chat_history')
@@ -149,6 +178,24 @@ export const fetchRecommendations = async (userId: string, timestamp: Date) => {
   }
 
   return [];
+};
+
+export const triggerProactiveMessage = async (userId: string) => {
+  try {
+    const { data, error } = await supabase.functions.invoke('ai-companion-proactive', {
+      body: { userId }
+    });
+
+    if (error) {
+      console.error('Error triggering proactive message:', error);
+      throw new Error(error.message || 'Failed to generate proactive message');
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error in triggerProactiveMessage:', error);
+    throw error;
+  }
 };
 
 export const getWelcomeMessage = (): ChatMessage => ({

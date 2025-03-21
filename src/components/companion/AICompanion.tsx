@@ -11,6 +11,7 @@ import {
   fetchChatHistory, 
   sendAIMessage, 
   fetchRecommendations,
+  fetchProactiveMessages,
   getWelcomeMessage
 } from './aiCompanionService';
 
@@ -18,6 +19,7 @@ const AICompanion: React.FC = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
+  const [lastCheckedTimestamp, setLastCheckedTimestamp] = useState<Date>(new Date());
   const { toast } = useToast();
   const { user } = useAuth();
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -53,6 +55,47 @@ const AICompanion: React.FC = () => {
 
     loadChatHistory();
   }, [user?.id, toast]);
+
+  // Check for new proactive messages periodically
+  useEffect(() => {
+    if (!user?.id) return;
+
+    // Set current timestamp as the reference point
+    setLastCheckedTimestamp(new Date());
+    
+    // Function to check for new messages
+    const checkForNewMessages = async () => {
+      try {
+        // Check for proactive messages
+        const proactiveMessages = await fetchProactiveMessages(user.id, lastCheckedTimestamp);
+        
+        if (proactiveMessages.length > 0) {
+          // Add proactive messages to the chat
+          setMessages(prev => [...prev, ...proactiveMessages]);
+          
+          // Notify the user
+          toast({
+            title: "New message from Isla",
+            description: proactiveMessages[0].content.substring(0, 60) + "...",
+            duration: 5000,
+          });
+          
+          // Update the timestamp to the latest message
+          setLastCheckedTimestamp(new Date());
+        }
+      } catch (error) {
+        console.error('Error checking for new messages:', error);
+      }
+    };
+    
+    // Check initially
+    checkForNewMessages();
+    
+    // Set up interval to check (every 60 seconds)
+    const intervalId = setInterval(checkForNewMessages, 60000);
+    
+    return () => clearInterval(intervalId);
+  }, [user?.id, lastCheckedTimestamp, toast]);
 
   // Scroll to bottom whenever messages change
   useEffect(() => {
@@ -104,6 +147,9 @@ const AICompanion: React.FC = () => {
 
       // After receiving the AI response, check for any new recommendations
       if (user?.id) {
+        // Update timestamp for checking new messages
+        setLastCheckedTimestamp(new Date());
+        
         try {
           const recommendationMessages = await fetchRecommendations(user.id, aiMessage.timestamp);
           if (recommendationMessages.length > 0) {
@@ -176,6 +222,7 @@ const AICompanion: React.FC = () => {
                 message={message.content}
                 isUser={message.role === 'user'}
                 timestamp={message.timestamp}
+                isProactive={message.type === 'proactive'}
               />
             )}
           </div>

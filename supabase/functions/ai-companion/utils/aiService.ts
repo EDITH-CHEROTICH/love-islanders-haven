@@ -98,6 +98,46 @@ export async function generateRecommendation(openaiClient, userStreakActivity) {
   }
 }
 
+export async function generateProactiveMessage(openaiClient, userProfile, userMemoryContext, lastConversation) {
+  try {
+    console.log("Generating proactive message based on user context and previous conversations");
+    
+    // Create a specialized prompt for proactive messaging
+    const proactivePrompt = `Based on the user's profile and previous conversations, generate a natural, engaging message to send to them. 
+    This message should feel like a natural continuation of your previous conversations and should be personalized to their interests and history.
+    Make it feel like you're genuinely checking in on them or starting a new conversation topic that they would be interested in.
+    Don't mention being an AI. Just have a natural conversation like a friend would.
+    Keep it friendly, warm, and under 2-3 sentences.
+    
+    User profile: ${JSON.stringify(userProfile || {})}
+    
+    Memory context from previous conversations: ${userMemoryContext || "No previous conversation context"}
+    
+    Last conversation: ${JSON.stringify(lastConversation || [])}`;
+    
+    // Generate a proactive message using gpt-4o
+    const completion = await openaiClient.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        { 
+          role: "system", 
+          content: "You are Isla, a friendly companion who is checking in with the user. Don't mention being an AI - just have a natural, friendly conversation. Reference their interests or past conversations naturally."
+        },
+        { role: "user", content: proactivePrompt }
+      ],
+      temperature: 0.8,
+      max_tokens: 250,
+    });
+    
+    const proactiveText = completion.choices[0].message.content;
+    console.log("Proactive message generated:", proactiveText);
+    return proactiveText;
+  } catch (error) {
+    console.error("Error generating proactive message:", error);
+    throw new Error(`Failed to generate proactive message: ${error.message}`);
+  }
+}
+
 export function getDemoResponse() {
   return `Hello there! I'm Isla, your companion. I'm having trouble connecting to my servers right now. Please check if the OpenAI API key has been correctly set in the Supabase Edge Function settings. How are you feeling today?`;
 }
