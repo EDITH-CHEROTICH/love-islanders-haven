@@ -37,6 +37,7 @@ serve(async (req) => {
     // Fetch user context data if userId is provided
     const {
       userMemoryContext,
+      userProfile,
       userStreakActivity
     } = await fetchUserContextData(supabase, userId);
     
@@ -47,7 +48,8 @@ serve(async (req) => {
       userId,
       supabase,
       userMemoryContext,
-      userStreakActivity
+      userStreakActivity,
+      userProfile
     );
 
     console.log("Successfully generated AI response");

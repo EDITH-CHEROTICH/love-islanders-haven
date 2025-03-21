@@ -15,6 +15,14 @@ import {
   getDemoResponse
 } from '../utils/aiService.ts';
 
+import {
+  storeConversationMemory
+} from '../utils/userContext.ts';
+
+import {
+  fetchMemoryContext
+} from '../services/userDataService.ts';
+
 // Process chat messages and generate AI responses
 export async function processConversation(
   message: string, 
@@ -22,7 +30,8 @@ export async function processConversation(
   userId: string | undefined,
   supabase: any,
   userMemoryContext: string,
-  userStreakActivity: any[]
+  userStreakActivity: any[],
+  userProfile: any = null
 ) {
   // Initialize OpenAI
   const API_KEY = Deno.env.get('OPENAI_API_KEY');
@@ -42,6 +51,7 @@ export async function processConversation(
   
   // If userId is provided, store message and fetch conversation
   let recentConversation = [];
+  let chatMessages = [];
   if (userId) {
     try {
       // Store the new user message in the chat history
@@ -49,6 +59,14 @@ export async function processConversation(
       
       // Fetch recent conversation
       recentConversation = await fetchRecentConversation(supabase, userId);
+      
+      // Get memory context using embeddings
+      if (recentConversation.length > 0) {
+        userMemoryContext = await fetchMemoryContext(supabase, userId, openaiClient, recentConversation);
+      }
+      
+      // Save the full conversation history for context
+      chatMessages = [...recentConversation];
     } catch (error) {
       console.error("Database error:", error);
     }
@@ -59,8 +77,8 @@ export async function processConversation(
     ? recentConversation 
     : conversationHistory;
 
-  // Create system prompt
-  const systemPrompt = prepareSystemPrompt(userMemoryContext);
+  // Create system prompt with user profile and memory context
+  const systemPrompt = prepareSystemPrompt(userMemoryContext, userProfile);
 
   // Generate AI response using OpenAI
   const aiResponse = await generateAIResponse(
@@ -74,6 +92,18 @@ export async function processConversation(
   if (userId) {
     try {
       await saveAssistantResponse(supabase, userId, aiResponse, 'chat');
+      
+      // Update chat messages with the new response for memory storage
+      chatMessages.push({ role: 'assistant', content: aiResponse });
+      
+      // Store conversation memory with embedding
+      if (chatMessages.length >= 3) {
+        try {
+          await storeConversationMemory(supabase, userId, openaiClient, chatMessages);
+        } catch (memoryError) {
+          console.error("Error storing conversation memory:", memoryError);
+        }
+      }
       
       // Check if we should generate a recommendation
       const shouldRecommend = shouldGenerateRecommendation(recentConversation);

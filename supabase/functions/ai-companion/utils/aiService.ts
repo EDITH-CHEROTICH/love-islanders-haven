@@ -36,9 +36,9 @@ export async function generateAIResponse(openaiClient, systemPrompt, chatHistory
     
     console.log("Sending", messages.length, "messages to OpenAI");
 
-    // Call OpenAI API - Now using gpt-4o
+    // Call OpenAI API - Using gpt-4o
     const completion = await openaiClient.chat.completions.create({
-      model: "gpt-4o", // Upgraded to gpt-4o for better capabilities
+      model: "gpt-4o", // Using latest model for best capabilities
       messages: messages,
       temperature: 0.7,
       max_tokens: 800,
@@ -82,7 +82,7 @@ export async function generateRecommendation(openaiClient, userStreakActivity) {
     
     // Generate a recommendation using gpt-4o
     const completion = await openaiClient.chat.completions.create({
-      model: "gpt-4o", // Upgraded to gpt-4o for better recommendations
+      model: "gpt-4o", // Using latest model for best recommendations
       messages: [
         { role: "user", content: recommendationPrompt }
       ],
@@ -99,5 +99,5 @@ export async function generateRecommendation(openaiClient, userStreakActivity) {
 }
 
 export function getDemoResponse() {
-  return `Hello there! I'm Isla, your AI companion. I'm having trouble connecting to my servers right now. Please check if the OpenAI API key has been correctly set in the Supabase Edge Function settings. How are you feeling today?`;
+  return `Hello there! I'm Isla, your companion. I'm having trouble connecting to my servers right now. Please check if the OpenAI API key has been correctly set in the Supabase Edge Function settings. How are you feeling today?`;
 }

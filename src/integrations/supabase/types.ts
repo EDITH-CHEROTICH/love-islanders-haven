@@ -13,6 +13,7 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          is_embedded: boolean | null
           message_content: string
           message_type: string | null
           role: string
@@ -21,6 +22,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          is_embedded?: boolean | null
           message_content: string
           message_type?: string | null
           role: string
@@ -29,6 +31,7 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          is_embedded?: boolean | null
           message_content?: string
           message_type?: string | null
           role?: string
@@ -67,6 +70,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      ai_conversation_memories: {
+        Row: {
+          conversation_summary: string
+          created_at: string | null
+          embedding: string | null
+          id: string
+          last_updated: string | null
+          user_id: string
+        }
+        Insert: {
+          conversation_summary: string
+          created_at?: string | null
+          embedding?: string | null
+          id?: string
+          last_updated?: string | null
+          user_id: string
+        }
+        Update: {
+          conversation_summary?: string
+          created_at?: string | null
+          embedding?: string | null
+          id?: string
+          last_updated?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       blocked_users: {
         Row: {
@@ -730,6 +760,18 @@ export type Database = {
           lon2: number
         }
         Returns: number
+      }
+      find_similar_conversations: {
+        Args: {
+          query_embedding: string
+          match_threshold: number
+          match_count: number
+        }
+        Returns: {
+          id: string
+          conversation_summary: string
+          similarity: number
+        }[]
       }
       find_users_within_distance: {
         Args: {
