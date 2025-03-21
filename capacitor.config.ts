@@ -22,7 +22,10 @@ const config: CapacitorConfig = {
       keystorePassword: undefined, // Your keystore password
       keystoreAlias: undefined, // Your key alias
       keystoreAliasPassword: undefined, // Your alias password
-    }
+    },
+    // Define icon specific configurations
+    iconBackground: '#673AB7', // A purple that matches your theme
+    splashScreenBackground: '#1A1F2C', // Your dark theme color
   }
 };
 

@@ -7,10 +7,25 @@ This checklist helps you prepare and deploy your Love Islanders Haven app to the
 
 - [ ] Google Play Developer account ($25 one-time fee)
 - [ ] App icon in various resolutions
+  - ldpi: 36x36 px
+  - mdpi: 48x48 px
+  - hdpi: 72x72 px
+  - xhdpi: 96x96 px
+  - xxhdpi: 144x144 px
+  - xxxhdpi: 192x192 px
+  - Play Store: 512x512 px
 - [ ] Screenshots of your app (at least 2)
 - [ ] Short description (max 80 characters)
 - [ ] Full description (max 4000 characters)
 - [ ] Privacy policy URL
+
+## App Icon Setup
+
+- [ ] Square crop the silhouette image
+- [ ] Resize to all required dimensions
+- [ ] Replace default icons in Android project
+- [ ] Set up adaptive icons for modern Android versions
+- [ ] Verify icon appearance on different backgrounds
 
 ## Build and Package
 
