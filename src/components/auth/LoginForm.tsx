@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -71,8 +72,10 @@ const LoginForm = ({ isLoginMode, toggleAuthMode, onForgotPassword }: LoginFormP
   const handleEmailAuth = async (values: any) => {
     setIsLoading(true);
     setAnimateLogin(true);
+    
     try {
       if (isLoginMode) {
+        console.log("Attempting login with:", values.email);
         await signIn(values.email, values.password);
         toast({
           title: "Login successful",
@@ -94,6 +97,7 @@ const LoginForm = ({ isLoginMode, toggleAuthMode, onForgotPassword }: LoginFormP
         setShowVerification(true);
       }
     } catch (error: any) {
+      console.error("Authentication error:", error);
       toast({
         title: isLoginMode ? "Login failed" : "Sign up failed",
         description: error.message || "Something went wrong",
@@ -179,7 +183,7 @@ const LoginForm = ({ isLoginMode, toggleAuthMode, onForgotPassword }: LoginFormP
             
             <Button 
               type="submit" 
-              className={`w-full transition-all duration-300 ${animateLogin ? 'bg-love-light scale-105 shadow-lg' : 'bg-love hover:bg-love-dark'}`}
+              className={`w-full transition-all duration-300 ${animateLogin ? 'animate-login bg-love-light scale-105 shadow-lg' : 'bg-love hover:bg-love-dark'}`}
               disabled={isLoading || sendingEmail}
             >
               {isLoading || sendingEmail ? (

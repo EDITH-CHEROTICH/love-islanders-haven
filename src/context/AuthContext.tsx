@@ -83,8 +83,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [toast]);
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) throw error;
+    console.log(`Attempting to sign in with email: ${email}`);
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    
+    if (error) {
+      console.error("Sign in error:", error);
+      throw error;
+    }
+    
+    console.log("Sign in successful:", data);
+    
+    // Store local authentication as a fallback
+    localStorage.setItem('isAuthenticated', 'true');
+    localStorage.setItem('authMethod', 'email');
+    localStorage.setItem('authContact', email);
+    setIsLocalAuth(true);
   };
 
   const signInWithGoogle = async () => {
