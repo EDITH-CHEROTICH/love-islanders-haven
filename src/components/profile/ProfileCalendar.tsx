@@ -1,8 +1,8 @@
 
 import React from 'react';
 import { format } from 'date-fns';
-import { Calendar as CalendarIcon, MapPin, Clock } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Calendar as CalendarIcon, MapPin, Clock, RefreshCw, Link2 } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -12,7 +12,14 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 
 const ProfileCalendar = () => {
-  const { upcomingDates, pastDates, isLoading, refresh } = useProfileCalendar();
+  const { 
+    upcomingDates, 
+    pastDates, 
+    isLoading, 
+    refresh,
+    isGoogleAuthorized,
+    initiateGoogleAuth
+  } = useProfileCalendar();
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
   
@@ -48,6 +55,8 @@ const ProfileCalendar = () => {
   
   const renderDatePlan = (plan: any) => {
     const dateTime = new Date(plan.date_time);
+    const isGoogleEvent = plan.id.startsWith('google-') || plan.source === 'google';
+
     return (
       <Card key={plan.id} className="mb-4 overflow-hidden">
         <CardContent className="p-4">
@@ -59,11 +68,18 @@ const ProfileCalendar = () => {
                 <span>{format(dateTime, 'h:mm a')}</span>
               </div>
             </div>
-            {plan.location_sharing_enabled && (
-              <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/20">
-                Location Sharing
-              </Badge>
-            )}
+            <div className="flex space-x-2">
+              {isGoogleEvent && (
+                <Badge variant="outline" className="bg-blue-500/10 text-blue-500 border-blue-500/20">
+                  Google Calendar
+                </Badge>
+              )}
+              {plan.location_sharing_enabled && (
+                <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/20">
+                  Location Sharing
+                </Badge>
+              )}
+            </div>
           </div>
           
           <div className="flex items-start mt-3">
@@ -85,14 +101,47 @@ const ProfileCalendar = () => {
           <CalendarIcon className="h-5 w-5 mr-2" />
           Date Calendar
         </h2>
-        <Button 
-          variant="outline" 
-          size="sm"
-          onClick={() => navigate('/messages')}
-        >
-          Plan New Date
-        </Button>
+        <div className="flex space-x-2">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => refresh()}
+            title="Refresh calendar"
+          >
+            <RefreshCw className="h-4 w-4" />
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => navigate('/messages')}
+          >
+            Plan New Date
+          </Button>
+        </div>
       </div>
+      
+      {!isGoogleAuthorized && (
+        <Card className="mb-4 bg-muted/30">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-md flex items-center">
+              <Link2 className="h-4 w-4 mr-2" />
+              Connect Google Calendar
+            </CardTitle>
+            <CardDescription>
+              Link your Google Calendar to see all your events in one place
+            </CardDescription>
+          </CardHeader>
+          <CardFooter className="pt-2">
+            <Button 
+              variant="outline"
+              onClick={initiateGoogleAuth}
+              className="w-full"
+            >
+              Connect
+            </Button>
+          </CardFooter>
+        </Card>
+      )}
       
       <Tabs defaultValue="upcoming" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
