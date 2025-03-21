@@ -39,13 +39,19 @@ export function useProfileCalendar() {
     }
   };
 
+  // Get current user ID for Google events
+  const { user } = useAuth();
+  const currentUserId = user?.id || 'unknown-user';
+
   // Transform Google events to be compatible with our date plans format
   const transformedGoogleEvents: DatePlan[] = googleEvents.map(event => ({
     id: `google-${event.id}`,
+    user_id: currentUserId, // Add required user_id
     location: event.location || 'No location specified',
     date_time: event.date_time,
     notes: event.notes,
     location_sharing_enabled: false,
+    created_at: new Date().toISOString(), // Add required created_at
     source: 'google'
   }));
 
