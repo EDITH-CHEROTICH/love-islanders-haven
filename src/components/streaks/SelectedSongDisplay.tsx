@@ -11,7 +11,7 @@ interface SelectedSongDisplayProps {
 }
 
 const SelectedSongDisplay = ({ song, onRemoveSong }: SelectedSongDisplayProps) => {
-  const { isPlaying, togglePlayPause } = useAudioPlayer();
+  const { isPlaying, currentSrc, togglePlayPause } = useAudioPlayer();
   
   if (!song) return null;
   
@@ -46,9 +46,9 @@ const SelectedSongDisplay = ({ song, onRemoveSong }: SelectedSongDisplayProps) =
             className="h-8 w-8"
           >
             <span className="sr-only">
-              {isPlaying ? 'Pause' : 'Play'} preview
+              {isPlaying && currentSrc === song.preview_url ? 'Pause' : 'Play'} preview
             </span>
-            {isPlaying ? (
+            {isPlaying && currentSrc === song.preview_url ? (
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
                 <rect x="6" y="4" width="4" height="16" />
                 <rect x="14" y="4" width="4" height="16" />
