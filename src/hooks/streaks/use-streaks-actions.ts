@@ -1,4 +1,3 @@
-
 import { SongData } from "@/components/streaks/types";
 import { createStreakPost, likeStreakPost } from "./api";
 import { useToast } from "@/hooks/use-toast";

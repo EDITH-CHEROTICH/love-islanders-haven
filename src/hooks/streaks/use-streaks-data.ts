@@ -37,7 +37,7 @@ export const useStreaksData = (
       // Fetch streak posts from Supabase
       const streaksData = await fetchStreakPosts();
       
-      if (!streaksData) {
+      if (!streaksData || streaksData.length === 0) {
         console.log("No data returned from streaks query");
         setPosts([]);
         return;

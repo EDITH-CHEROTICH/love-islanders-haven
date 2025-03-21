@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -48,7 +47,7 @@ const Streaks = () => {
     caption?: string; 
     song?: SongData;
     duration?: number 
-  }): Promise<boolean> => {
+  }) => {
     if (!user) {
       toast({
         title: "Error",

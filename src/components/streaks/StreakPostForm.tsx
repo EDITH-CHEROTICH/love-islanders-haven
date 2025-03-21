@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Music } from "lucide-react";
 import { SongData } from "./types";
@@ -65,6 +64,7 @@ const StreakPostForm = ({ onSubmit, onCancel, isSubmitting = false }: StreakPost
       // Log the submission data for debugging
       console.log("Form submission started with content length:", content.length);
       
+      // Call the onSubmit function passed from parent component
       const success = await onSubmit({ 
         content, 
         caption: caption || undefined,

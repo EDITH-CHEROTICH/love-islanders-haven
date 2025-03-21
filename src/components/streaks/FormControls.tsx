@@ -6,9 +6,15 @@ interface FormControlsProps {
   onCancel: () => void;
   isSubmitDisabled: boolean;
   isSubmitting?: boolean;
+  submitText?: string;
 }
 
-const FormControls = ({ onCancel, isSubmitDisabled, isSubmitting = false }: FormControlsProps) => {
+const FormControls = ({ 
+  onCancel, 
+  isSubmitDisabled, 
+  isSubmitting = false, 
+  submitText = "Post Streak" 
+}: FormControlsProps) => {
   return (
     <div className="flex gap-2 justify-end">
       <Button 
@@ -29,7 +35,7 @@ const FormControls = ({ onCancel, isSubmitDisabled, isSubmitting = false }: Form
             <span>Posting...</span>
           </>
         ) : (
-          "Post Streak"
+          submitText
         )}
       </Button>
     </div>
