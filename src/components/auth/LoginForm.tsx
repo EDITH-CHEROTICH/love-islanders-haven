@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,6 +12,7 @@ import { authSchema } from "./authSchema";
 import PasswordField from "./PasswordField";
 import VerificationDialog from "./VerificationDialog";
 import SocialLoginButton from "./SocialLoginButton";
+import { Spinner } from "@/components/ui/spinner";
 
 type LoginFormProps = {
   isLoginMode: boolean;
@@ -27,6 +27,7 @@ const LoginForm = ({ isLoginMode, toggleAuthMode, onForgotPassword }: LoginFormP
   const [storedPassword, setStoredPassword] = useState("");
   const [generatedCode, setGeneratedCode] = useState("");
   const [sendingEmail, setSendingEmail] = useState(false);
+  const [animateLogin, setAnimateLogin] = useState(false);
   const { signIn, signUp, signInWithGoogle } = useAuth();
   const { toast } = useToast();
 
@@ -69,6 +70,7 @@ const LoginForm = ({ isLoginMode, toggleAuthMode, onForgotPassword }: LoginFormP
 
   const handleEmailAuth = async (values: any) => {
     setIsLoading(true);
+    setAnimateLogin(true);
     try {
       if (isLoginMode) {
         await signIn(values.email, values.password);
@@ -99,6 +101,8 @@ const LoginForm = ({ isLoginMode, toggleAuthMode, onForgotPassword }: LoginFormP
       });
     } finally {
       setIsLoading(false);
+      // Keep animation for a short time even after loading finishes
+      setTimeout(() => setAnimateLogin(false), 600);
     }
   };
 
@@ -175,12 +179,17 @@ const LoginForm = ({ isLoginMode, toggleAuthMode, onForgotPassword }: LoginFormP
             
             <Button 
               type="submit" 
-              className="w-full bg-love hover:bg-love-dark"
+              className={`w-full transition-all duration-300 ${animateLogin ? 'bg-love-light scale-105 shadow-lg' : 'bg-love hover:bg-love-dark'}`}
               disabled={isLoading || sendingEmail}
             >
-              {isLoading || sendingEmail ? 
-                (isLoginMode ? "Logging in..." : "Preparing verification...") : 
-                (isLoginMode ? "Log In with Email" : "Sign Up with Email")}
+              {isLoading || sendingEmail ? (
+                <span className="flex items-center justify-center">
+                  <Spinner className="mr-2 h-4 w-4" />
+                  {isLoginMode ? "Logging in..." : "Preparing verification..."}
+                </span>
+              ) : (
+                isLoginMode ? "Log In with Email" : "Sign Up with Email"
+              )}
             </Button>
           </form>
         </Form>

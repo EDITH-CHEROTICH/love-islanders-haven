@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -191,6 +192,20 @@
   
   .animate-shake {
     animation: shake 0.5s ease-in-out;
+  }
+
+  /* Login button animation */
+  @keyframes pulse-glow {
+    0%, 100% { 
+      box-shadow: 0 0 8px 2px rgba(139, 92, 246, 0.4);
+    }
+    50% { 
+      box-shadow: 0 0 15px 4px rgba(139, 92, 246, 0.7);
+    }
+  }
+  
+  .animate-login {
+    animation: pulse-glow 1.5s infinite;
   }
 }
 
