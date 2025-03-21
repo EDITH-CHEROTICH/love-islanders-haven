@@ -18,7 +18,7 @@ interface StreakPostFormProps {
 }
 
 const StreakPostForm = ({ onSubmit, onCancel }: StreakPostFormProps) => {
-  const [content, setContent] = useState<string>("https://images.unsplash.com/photo-1721322800607-8c38375eef04?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&q=80");
+  const [content, setContent] = useState<string>("");
   const [caption, setCaption] = useState<string>("");
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -39,8 +39,10 @@ const StreakPostForm = ({ onSubmit, onCancel }: StreakPostFormProps) => {
       // For now, we'll just create a local preview
       const reader = new FileReader();
       reader.onload = () => {
-        setPreviewUrl(reader.result as string);
-        setContent("https://images.unsplash.com/photo-1721322800607-8c38375eef04?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&q=80"); // Demo image URL
+        const imageUrl = reader.result as string;
+        setPreviewUrl(imageUrl);
+        // Set the content to the image URL (this is what will be stored in the database)
+        setContent(imageUrl);
         setIsUploading(false);
       };
       reader.readAsDataURL(file);

@@ -131,6 +131,8 @@ export const useStreaks = () => {
         expiresAt.setHours(expiresAt.getHours() + 24); // Default 24 hours
       }
       
+      console.log('Creating streak post with expiration:', expiresAt.toISOString());
+      
       // Create a new streak post
       const streakData = await createStreakPost(
         user.id,

@@ -139,7 +139,10 @@ export const createStreakPost = async (
     })
     .select();
     
-  if (error) throw error;
+  if (error) {
+    console.error("Error creating streak post:", error);
+    throw error;
+  }
   
   return data[0] as StreakData;
 };

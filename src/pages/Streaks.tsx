@@ -13,9 +13,11 @@ import LoginRequired from "@/components/streaks/LoginRequired";
 import Navbar from "@/components/Navbar";
 import { SongData } from "@/components/streaks/types";
 import { AudioPlayerProvider } from "@/hooks/use-audio-player";
+import { useToast } from "@/hooks/use-toast";
 
 const Streaks = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
+  const { toast } = useToast();
   const { 
     loading, 
     posts, 
@@ -37,9 +39,34 @@ const Streaks = () => {
     song?: SongData;
     duration?: number 
   }) => {
-    const success = await handlePostSubmit(postData);
-    if (success) {
-      setShowPostForm(false);
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to post",
+        variant: "destructive",
+      });
+      return false;
+    }
+    
+    try {
+      const success = await handlePostSubmit(postData);
+      if (success) {
+        setShowPostForm(false);
+        toast({
+          title: "Success!",
+          description: "Your streak post has been shared!",
+        });
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error("Error submitting post:", error);
+      toast({
+        title: "Error",
+        description: "Failed to post your streak. Please try again.",
+        variant: "destructive",
+      });
+      return false;
     }
   };
 
