@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Camera, X } from "lucide-react";
+import { Camera, X, Upload } from "lucide-react";
 
 interface ImageUploadSectionProps {
   previewUrl: string | null;
@@ -16,9 +16,6 @@ const ImageUploadSection = ({
   onImageSelect,
   onClearPreview,
 }: ImageUploadSectionProps) => {
-  // Demo image to show when there's no preview
-  const demoImage = "https://images.unsplash.com/photo-1721322800607-8c38375eef04?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=800&q=80";
-  
   return (
     <div className="border-2 border-dashed border-muted-foreground/25 rounded-md overflow-hidden relative">
       {previewUrl ? (
@@ -40,22 +37,20 @@ const ImageUploadSection = ({
         <div className="flex flex-col items-center justify-center p-8">
           <Camera className="h-12 w-12 text-muted-foreground mb-4" />
           <p className="text-center text-muted-foreground mb-2">
-            Snap a photo for your streak
+            Select a photo for your streak
           </p>
-          <div className="w-full max-w-[200px] mb-4">
-            <img 
-              src={demoImage} 
-              alt="Demo Image" 
-              className="w-full rounded-md opacity-70"
-            />
-          </div>
           <Button 
             type="button"
             variant="outline"
-            className="relative overflow-hidden"
+            className="relative overflow-hidden flex items-center gap-2"
             disabled={isUploading}
           >
-            {isUploading ? "Uploading..." : "Select Image"}
+            {isUploading ? "Uploading..." : (
+              <>
+                <Upload size={16} />
+                <span>Choose Image</span>
+              </>
+            )}
             <input
               type="file"
               accept="image/*"

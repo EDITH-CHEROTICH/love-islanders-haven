@@ -36,13 +36,12 @@ const StreakPostForm = ({ onSubmit, onCancel }: StreakPostFormProps) => {
     if (file) {
       setIsUploading(true);
       
-      // In a real implementation, you would upload the file to storage here
-      // For now, we'll just create a local preview
+      // Create a data URL for preview and storage
       const reader = new FileReader();
       reader.onload = () => {
         const imageUrl = reader.result as string;
         setPreviewUrl(imageUrl);
-        // Set the content to the image URL (this is what will be stored in the database)
+        // Set the content to the image data URL
         setContent(imageUrl);
         setIsUploading(false);
       };
@@ -64,6 +63,11 @@ const StreakPostForm = ({ onSubmit, onCancel }: StreakPostFormProps) => {
     
     try {
       setIsSubmitting(true);
+      
+      // Log the submission data for debugging
+      console.log("Submitting with content length:", content.length);
+      console.log("Content starts with:", content.substring(0, 50) + "...");
+      
       const success = await onSubmit({ 
         content, 
         caption: caption || undefined,
@@ -72,6 +76,7 @@ const StreakPostForm = ({ onSubmit, onCancel }: StreakPostFormProps) => {
       });
       
       if (success) {
+        // Reset form state
         setContent("");
         setCaption("");
         setPreviewUrl(null);
@@ -80,6 +85,11 @@ const StreakPostForm = ({ onSubmit, onCancel }: StreakPostFormProps) => {
         setIsSubmitting(false);
       } else {
         setIsSubmitting(false);
+        toast({
+          title: "Error",
+          description: "Failed to post your streak. Please try again.",
+          variant: "destructive",
+        });
       }
     } catch (error) {
       console.error("Error submitting post:", error);

@@ -62,6 +62,10 @@ export const useStreaksActions = (
         postData.song
       );
       
+      if (!streakData) {
+        throw new Error("Failed to create streak post - no data returned");
+      }
+      
       toast({
         title: "Success!",
         description: "Your streak post has been shared!",

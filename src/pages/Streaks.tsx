@@ -50,13 +50,17 @@ const Streaks = () => {
     }
     
     try {
+      console.log("Streak form submitted, calling handlePostSubmit");
       const success = await handlePostSubmit(postData);
+      
       if (success) {
         setShowPostForm(false);
         // Refresh the posts to show the newly created one
         await fetchPosts();
         return true;
       }
+      
+      console.log("Post submission was not successful");
       return false;
     } catch (error) {
       console.error("Error submitting post:", error);

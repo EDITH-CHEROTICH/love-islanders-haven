@@ -3,7 +3,6 @@ import { v4 as uuidv4 } from 'uuid';
 import { supabase } from "@/integrations/supabase/client";
 import { StreakData, ProfileWithStreak } from "./types";
 import { SongData } from "@/components/streaks/types";
-import { toast } from "@/hooks/use-toast";
 
 // Fetch streak posts from Supabase
 export const fetchStreakPosts = async () => {
@@ -31,6 +30,11 @@ export const fetchStreakPosts = async () => {
   if (error) {
     console.error("Error fetching streak posts:", error);
     throw error;
+  }
+  
+  if (!streaksData || streaksData.length === 0) {
+    console.log("No streak posts found");
+    return [];
   }
   
   // Then, get user names for each post
@@ -144,11 +148,14 @@ export const createStreakPost = async (
     songTitle: song?.title
   });
 
+  // For base64 images, we would typically upload to storage bucket first
+  // But for now we'll store directly in the content field (not ideal for production)
+  
   const postId = uuidv4();
   
   const { data, error } = await supabase
     .from('streaks')
-    .insert({
+    .insert([{
       id: postId,
       user_id: userId,
       content: content,
@@ -159,7 +166,7 @@ export const createStreakPost = async (
       song_album_art: song?.album_art || null,
       song_preview_url: song?.preview_url || null,
       expires_at: expiresAt
-    })
+    }])
     .select();
     
   if (error) {
