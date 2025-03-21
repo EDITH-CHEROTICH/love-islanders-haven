@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Music } from "lucide-react";
@@ -15,14 +14,14 @@ import { Slider } from "@/components/ui/slider";
 interface StreakPostFormProps {
   onSubmit: (data: { content: string; caption?: string; song?: SongData; duration?: number }) => Promise<boolean>;
   onCancel: () => void;
+  isSubmitting?: boolean;
 }
 
-const StreakPostForm = ({ onSubmit, onCancel }: StreakPostFormProps) => {
+const StreakPostForm = ({ onSubmit, onCancel, isSubmitting = false }: StreakPostFormProps) => {
   const [content, setContent] = useState<string>("");
   const [caption, setCaption] = useState<string>("");
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSongInput, setShowSongInput] = useState(false);
   const [song, setSong] = useState<SongData | null>(null);
   const [duration, setDuration] = useState<number>(24); // Default to 24 hours
@@ -62,8 +61,6 @@ const StreakPostForm = ({ onSubmit, onCancel }: StreakPostFormProps) => {
     }
     
     try {
-      setIsSubmitting(true);
-      
       // Log the submission data for debugging
       console.log("Submitting with content length:", content.length);
       console.log("Content starts with:", content.substring(0, 50) + "...");
@@ -76,15 +73,10 @@ const StreakPostForm = ({ onSubmit, onCancel }: StreakPostFormProps) => {
       });
       
       if (success) {
-        // Reset form state
-        setContent("");
-        setCaption("");
-        setPreviewUrl(null);
-        setSong(null);
-        setDuration(24);
-        setIsSubmitting(false);
+        // Reset form state - this will be handled by the parent component
+        // because it will hide the form on successful submission
+        console.log("Form submitted successfully");
       } else {
-        setIsSubmitting(false);
         toast({
           title: "Error",
           description: "Failed to post your streak. Please try again.",
@@ -98,7 +90,6 @@ const StreakPostForm = ({ onSubmit, onCancel }: StreakPostFormProps) => {
         description: "Failed to post your streak. Please try again.",
         variant: "destructive",
       });
-      setIsSubmitting(false);
     }
   };
 
@@ -159,6 +150,7 @@ const StreakPostForm = ({ onSubmit, onCancel }: StreakPostFormProps) => {
           onChange={(e) => setCaption(e.target.value)}
           className="w-full rounded-md border border-input bg-background px-3 py-2 min-h-24"
           placeholder="Add a caption to your streak post..."
+          disabled={isSubmitting}
         />
       </div>
 
@@ -172,6 +164,7 @@ const StreakPostForm = ({ onSubmit, onCancel }: StreakPostFormProps) => {
           min={1} 
           step={1} 
           onValueChange={handleDurationChange}
+          disabled={isSubmitting}
         />
         <p className="text-xs text-muted-foreground">
           Your streak will expire after {duration} {duration === 1 ? 'hour' : 'hours'} if not renewed.
@@ -184,6 +177,7 @@ const StreakPostForm = ({ onSubmit, onCancel }: StreakPostFormProps) => {
           variant="outline" 
           onClick={handleSongAdd}
           className="flex items-center gap-2 w-full"
+          disabled={isSubmitting}
         >
           <Music size={16} />
           <span>Add a song</span>

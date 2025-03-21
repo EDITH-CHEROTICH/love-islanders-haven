@@ -29,6 +29,7 @@ const Streaks = () => {
     fetchPosts
   } = useStreaks();
   const [showPostForm, setShowPostForm] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleCreatePost = () => {
     setShowPostForm(true);
@@ -50,6 +51,7 @@ const Streaks = () => {
     }
     
     try {
+      setIsSubmitting(true);
       console.log("Streak form submitted, calling handlePostSubmit");
       const success = await handlePostSubmit(postData);
       
@@ -70,6 +72,8 @@ const Streaks = () => {
         variant: "destructive",
       });
       return false;
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -100,7 +104,8 @@ const Streaks = () => {
                 <CardContent>
                   <StreakPostForm 
                     onSubmit={onPostSubmit} 
-                    onCancel={() => setShowPostForm(false)} 
+                    onCancel={() => setShowPostForm(false)}
+                    isSubmitting={isSubmitting}
                   />
                 </CardContent>
               </Card>

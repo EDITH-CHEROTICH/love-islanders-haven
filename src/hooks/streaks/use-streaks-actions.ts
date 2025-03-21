@@ -31,6 +31,15 @@ export const useStreaksActions = (
       return false;
     }
     
+    if (!postData.content || postData.content.trim() === '') {
+      toast({
+        title: "Missing image",
+        description: "Please select an image for your streak post",
+        variant: "destructive",
+      });
+      return false;
+    }
+    
     try {
       console.log("Submitting post with data:", {
         content: postData.content.substring(0, 20) + "...",

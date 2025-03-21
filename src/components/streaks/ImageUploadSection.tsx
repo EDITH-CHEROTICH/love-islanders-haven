@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Camera, X, Upload } from "lucide-react";
+import { Camera, X, Upload, Loader2 } from "lucide-react";
 
 interface ImageUploadSectionProps {
   previewUrl: string | null;
@@ -29,6 +29,7 @@ const ImageUploadSection = ({
             type="button"
             onClick={onClearPreview}
             className="absolute top-2 right-2 bg-black/50 text-white p-1 rounded-full"
+            disabled={isUploading}
           >
             <X className="h-4 w-4" />
           </button>
@@ -45,7 +46,12 @@ const ImageUploadSection = ({
             className="relative overflow-hidden flex items-center gap-2"
             disabled={isUploading}
           >
-            {isUploading ? "Uploading..." : (
+            {isUploading ? (
+              <>
+                <Loader2 size={16} className="animate-spin" />
+                <span>Uploading...</span>
+              </>
+            ) : (
               <>
                 <Upload size={16} />
                 <span>Choose Image</span>
@@ -56,6 +62,7 @@ const ImageUploadSection = ({
               accept="image/*"
               onChange={onImageSelect}
               className="absolute inset-0 opacity-0 cursor-pointer"
+              disabled={isUploading}
             />
           </Button>
         </div>
