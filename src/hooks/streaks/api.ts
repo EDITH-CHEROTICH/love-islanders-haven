@@ -22,7 +22,8 @@ export const fetchStreakPosts = async () => {
       song_title,
       song_artist,
       song_album_art,
-      song_preview_url
+      song_preview_url,
+      expires_at
     `)
     .order('created_at', { ascending: false })
     .limit(10);
@@ -118,6 +119,7 @@ export const createStreakPost = async (
   userId: string, 
   content: string, 
   streakCount: number,
+  expiresAt: string,
   caption?: string, 
   song?: SongData
 ) => {
@@ -132,7 +134,8 @@ export const createStreakPost = async (
       song_title: song?.title || null,
       song_artist: song?.artist || null,
       song_album_art: song?.album_art || null,
-      song_preview_url: song?.preview_url || null
+      song_preview_url: song?.preview_url || null,
+      expires_at: expiresAt
     })
     .select();
     

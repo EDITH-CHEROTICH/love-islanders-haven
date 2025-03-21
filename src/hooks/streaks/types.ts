@@ -15,6 +15,7 @@ export interface StreakData {
   song_artist: string | null;
   song_album_art: string | null;
   song_preview_url: string | null;
+  expires_at: string | null;
   profiles?: { name: string } | null;
 }
 

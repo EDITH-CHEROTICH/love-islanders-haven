@@ -104,7 +104,12 @@ export const useStreaks = () => {
     }
   };
 
-  const handlePostSubmit = async (postData: { content: string; caption?: string; song?: SongData }) => {
+  const handlePostSubmit = async (postData: { 
+    content: string; 
+    caption?: string; 
+    song?: SongData;
+    duration?: number 
+  }) => {
     if (!user?.id) {
       toast({
         title: "Authentication required",
@@ -118,11 +123,20 @@ export const useStreaks = () => {
       // Calculate the new streak count
       const newStreakCount = userStreakCount + 1;
       
+      // Calculate the expiration time based on duration (in hours)
+      const expiresAt = new Date();
+      if (postData.duration) {
+        expiresAt.setHours(expiresAt.getHours() + postData.duration);
+      } else {
+        expiresAt.setHours(expiresAt.getHours() + 24); // Default 24 hours
+      }
+      
       // Create a new streak post
       const streakData = await createStreakPost(
         user.id,
         postData.content,
         newStreakCount,
+        expiresAt.toISOString(),
         postData.caption,
         postData.song
       );
@@ -146,7 +160,8 @@ export const useStreaks = () => {
         likes_count: 0,
         comments_count: 0,
         user_name: user.email?.split('@')[0] || "You",
-        song: postData.song
+        song: postData.song,
+        expires_at: streakData.expires_at
       };
       
       setPosts([newPost, ...posts]);

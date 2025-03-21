@@ -11,6 +11,7 @@ export interface StreakPost {
   user_name: string;
   user_profile_image?: string;
   song?: SongData;
+  expires_at?: string;
 }
 
 export interface TopStreak {

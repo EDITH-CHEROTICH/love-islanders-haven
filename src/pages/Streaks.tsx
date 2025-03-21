@@ -31,7 +31,12 @@ const Streaks = () => {
     setShowPostForm(true);
   };
 
-  const onPostSubmit = async (postData: { content: string; caption?: string; song?: SongData }) => {
+  const onPostSubmit = async (postData: { 
+    content: string; 
+    caption?: string; 
+    song?: SongData;
+    duration?: number 
+  }) => {
     const success = await handlePostSubmit(postData);
     if (success) {
       setShowPostForm(false);

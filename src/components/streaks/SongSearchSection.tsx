@@ -90,7 +90,7 @@ const SongSearchSection = ({
                   <p className="text-xs text-muted-foreground">{option.artist}</p>
                 </div>
               </div>
-              {option.preview_url ? (
+              {option.preview_url && (
                 <Button
                   type="button"
                   variant="ghost"
@@ -107,8 +107,6 @@ const SongSearchSection = ({
                     <PlayCircle className="h-5 w-5" />
                   )}
                 </Button>
-              ) : (
-                <div className="text-xs text-muted-foreground px-2">No preview</div>
               )}
             </div>
           ))}
