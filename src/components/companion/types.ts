@@ -4,5 +4,5 @@ export type ChatMessage = {
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
-  type?: 'chat' | 'recommendation';
+  type?: 'chat' | 'recommendation' | 'proactive';
 };
