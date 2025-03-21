@@ -27,7 +27,7 @@ const FormControls = ({ onCancel, isSubmitDisabled, isSubmitting = false }: Form
         {isSubmitting ? (
           <>
             <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-            Posting...
+            <span>Posting...</span>
           </>
         ) : (
           "Post Streak"

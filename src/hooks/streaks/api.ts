@@ -141,7 +141,6 @@ export const createStreakPost = async (
 ) => {
   console.log("Creating streak post with data:", {
     userId,
-    content: content.substring(0, 20) + "...", // Log just the start of the content
     streakCount,
     expiresAt,
     caption,
@@ -185,7 +184,7 @@ export const createStreakPost = async (
     }
     
     console.log("Streak post created successfully:", data[0]);
-    return data[0] as StreakData;
+    return data[0];
   } catch (error) {
     console.error("Error in createStreakPost:", error);
     throw error;

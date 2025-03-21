@@ -42,7 +42,7 @@ export const useStreaksActions = (
     
     try {
       console.log("Submitting post with data:", {
-        content: postData.content.substring(0, 20) + "...",
+        content: "Data URL length: " + postData.content.length,
         caption: postData.caption,
         song: postData.song?.title,
         duration: postData.duration

@@ -1,6 +1,5 @@
 
 import { useEffect } from "react";
-import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { 
   fetchStreakPosts, 
@@ -8,7 +7,7 @@ import {
   checkUserDailyPost, 
   getUserLatestStreakCount
 } from "./api";
-import { getDummyPosts, getDummyTopStreaks, transformStreakData } from "./mock-data";
+import { transformStreakData } from "./mock-data";
 
 /**
  * Custom hook to fetch streaks data
@@ -48,28 +47,22 @@ export const useStreaksData = (
       // Also fetch top streaks - users with highest streak counts
       const topStreaksData = await fetchTopStreaks();
       
-      // If we don't have streak data yet, use dummy data for now
-      if (!topStreaksData || topStreaksData.length === 0) {
-        setTopStreaks(getDummyTopStreaks());
-      } else {
-        // Transform the top streaks data
-        const transformedTopStreaks = topStreaksData
-          .map(profile => ({
-            name: profile.name,
-            count: profile.streak_count?.[0]?.streak_count || 0
-          }))
-          .filter(streak => streak.count > 0);
-        
-        setTopStreaks(transformedTopStreaks.length > 0 ? transformedTopStreaks : getDummyTopStreaks());
-      }
+      // Transform the top streaks data
+      const transformedTopStreaks = topStreaksData
+        .map(profile => ({
+          name: profile.name,
+          count: profile.streak_count?.[0]?.streak_count || 0
+        }))
+        .filter(streak => streak.count > 0);
+      
+      setTopStreaks(transformedTopStreaks);
 
     } catch (error) {
       console.error("Error fetching streak posts:", error);
-      // If there's an error fetching data, use dummy data
-      setPosts(getDummyPosts());
+      setPosts([]);
       toast({
         title: "Error",
-        description: "Failed to load streak posts. Using demo data instead.",
+        description: "Failed to load streak posts. Please try again later.",
         variant: "destructive",
       });
     } finally {

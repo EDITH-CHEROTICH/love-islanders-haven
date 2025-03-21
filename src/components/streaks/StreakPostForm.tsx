@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Music } from "lucide-react";
@@ -63,7 +64,6 @@ const StreakPostForm = ({ onSubmit, onCancel, isSubmitting = false }: StreakPost
     try {
       // Log the submission data for debugging
       console.log("Submitting with content length:", content.length);
-      console.log("Content starts with:", content.substring(0, 50) + "...");
       
       const success = await onSubmit({ 
         content, 
