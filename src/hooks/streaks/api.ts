@@ -251,14 +251,26 @@ export const likeStreakPost = async (userId: string, postId: string) => {
       throw error;
     }
     
-    // Update likes_count in streaks table directly instead of using RPC
-    const { error: updateError } = await supabase
+    // Get the current likes count
+    const { data: currentStreakData, error: getError } = await supabase
       .from('streaks')
-      .update({ likes_count: supabase.sql`likes_count + 1` })
-      .eq('id', postId);
+      .select('likes_count')
+      .eq('id', postId)
+      .single();
       
-    if (updateError) {
-      console.error("Error incrementing likes count:", updateError);
+    if (getError) {
+      console.error("Error getting current likes count:", getError);
+    } else {
+      // Update likes_count in streaks table with the new value
+      const newCount = (currentStreakData.likes_count || 0) + 1;
+      const { error: updateError } = await supabase
+        .from('streaks')
+        .update({ likes_count: newCount })
+        .eq('id', postId);
+        
+      if (updateError) {
+        console.error("Error incrementing likes count:", updateError);
+      }
     }
     
     return true; // Successfully liked
