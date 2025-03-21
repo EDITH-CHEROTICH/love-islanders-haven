@@ -636,6 +636,7 @@ export type Database = {
           comments_count: number
           content: string
           created_at: string
+          expires_at: string | null
           id: string
           likes_count: number
           song_album_art: string | null
@@ -650,6 +651,7 @@ export type Database = {
           comments_count?: number
           content: string
           created_at?: string
+          expires_at?: string | null
           id?: string
           likes_count?: number
           song_album_art?: string | null
@@ -664,6 +666,7 @@ export type Database = {
           comments_count?: number
           content?: string
           created_at?: string
+          expires_at?: string | null
           id?: string
           likes_count?: number
           song_album_art?: string | null
