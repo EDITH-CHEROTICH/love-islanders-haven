@@ -83,7 +83,7 @@ export const useStreaksActions = (
       setHasPostedToday(true);
       setUserStreakCount(newStreakCount);
       
-      // Add the new post to the list
+      // Create a new post object with all the necessary fields
       const newPost = {
         id: streakData.id,
         user_id: streakData.user_id,
@@ -94,10 +94,17 @@ export const useStreaksActions = (
         likes_count: 0,
         comments_count: 0,
         user_name: user.email?.split('@')[0] || "You",
-        song: postData.song,
+        user_profile_image: user.profile_image || null,
+        song: postData.song ? {
+          title: postData.song.title,
+          artist: postData.song.artist,
+          album_art: postData.song.album_art,
+          preview_url: postData.song.preview_url
+        } : undefined,
         expires_at: streakData.expires_at
       };
       
+      // Add the new post to the beginning of the posts array
       setPosts([newPost, ...posts]);
       
       return true;

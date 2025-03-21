@@ -57,8 +57,6 @@ const Streaks = () => {
       
       if (success) {
         setShowPostForm(false);
-        // Refresh the posts to show the newly created one
-        await fetchPosts();
         return true;
       }
       

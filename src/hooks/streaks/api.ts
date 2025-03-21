@@ -1,3 +1,4 @@
+
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from "@/integrations/supabase/client";
 import { StreakData, ProfileWithStreak } from "./types";
@@ -148,25 +149,29 @@ export const createStreakPost = async (
   });
 
   try {
-    // For base64 images, we would typically upload to storage bucket first
-    // But for now we'll store directly in the content field (not ideal for production)
-    
+    // Create a unique ID for the post
     const postId = uuidv4();
     
+    // Prepare the data for insertion
+    const postData = {
+      id: postId,
+      user_id: userId,
+      content: content,
+      caption: caption || null,
+      streak_count: streakCount,
+      song_title: song?.title || null,
+      song_artist: song?.artist || null,
+      song_album_art: song?.album_art || null,
+      song_preview_url: song?.preview_url || null,
+      expires_at: expiresAt
+    };
+    
+    console.log("Inserting streak post with ID:", postId);
+    
+    // Insert the data into the streaks table
     const { data, error } = await supabase
       .from('streaks')
-      .insert([{
-        id: postId,
-        user_id: userId,
-        content: content,
-        caption: caption || null,
-        streak_count: streakCount,
-        song_title: song?.title || null,
-        song_artist: song?.artist || null,
-        song_album_art: song?.album_art || null,
-        song_preview_url: song?.preview_url || null,
-        expires_at: expiresAt
-      }])
+      .insert([postData])
       .select();
       
     if (error) {
