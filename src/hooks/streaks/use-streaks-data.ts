@@ -37,7 +37,11 @@ export const useStreaksData = (
       // Fetch streak posts from Supabase
       const streaksData = await fetchStreakPosts();
       
-      if (!streaksData) throw new Error("No data returned from streaks query");
+      if (!streaksData) {
+        console.log("No data returned from streaks query");
+        setPosts([]);
+        return;
+      }
 
       // Transform the data to match our StreakPost type
       const transformedPosts = streaksData.map(transformStreakData);

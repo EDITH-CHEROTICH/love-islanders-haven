@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,10 +26,18 @@ const Streaks = () => {
     topStreaks,
     handlePostSubmit,
     handleLikePost,
-    fetchPosts
+    fetchPosts,
+    checkUserStreak
   } = useStreaks();
   const [showPostForm, setShowPostForm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    // Refresh posts when component mounts
+    if (isAuthenticated) {
+      fetchPosts();
+    }
+  }, [isAuthenticated]);
 
   const handleCreatePost = () => {
     setShowPostForm(true);
@@ -53,10 +61,22 @@ const Streaks = () => {
     try {
       setIsSubmitting(true);
       console.log("Streak form submitted, calling handlePostSubmit with content length:", postData.content.length);
+      
+      // Submit post
       const success = await handlePostSubmit(postData);
       
       if (success) {
+        // Update UI on success
         setShowPostForm(false);
+        // Refresh posts and user streak data
+        fetchPosts();
+        checkUserStreak();
+        
+        toast({
+          title: "Success!",
+          description: "Your streak has been posted successfully!",
+        });
+        
         return true;
       }
       

@@ -13,8 +13,8 @@ export const transformStreakData = (streakData: StreakData): StreakPost => {
     caption: streakData.caption || undefined,
     created_at: streakData.created_at,
     streak_count: streakData.streak_count,
-    likes_count: streakData.likes_count,
-    comments_count: streakData.comments_count,
+    likes_count: streakData.likes_count || 0,
+    comments_count: streakData.comments_count || 0,
     user_name: streakData.profiles?.name || 'Unknown User',
     user_profile_image: null, // We don't have profile images yet
     song: streakData.song_title ? {

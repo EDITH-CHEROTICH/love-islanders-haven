@@ -42,7 +42,7 @@ export const useStreaksActions = (
     
     try {
       console.log("Submitting post with data:", {
-        content: "Data URL length: " + postData.content.length,
+        contentLength: postData.content.length,
         caption: postData.caption,
         song: postData.song?.title,
         duration: postData.duration
@@ -80,6 +80,7 @@ export const useStreaksActions = (
         description: "Your streak post has been shared!",
       });
       
+      // Update state
       setHasPostedToday(true);
       setUserStreakCount(newStreakCount);
       
@@ -93,8 +94,8 @@ export const useStreaksActions = (
         streak_count: streakData.streak_count,
         likes_count: 0,
         comments_count: 0,
-        user_name: user.email?.split('@')[0] || "You",
-        user_profile_image: user.profile_image || null,
+        user_name: user.user_metadata?.name || user.email?.split('@')[0] || "You",
+        user_profile_image: user.user_metadata?.avatar_url || null,
         song: postData.song ? {
           title: postData.song.title,
           artist: postData.song.artist,

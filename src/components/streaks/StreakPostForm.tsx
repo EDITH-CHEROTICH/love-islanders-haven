@@ -1,10 +1,10 @@
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
 import { Music } from "lucide-react";
 import { SongData } from "./types";
 import { useToast } from "@/hooks/use-toast";
 import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
 import ImageUploadSection from "./ImageUploadSection";
 import SongSearchSection from "./SongSearchSection";
 import SelectedSongDisplay from "./SelectedSongDisplay";
@@ -63,7 +63,7 @@ const StreakPostForm = ({ onSubmit, onCancel, isSubmitting = false }: StreakPost
     
     try {
       // Log the submission data for debugging
-      console.log("Submitting with content length:", content.length);
+      console.log("Form submission started with content length:", content.length);
       
       const success = await onSubmit({ 
         content, 
@@ -73,10 +73,15 @@ const StreakPostForm = ({ onSubmit, onCancel, isSubmitting = false }: StreakPost
       });
       
       if (success) {
-        // Reset form state - this will be handled by the parent component
-        // because it will hide the form on successful submission
+        // Reset form state on successful submission
         console.log("Form submitted successfully");
+        setContent("");
+        setCaption("");
+        setPreviewUrl(null);
+        setSong(null);
+        setDuration(24);
       } else {
+        console.error("Form submission failed");
         toast({
           title: "Error",
           description: "Failed to post your streak. Please try again.",
@@ -96,7 +101,6 @@ const StreakPostForm = ({ onSubmit, onCancel, isSubmitting = false }: StreakPost
   const handleSongAdd = () => {
     if (!showSongInput) {
       setShowSongInput(true);
-      return;
     }
   };
 

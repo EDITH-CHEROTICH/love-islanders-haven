@@ -22,7 +22,6 @@ const FormControls = ({ onCancel, isSubmitDisabled, isSubmitting = false }: Form
       <Button 
         type="submit" 
         disabled={isSubmitDisabled || isSubmitting}
-        className="relative"
       >
         {isSubmitting ? (
           <>
