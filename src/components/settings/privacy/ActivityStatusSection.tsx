@@ -1,6 +1,7 @@
 
 import { Activity } from 'lucide-react';
-import PrivacyControlsSection, { PrivacyToggle } from './PrivacyControlsSection';
+import PrivacyControlsSection from './PrivacyControlsSection';
+import PrivacyToggle from './PrivacyToggle';
 import { usePrivacy } from './PrivacyContext';
 
 const ActivityStatusSection = () => {

@@ -6,24 +6,32 @@ import { userProfile } from '../utils/dummyData';
 import { LogOut, Settings } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/context/AuthContext';
 
 const UserProfile = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { signOut } = useAuth();
   
-  const handleLogout = () => {
-    // Clear authentication state
-    localStorage.removeItem('isAuthenticated');
-    localStorage.removeItem('authMethod');
-    localStorage.removeItem('authContact');
-    
-    toast({
-      title: "Logged Out",
-      description: "You have been logged out successfully.",
-    });
-    
-    // Redirect to signup page
-    navigate('/signup');
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      
+      toast({
+        title: "Logged Out",
+        description: "You have been logged out successfully.",
+      });
+      
+      // Redirect to signup page
+      navigate('/signup');
+    } catch (error) {
+      console.error("Logout error:", error);
+      toast({
+        title: "Logout Failed",
+        description: "There was an issue logging you out. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleSettings = () => {
