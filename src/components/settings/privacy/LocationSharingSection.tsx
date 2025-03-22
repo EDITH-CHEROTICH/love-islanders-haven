@@ -8,7 +8,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import PrivacyControlsSection, { PrivacyToggle } from './PrivacyControlsSection';
+import PrivacyControlsSection from './PrivacyControlsSection';
+import PrivacyToggle from './PrivacyToggle';
 import { usePrivacy } from './PrivacyContext';
 
 const LocationSharingSection = () => {
