@@ -35,7 +35,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       console.log("Local authentication found");
       setIsLocalAuth(true);
       setLoading(false);
-      return;
+      
+      // Get additional user info if available
+      const authMethod = localStorage.getItem('authMethod');
+      const authContact = localStorage.getItem('authContact');
+      console.log(`Local auth details - Method: ${authMethod}, Contact: ${authContact}`);
     }
 
     // Set up auth state listener FIRST
@@ -46,8 +50,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setUser(session?.user ?? null);
         setLoading(false);
         
-        // Handle auth error from URL
+        // If signed in, store local backup
+        if (event === 'SIGNED_IN' && session?.user) {
+          localStorage.setItem('isAuthenticated', 'true');
+          localStorage.setItem('authMethod', 'supabase');
+          localStorage.setItem('authContact', session.user.email || '');
+          setIsLocalAuth(true);
+          console.log("User signed in - setting localStorage backup");
+        }
+        
+        // If signed out, clear local backup
         if (event === 'SIGNED_OUT') {
+          localStorage.removeItem('isAuthenticated');
+          localStorage.removeItem('authMethod');
+          localStorage.removeItem('authContact');
+          setIsLocalAuth(false);
+          console.log("User signed out - clearing localStorage backup");
+          
           const url = new URL(window.location.href);
           const error = url.searchParams.get('error');
           const errorDescription = url.searchParams.get('error_description');
@@ -74,6 +93,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       console.log("Existing session check:", session ? "Found" : "Not found");
       setSession(session);
       setUser(session?.user ?? null);
+      
+      // If there's a valid session, update local storage backup
+      if (session?.user) {
+        localStorage.setItem('isAuthenticated', 'true');
+        localStorage.setItem('authMethod', 'supabase');
+        localStorage.setItem('authContact', session.user.email || '');
+        setIsLocalAuth(true);
+        console.log("Valid session found - updating localStorage backup");
+      }
+      
       setLoading(false);
     });
 
@@ -98,6 +127,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     localStorage.setItem('authMethod', 'email');
     localStorage.setItem('authContact', email);
     setIsLocalAuth(true);
+    
+    // Update session and user state
+    setSession(data.session);
+    setUser(data.user);
   };
 
   const signInWithGoogle = async () => {
@@ -152,14 +185,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signOut = async () => {
+    console.log("Signing out user");
+    // First, clear localStorage
     localStorage.removeItem('isAuthenticated');
     localStorage.removeItem('authMethod');
     localStorage.removeItem('authContact');
     localStorage.removeItem('oauth_state');
     setIsLocalAuth(false);
     
+    // Then sign out from Supabase
     const { error } = await supabase.auth.signOut();
-    if (error) throw error;
+    if (error) {
+      console.error("Error signing out from Supabase:", error);
+      throw error;
+    }
+    
+    // Update state
+    setSession(null);
+    setUser(null);
+    console.log("User signed out successfully");
   };
 
   const value = {
