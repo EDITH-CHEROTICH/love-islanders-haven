@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,7 +11,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { authSchema } from "./authSchema";
 import PasswordField from "./PasswordField";
 import VerificationDialog from "./VerificationDialog";
-import SocialLoginButton from "./SocialLoginButton";
 import { Spinner } from "@/components/ui/spinner";
 
 type LoginFormProps = {
@@ -29,7 +27,7 @@ const LoginForm = ({ isLoginMode, toggleAuthMode, onForgotPassword }: LoginFormP
   const [generatedCode, setGeneratedCode] = useState("");
   const [sendingEmail, setSendingEmail] = useState(false);
   const [animateLogin, setAnimateLogin] = useState(false);
-  const { signIn, signUp, signInWithGoogle } = useAuth();
+  const { signIn, signUp } = useAuth();
   const { toast } = useToast();
 
   const form = useForm({
@@ -121,15 +119,6 @@ const LoginForm = ({ isLoginMode, toggleAuthMode, onForgotPassword }: LoginFormP
     }
   };
 
-  const handleGoogleLogin = async () => {
-    toast({
-      title: "Google authentication initiated",
-      description: "You'll be redirected to Google for authentication...",
-    });
-    
-    await signInWithGoogle();
-  };
-
   return (
     <>
       <div className="glass-card w-full max-w-md p-6 rounded-xl shadow-lg">
@@ -197,21 +186,6 @@ const LoginForm = ({ isLoginMode, toggleAuthMode, onForgotPassword }: LoginFormP
             </Button>
           </form>
         </Form>
-        
-        <div className="relative my-6">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-300"></div>
-          </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-background text-muted-foreground">Or continue with</span>
-          </div>
-        </div>
-        
-        <SocialLoginButton 
-          provider="google" 
-          onLogin={handleGoogleLogin} 
-          isLoginMode={isLoginMode} 
-        />
         
         <div className="mt-6 text-center text-sm">
           <button 
