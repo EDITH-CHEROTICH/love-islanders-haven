@@ -6,7 +6,7 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { handleCorsPreflightRequest, validateRequestBody } from './utils/middleware.ts';
 import { createSuccessResponse, createErrorResponse } from './utils/responseHandler.ts';
 import { initializeSupabaseClient, fetchUserContextData } from './services/userDataService.ts';
-import { processConversation } from './services/aiConversationService.ts';
+import { processConversationWithN8n } from './services/aiConversationService.ts';
 import { corsHeaders } from './utils/constants.ts';
 
 // Initialize Supabase client
@@ -41,8 +41,8 @@ serve(async (req) => {
       userStreakActivity
     } = await fetchUserContextData(supabase, userId);
     
-    // Process the conversation and generate an AI response
-    const result = await processConversation(
+    // Process the conversation and generate an AI response using n8n
+    const result = await processConversationWithN8n(
       message,
       conversationHistory,
       userId,
@@ -52,7 +52,7 @@ serve(async (req) => {
       userProfile
     );
 
-    console.log("Successfully generated AI response");
+    console.log("Successfully generated AI response via n8n");
     return createSuccessResponse(result);
   } catch (error) {
     return createErrorResponse(error);

@@ -1,4 +1,3 @@
-
 // Helper functions for AI model interaction
 import OpenAI from "https://esm.sh/openai@4.24.1";
 
@@ -138,6 +137,9 @@ export async function generateProactiveMessage(openaiClient, userProfile, userMe
   }
 }
 
-export function getDemoResponse() {
+export function getDemoResponse(isN8n = false) {
+  if (isN8n) {
+    return `Hello there! I'm Isla, your companion. I'm having trouble connecting to my n8n workflow right now. Please check if the N8N_WEBHOOK_URL has been correctly set in the Supabase Edge Function settings. How are you feeling today?`;
+  }
   return `Hello there! I'm Isla, your companion. I'm having trouble connecting to my servers right now. Please check if the OpenAI API key has been correctly set in the Supabase Edge Function settings. How are you feeling today?`;
 }

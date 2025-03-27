@@ -10,7 +10,7 @@ const AICompanionChat: React.FC = () => {
   const isMobile = useIsMobile();
   const [showApiKeyInfo, setShowApiKeyInfo] = useState(false);
 
-  // Check if a demo message has been shown, suggesting the API key isn't set
+  // Check if a demo message has been shown, suggesting the n8n webhook isn't set
   useEffect(() => {
     const checkForDemoMode = (e: MessageEvent) => {
       try {
@@ -35,15 +35,15 @@ const AICompanionChat: React.FC = () => {
             <InfoIcon className="h-5 w-5" />
             <AlertTitle>AI Companion is running in demo mode</AlertTitle>
             <AlertDescription>
-              To enable full functionality, please set up your OpenAI API key in the Supabase Edge Function settings.
-              The API key needs to be added to the OPENAI_API_KEY secret.
+              To enable full functionality, please set up your n8n webhook URL in the Supabase Edge Function settings.
+              The webhook URL needs to be added to the N8N_WEBHOOK_URL secret.
             </AlertDescription>
           </Alert>
         )}
         <div className="bg-island rounded-lg overflow-hidden shadow-xl h-full">
           <div className="bg-island p-3 border-b border-island-light flex items-center justify-center">
             <div className="flex items-center space-x-2">
-              <h2 className="text-lg font-semibold text-white">Chat with Isla</h2>
+              <h2 className="text-lg font-semibold text-white">Chat with Isla (powered by n8n)</h2>
               <Sparkles className="h-4 w-4 text-love" />
             </div>
           </div>

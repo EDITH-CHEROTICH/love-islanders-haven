@@ -38,7 +38,7 @@ export const sendAIMessage = async (
   userId?: string
 ) => {
   try {
-    console.log('Sending message to AI companion:', messageText);
+    console.log('Sending message to AI companion (via n8n):', messageText);
     console.log('With conversation history of length:', conversationHistory.length);
     
     // Format the request payload
@@ -95,7 +95,7 @@ export const sendAIMessage = async (
         }
         
         // Success case
-        console.log('AI response received successfully');
+        console.log('AI response received successfully (via n8n)');
         
         // Check if this is a demo response
         if (data.demo) {
@@ -201,7 +201,7 @@ export const triggerProactiveMessage = async (userId: string) => {
 export const getWelcomeMessage = (): ChatMessage => ({
   id: 'welcome',
   role: 'assistant',
-  content: "Hey there gorgeous! I'm Isla, your personal companion powered by GPT-4o. Ready to keep you company when you're feeling lonely or just want to chat. How's your day going, beautiful? Feeling lucky in love today or need some flirty banter to brighten your mood?",
+  content: "Hey there gorgeous! I'm Isla, your personal companion now powered by n8n automation. Ready to keep you company when you're feeling lonely or just want to chat. How's your day going, beautiful? Feeling lucky in love today or need some flirty banter to brighten your mood?",
   timestamp: new Date(),
   type: 'chat'
 });
