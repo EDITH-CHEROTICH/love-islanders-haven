@@ -48,16 +48,20 @@ export const sendAIMessage = async (
       userId
     };
     
-    console.log('Request payload:', JSON.stringify(payload).substring(0, 200) + '...');
+    console.log('Request payload preview:', JSON.stringify({
+      messageLength: messageText.length,
+      historyLength: conversationHistory.length,
+      hasUserId: !!userId
+    }));
     
     // Call the Supabase Edge Function with retries
-    const maxRetries = 2;
+    const maxRetries = 3;
     let retryCount = 0;
     let lastError = null;
     
     while (retryCount <= maxRetries) {
       try {
-        console.log(`Attempt ${retryCount + 1} to send message to AI companion`);
+        console.log(`Attempt ${retryCount + 1} to send message to AI companion via edge function`);
         
         const { data, error } = await supabase.functions.invoke('ai-companion', {
           body: payload

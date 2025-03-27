@@ -1,3 +1,4 @@
+
 // Service for handling AI conversations
 import { 
   fetchRecentConversation,
@@ -69,7 +70,13 @@ export async function processConversationWithN8n(
       userStreakActivity
     };
     
-    console.log("Payload length:", JSON.stringify(payload).length);
+    console.log("Payload preview:", JSON.stringify({
+      messageLength: message.length,
+      historyLength: chatHistory.length,
+      hasUserProfile: userProfile !== null,
+      hasMemoryContext: !!userMemoryContext,
+      hasStreakActivity: userStreakActivity && userStreakActivity.length > 0
+    }));
     
     // Add retry logic for the n8n webhook call
     let maxRetries = 2;
@@ -78,6 +85,8 @@ export async function processConversationWithN8n(
     
     while (retryCount <= maxRetries) {
       try {
+        console.log(`Attempt ${retryCount + 1} to call n8n webhook at ${N8N_WEBHOOK_URL}`);
+        
         const response = await fetch(N8N_WEBHOOK_URL, {
           method: 'POST',
           headers: {
@@ -166,125 +175,10 @@ export async function processConversationWithN8n(
     throw lastError || new Error("Unknown error occurred during n8n communication");
   } catch (error) {
     console.error("Error calling n8n webhook:", error);
-    // Return demo response with error message
+    // Return detailed error message to help with debugging
     return { 
       response: `I'm having trouble connecting to my services right now. The specific error was: ${error.message}. Please check your n8n webhook configuration and try again in a moment.`, 
       error: true 
     };
   }
-}
-
-// Keep the original processConversation function
-import { 
-  fetchMemoryContext
-} from '../utils/userContext.ts';
-import {
-  generateAIResponse,
-  generateRecommendation
-} from '../utils/aiService.ts';
-import OpenAI from "https://esm.sh/openai@4.24.1";
-
-// Process chat messages
-export async function processConversation(
-  message: string, 
-  conversationHistory: any[], 
-  userId: string | undefined,
-  supabase: any,
-  userMemoryContext: string,
-  userStreakActivity: any[],
-  userProfile: any = null
-) {
-  // Initialize OpenAI
-  const API_KEY = Deno.env.get('OPENAI_API_KEY');
-  
-  // Check for API key and handle demo mode
-  if (!API_KEY || API_KEY.trim() === '') {
-    console.log("No OpenAI API key found in environment variables");
-    return { response: getDemoResponse(), demo: true };
-  }
-  
-  console.log("Using OpenAI API key:", API_KEY.substring(0, 5) + "...");
-  
-  // Initialize OpenAI client
-  const openaiClient = new OpenAI({
-    apiKey: API_KEY,
-  });
-  
-  // If userId is provided, store message and fetch conversation
-  let recentConversation = [];
-  let chatMessages = [];
-  if (userId) {
-    try {
-      // Store the new user message in the chat history
-      await saveUserMessage(supabase, userId, message);
-      
-      // Fetch recent conversation
-      recentConversation = await fetchRecentConversation(supabase, userId);
-      
-      // Get memory context using embeddings
-      if (recentConversation.length > 0) {
-        userMemoryContext = await fetchMemoryContext(supabase, userId, openaiClient, recentConversation);
-      }
-      
-      // Save the full conversation history for context
-      chatMessages = [...recentConversation];
-    } catch (error) {
-      console.error("Database error:", error);
-    }
-  }
-  
-  // Prepare the chat history for OpenAI
-  const chatHistory = recentConversation.length > 0 
-    ? recentConversation 
-    : conversationHistory;
-
-  // Create system prompt with user profile and memory context
-  const systemPrompt = prepareSystemPrompt(userMemoryContext, userProfile);
-
-  // Generate AI response using OpenAI
-  const aiResponse = await generateAIResponse(
-    openaiClient, 
-    systemPrompt, 
-    chatHistory, 
-    message
-  );
-
-  // If userId is provided, save the assistant's response
-  if (userId) {
-    try {
-      await saveAssistantResponse(supabase, userId, aiResponse, 'chat');
-      
-      // Update chat messages with the new response for memory storage
-      chatMessages.push({ role: 'assistant', content: aiResponse });
-      
-      // Store conversation memory with embedding
-      if (chatMessages.length >= 3) {
-        try {
-          await storeConversationMemory(supabase, userId, openaiClient, chatMessages);
-        } catch (memoryError) {
-          console.error("Error storing conversation memory:", memoryError);
-        }
-      }
-      
-      // Check if we should generate a recommendation
-      const shouldRecommend = shouldGenerateRecommendation(recentConversation);
-      
-      // If we should generate a recommendation and we have streak data
-      if (shouldRecommend && userStreakActivity && userStreakActivity.length > 0) {
-        try {
-          // Generate a recommendation using OpenAI
-          const recommendationText = await generateRecommendation(openaiClient, userStreakActivity);
-          
-          // Save the recommendation as a separate message
-          await saveAssistantResponse(supabase, userId, recommendationText, 'recommendation');
-        } catch (recError) {
-          console.error("Error generating recommendation:", recError);
-        }
-      }
-    } catch (error) {
-      console.error("Error saving assistant response:", error);
-    }
-  }
-
-  return { response: aiResponse };
 }
