@@ -26,12 +26,13 @@ serve(async (req) => {
       return validation.errorResponse;
     }
     
-    const { message, conversationHistory, userId } = validation.data;
+    const { message, conversationHistory, userId, userEmail } = validation.data;
     
     console.log("Request params:", { 
       message: message ? "Present" : "Missing", 
       historyLength: conversationHistory.length,
-      userId: userId ? "Present" : "Missing"
+      userId: userId ? "Present" : "Missing",
+      userEmail: userEmail ? "Present" : "Missing"
     });
 
     // Fetch user context data if userId is provided

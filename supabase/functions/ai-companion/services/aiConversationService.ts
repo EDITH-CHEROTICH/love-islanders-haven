@@ -37,6 +37,9 @@ export async function processConversationWithN8n(
   // If userId is provided, store message and fetch conversation
   let recentConversation = [];
   let chatMessages = [];
+  let userEmail = null;
+  
+  // Try to fetch user email if userId is provided
   if (userId) {
     try {
       // Store the new user message in the chat history
@@ -47,6 +50,17 @@ export async function processConversationWithN8n(
       
       // Save the full conversation history for context
       chatMessages = [...recentConversation];
+      
+      // Try to fetch user email
+      if (supabase) {
+        const { data: userData, error: userError } = await supabase.auth.admin.getUserById(userId);
+        if (!userError && userData && userData.user) {
+          userEmail = userData.user.email;
+          console.log(`Found email for user ${userId}: ${userEmail}`);
+        } else {
+          console.log(`Could not find email for user ${userId}:`, userError);
+        }
+      }
     } catch (error) {
       console.error("Database error:", error);
     }
@@ -67,7 +81,10 @@ export async function processConversationWithN8n(
       conversationHistory: chatHistory,
       userProfile,
       userMemoryContext,
-      userStreakActivity
+      userStreakActivity,
+      userId,
+      userEmail,
+      timestamp: new Date().toISOString()
     };
     
     console.log("Payload preview:", JSON.stringify({
@@ -75,7 +92,9 @@ export async function processConversationWithN8n(
       historyLength: chatHistory.length,
       hasUserProfile: userProfile !== null,
       hasMemoryContext: !!userMemoryContext,
-      hasStreakActivity: userStreakActivity && userStreakActivity.length > 0
+      hasStreakActivity: userStreakActivity && userStreakActivity.length > 0,
+      hasUserId: !!userId,
+      hasUserEmail: !!userEmail
     }));
     
     // Add retry logic for the n8n webhook call

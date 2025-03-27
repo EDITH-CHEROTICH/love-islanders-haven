@@ -4,13 +4,15 @@ import AICompanion from '@/components/companion/AICompanion';
 import { useIsMobile } from '@/hooks/use-mobile';
 import Navbar from '@/components/Navbar';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { InfoIcon, Sparkles, Link2, Webhook } from "lucide-react";
+import { InfoIcon, Sparkles, Link2, Webhook, User } from "lucide-react";
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/context/AuthContext';
 
 const AICompanionChat: React.FC = () => {
   const isMobile = useIsMobile();
   const [showApiKeyInfo, setShowApiKeyInfo] = useState(false);
   const [showSetupGuide, setShowSetupGuide] = useState(false);
+  const { user, isAuthenticated } = useAuth();
 
   // Check if a demo message has been shown, suggesting the n8n webhook isn't set
   useEffect(() => {
@@ -40,6 +42,17 @@ const AICompanionChat: React.FC = () => {
   return (
     <div className="flex flex-col h-screen bg-island-dark">
       <div className={`flex-1 container mx-auto ${isMobile ? 'max-w-full p-0' : 'p-4'}`}>
+        {!isAuthenticated && (
+          <Alert className="mb-4 bg-amber-100 border-amber-200 text-amber-800">
+            <User className="h-5 w-5" />
+            <AlertTitle>Not logged in</AlertTitle>
+            <AlertDescription>
+              You're currently using the AI Companion in guest mode. Sign in to save your chat history 
+              and get personalized experiences.
+            </AlertDescription>
+          </Alert>
+        )}
+      
         {showApiKeyInfo && (
           <Alert className="mb-4 bg-amber-100 border-amber-200 text-amber-800">
             <InfoIcon className="h-5 w-5" />
@@ -83,13 +96,16 @@ const AICompanionChat: React.FC = () => {
                 <li>Create a new workflow in n8n</li>
                 <li>Add a "Webhook" trigger node as the starting point</li>
                 <li>Configure it to receive POST requests</li>
+                <li>Add a "Function" node to process the incoming data (including the user ID)</li>
+                <li>Use the "Supabase" node to query user-specific data using the user ID</li>
                 <li>Add processing nodes (like "HTTP Request" for AI APIs, etc.)</li>
                 <li>Make sure your final node returns a JSON object with a <code className="bg-blue-200 px-1 rounded">response</code> field</li>
                 <li>Deploy your workflow and copy the webhook URL</li>
                 <li>Add the webhook URL as <code className="bg-blue-200 px-1 rounded">N8N_WEBHOOK_URL</code> in Supabase Edge Function secrets</li>
               </ol>
               <p className="mt-2 text-sm italic">
-                The Edge Function will send the message and conversation history to your n8n workflow, which should process it and return the AI response.
+                The Edge Function will send the user ID (if available), message, and conversation history to your n8n workflow,
+                which should process it and return the AI response.
               </p>
             </AlertDescription>
           </Alert>

@@ -29,6 +29,8 @@ const AICompanion: React.FC = () => {
     const loadChatHistory = async () => {
       if (!user?.id) {
         setInitialLoading(false);
+        // If not logged in, just add welcome message and return
+        setMessages([getWelcomeMessage()]);
         return;
       }
 
@@ -48,6 +50,9 @@ const AICompanion: React.FC = () => {
           description: error instanceof Error ? error.message : 'Unknown error occurred',
           variant: "destructive"
         });
+        
+        // Add welcome message even if there's an error
+        setMessages([getWelcomeMessage()]);
       } finally {
         setInitialLoading(false);
       }

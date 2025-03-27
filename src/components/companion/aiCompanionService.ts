@@ -40,12 +40,15 @@ export const sendAIMessage = async (
   try {
     console.log('Sending message to AI companion (via n8n):', messageText);
     console.log('With conversation history of length:', conversationHistory.length);
+    console.log('User ID for message:', userId || 'Not authenticated');
     
-    // Format the request payload
+    // Format the request payload - always include userId even if undefined
     const payload = {
       message: messageText,
       conversationHistory,
-      userId
+      userId,
+      userEmail: null, // This will be filled by the edge function if available
+      timestamp: new Date().toISOString()
     };
     
     console.log('Request payload preview:', JSON.stringify({
