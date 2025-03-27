@@ -48,15 +48,17 @@ export const sendAIMessage = async (
       userId
     };
     
-    console.log('Request payload:', JSON.stringify(payload));
+    console.log('Request payload:', JSON.stringify(payload).substring(0, 200) + '...');
     
     // Call the Supabase Edge Function with retries
-    const maxRetries = 3;
+    const maxRetries = 2;
     let retryCount = 0;
     let lastError = null;
     
     while (retryCount <= maxRetries) {
       try {
+        console.log(`Attempt ${retryCount + 1} to send message to AI companion`);
+        
         const { data, error } = await supabase.functions.invoke('ai-companion', {
           body: payload
         });
@@ -99,6 +101,7 @@ export const sendAIMessage = async (
         
         // Check if this is a demo response
         if (data.demo) {
+          console.log('Demo mode detected, showing alert to user');
           window.postMessage({ type: 'ai-companion-demo-mode' }, '*');
         }
         

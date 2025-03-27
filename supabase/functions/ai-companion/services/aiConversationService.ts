@@ -59,72 +59,132 @@ export async function processConversationWithN8n(
   try {
     // Call n8n webhook with message and context
     console.log("Sending request to n8n webhook");
-    const response = await fetch(N8N_WEBHOOK_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        message,
-        conversationHistory: chatHistory,
-        userProfile,
-        userMemoryContext,
-        userStreakActivity
-      })
-    });
-
-    if (!response.ok) {
-      throw new Error(`n8n webhook returned status: ${response.status}`);
-    }
-
-    const result = await response.json();
-    const aiResponse = result.response || "Sorry, I couldn't generate a response at this time.";
     
-    console.log("Received response from n8n:", aiResponse.substring(0, 50) + "...");
-
-    // If userId is provided, save the assistant's response
-    if (userId) {
+    // Prepare payload for n8n webhook
+    const payload = {
+      message,
+      conversationHistory: chatHistory,
+      userProfile,
+      userMemoryContext,
+      userStreakActivity
+    };
+    
+    console.log("Payload length:", JSON.stringify(payload).length);
+    
+    // Add retry logic for the n8n webhook call
+    let maxRetries = 2;
+    let retryCount = 0;
+    let lastError = null;
+    
+    while (retryCount <= maxRetries) {
       try {
-        await saveAssistantResponse(supabase, userId, aiResponse, 'chat');
+        const response = await fetch(N8N_WEBHOOK_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload)
+        });
+
+        // Check for non-200 responses
+        if (!response.ok) {
+          const errorText = await response.text().catch(() => 'No error text available');
+          console.error(`n8n webhook returned status: ${response.status}`, errorText);
+          
+          // If we got a 404, the webhook might not exist
+          if (response.status === 404) {
+            throw new Error(`n8n webhook not found (404). Please check your webhook URL.`);
+          }
+          
+          throw new Error(`n8n webhook returned status: ${response.status}`);
+        }
+
+        // Parse the result
+        const result = await response.json();
+        console.log("Received result from n8n:", typeof result);
         
-        // Update chat messages with the new response for memory storage
-        chatMessages.push({ role: 'assistant', content: aiResponse });
+        // Check if the result contains a response field
+        const aiResponse = result.response || 
+                          (typeof result === 'string' ? result : 
+                          "Sorry, I couldn't generate a response at this time.");
         
-        // Store conversation memory
-        if (chatMessages.length >= 3) {
+        console.log("Using AI response:", aiResponse.substring(0, 50) + "...");
+
+        // If userId is provided, save the assistant's response
+        if (userId) {
           try {
-            await storeConversationMemory(supabase, userId, null, chatMessages);
-          } catch (memoryError) {
-            console.error("Error storing conversation memory:", memoryError);
+            await saveAssistantResponse(supabase, userId, aiResponse, 'chat');
+            
+            // Update chat messages with the new response for memory storage
+            chatMessages.push({ role: 'assistant', content: aiResponse });
+            
+            // Store conversation memory
+            if (chatMessages.length >= 3) {
+              try {
+                await storeConversationMemory(supabase, userId, null, chatMessages);
+              } catch (memoryError) {
+                console.error("Error storing conversation memory:", memoryError);
+              }
+            }
+            
+            // Check if we should generate a recommendation
+            const shouldRecommend = shouldGenerateRecommendation(recentConversation);
+            
+            // If we should generate a recommendation and we have streak data
+            if (shouldRecommend && userStreakActivity && userStreakActivity.length > 0) {
+              try {
+                // We could call another n8n webhook for recommendations here
+                // For now, we'll skip this functionality
+                console.log("Skipping recommendation generation for now");
+              } catch (recError) {
+                console.error("Error generating recommendation:", recError);
+              }
+            }
+          } catch (error) {
+            console.error("Error saving assistant response:", error);
           }
         }
-        
-        // Check if we should generate a recommendation
-        const shouldRecommend = shouldGenerateRecommendation(recentConversation);
-        
-        // If we should generate a recommendation and we have streak data
-        if (shouldRecommend && userStreakActivity && userStreakActivity.length > 0) {
-          try {
-            // We could call another n8n webhook for recommendations here
-            // For now, we'll skip this functionality
-            console.log("Skipping recommendation generation for now");
-          } catch (recError) {
-            console.error("Error generating recommendation:", recError);
-          }
-        }
+
+        return { response: aiResponse };
       } catch (error) {
-        console.error("Error saving assistant response:", error);
+        console.error(`Attempt ${retryCount + 1} failed:`, error);
+        lastError = error;
+        retryCount++;
+        
+        if (retryCount <= maxRetries) {
+          // Wait before retrying
+          console.log(`Retrying in 1 second... (${retryCount}/${maxRetries})`);
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        } else {
+          // We've exhausted our retries
+          console.error("All retry attempts failed.");
+          throw error;
+        }
       }
     }
-
-    return { response: aiResponse };
+    
+    throw lastError || new Error("Unknown error occurred during n8n communication");
   } catch (error) {
     console.error("Error calling n8n webhook:", error);
-    return { response: "I'm having trouble connecting to my services right now. Please try again in a moment.", error: true };
+    // Return demo response with error message
+    return { 
+      response: `I'm having trouble connecting to my services right now. The specific error was: ${error.message}. Please check your n8n webhook configuration and try again in a moment.`, 
+      error: true 
+    };
   }
 }
 
 // Keep the original processConversation function
+import { 
+  fetchMemoryContext
+} from '../utils/userContext.ts';
+import {
+  generateAIResponse,
+  generateRecommendation
+} from '../utils/aiService.ts';
+import OpenAI from "https://esm.sh/openai@4.24.1";
+
+// Process chat messages
 export async function processConversation(
   message: string, 
   conversationHistory: any[], 
