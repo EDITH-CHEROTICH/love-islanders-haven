@@ -1,6 +1,6 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { Profile } from '@/utils/dummyData';
-import { useAuth } from '@/context/auth';
 
 interface DiscoverFilters {
   ageRange: [number, number];
@@ -18,7 +18,6 @@ interface DiscoverFilters {
 export const fetchDiscoverProfiles = async (filters: DiscoverFilters): Promise<Profile[]> => {
   try {
     // Simulate fetching profiles based on filters
-    // In a real application, this would involve complex database queries
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
@@ -31,7 +30,14 @@ export const fetchDiscoverProfiles = async (filters: DiscoverFilters): Promise<P
       return [];
     }
 
-    return data as Profile[];
+    // Add necessary properties expected by the Profile type
+    const profiles: Profile[] = (data || []).map(profile => ({
+      ...profile,
+      images: profile.images || [],
+      interests: profile.interests || []
+    })) as Profile[];
+
+    return profiles;
   } catch (error) {
     console.error("Error fetching discover profiles:", error);
     return [];

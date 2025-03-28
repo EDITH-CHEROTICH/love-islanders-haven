@@ -1,14 +1,9 @@
-// Update the import in aiCompanionService.ts
+
 import { supabase } from '@/integrations/supabase/client';
-import { createClient } from '@supabase/supabase-js';
-import { useAuth } from '@/context/auth';
 
 const aiCompanionService = {
-  sendMessage: async (message: string, conversationHistory: { role: string; content: string }[]) => {
+  sendMessage: async (message: string, userId: string, conversationHistory: { role: string; content: string }[]) => {
     try {
-      const { user } = useAuth();
-      const userId = user?.user?.id || 'guest';
-
       const response = await fetch('/api/ai-companion', {
         method: 'POST',
         headers: {
