@@ -7,10 +7,11 @@ interface PrivacyToggleProps {
   label: string;
   settingKey: keyof ReturnType<typeof usePrivacy>['settings'];
   icon?: React.ReactNode;
+  description?: string;
   onChange?: (checked: boolean) => void;
 }
 
-const PrivacyToggle = ({ label, settingKey, icon, onChange }: PrivacyToggleProps) => {
+const PrivacyToggle = ({ label, settingKey, icon, description, onChange }: PrivacyToggleProps) => {
   const { settings, updatePrivacySetting, isLoading } = usePrivacy();
   const [isToggling, setIsToggling] = useState(false);
   
@@ -34,9 +35,12 @@ const PrivacyToggle = ({ label, settingKey, icon, onChange }: PrivacyToggleProps
   
   return (
     <div className="flex items-center justify-between py-2">
-      <div className="flex items-center gap-2">
-        {icon}
-        <span>{label}</span>
+      <div className="flex flex-col">
+        <div className="flex items-center gap-2">
+          {icon}
+          <span>{label}</span>
+        </div>
+        {description && <p className="text-sm text-muted-foreground ml-6 mt-1">{description}</p>}
       </div>
       <Switch
         checked={settings[settingKey] as boolean ?? false}
