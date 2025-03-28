@@ -1,15 +1,17 @@
 
 import React from 'react';
 import { cn } from '@/lib/utils';
+import { ChatMessage } from './types';
 
 type MessageProps = {
-  message: string;
-  isUser: boolean;
-  timestamp?: Date;
-  isProactive?: boolean;
+  message: ChatMessage;
+  isLast: boolean;
 };
 
-const Message: React.FC<MessageProps> = ({ message, isUser, timestamp = new Date(), isProactive = false }) => {
+const Message: React.FC<MessageProps> = ({ message, isLast }) => {
+  const isUser = message.role === 'user';
+  const isProactive = message.type === 'proactive';
+  
   return (
     <div 
       className={cn(
@@ -27,9 +29,9 @@ const Message: React.FC<MessageProps> = ({ message, isUser, timestamp = new Date
               : "bg-island-light text-white rounded-tl-none"
         )}
       >
-        <p className="text-sm sm:text-base">{message}</p>
+        <p className="text-sm sm:text-base">{message.content}</p>
         <p className="text-xs opacity-70 mt-1">
-          {timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+          {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
         </p>
       </div>
     </div>
