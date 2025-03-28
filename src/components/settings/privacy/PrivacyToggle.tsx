@@ -1,37 +1,35 @@
 
-import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { usePrivacy } from './PrivacyContext';
-import { PrivacySettings } from '@/services/settings/types';
+import { PrivacySettings } from '@/services/settings';
+import { LucideIcon } from 'lucide-react';
 
-interface PrivacyToggleProps { 
-  label: string; 
+interface PrivacyToggleProps {
+  label: string;
   settingKey: keyof PrivacySettings;
   icon?: React.ReactNode;
+  description?: string;
 }
 
-const PrivacyToggle = ({ 
-  label, 
+const PrivacyToggle = ({
+  label,
   settingKey,
-  icon
+  icon,
+  description
 }: PrivacyToggleProps) => {
   const { settings, updatePrivacySetting } = usePrivacy();
   
-  // Check if the setting is a boolean type
-  if (typeof settings[settingKey] !== 'boolean') {
-    console.error(`Setting ${String(settingKey)} is not a boolean value`);
-    return null;
-  }
-
   return (
     <div className="flex items-center justify-between">
-      <div className="flex items-center gap-2">
-        {icon}
-        <Label htmlFor={`setting-${String(settingKey)}`} className="cursor-pointer">{label}</Label>
+      <div className="flex items-start gap-2">
+        {icon && <div className="mt-0.5">{icon}</div>}
+        <div>
+          <div className="font-medium">{label}</div>
+          {description && <p className="text-xs text-muted-foreground">{description}</p>}
+        </div>
       </div>
-      <Switch 
-        id={`setting-${String(settingKey)}`} 
-        checked={settings[settingKey] as boolean}
+      <Switch
+        checked={settings[settingKey] as boolean ?? false}
         onCheckedChange={(checked) => updatePrivacySetting(settingKey, checked)}
       />
     </div>

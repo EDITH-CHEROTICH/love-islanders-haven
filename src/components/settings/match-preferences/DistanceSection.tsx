@@ -4,7 +4,7 @@ import { Slider } from '@/components/ui/slider';
 import { toast } from 'sonner';
 import { MatchPreferences } from '@/services/settings';
 import { Button } from '@/components/ui/button';
-import { MapPin } from 'lucide-react';
+import { MapPin, Loader2 } from 'lucide-react';
 import { requestAndUpdateLocation } from '@/services/profiles';
 import {
   Select,
@@ -84,9 +84,13 @@ const DistanceSection = ({ settings, onSettingsChange, updateSettings }: Distanc
   const handleUpdateLocation = async () => {
     try {
       setIsUpdatingLocation(true);
-      await requestAndUpdateLocation();
+      const result = await requestAndUpdateLocation();
+      if (result) {
+        toast.success('Your location has been updated successfully');
+      }
     } catch (error) {
       console.error('Error updating location:', error);
+      toast.error('Failed to update your location');
     } finally {
       setIsUpdatingLocation(false);
     }
@@ -160,8 +164,17 @@ const DistanceSection = ({ settings, onSettingsChange, updateSettings }: Distanc
           onClick={handleUpdateLocation}
           disabled={isUpdatingLocation}
         >
-          <MapPin size={16} />
-          {isUpdatingLocation ? "Updating Location..." : "Update My Location"}
+          {isUpdatingLocation ? (
+            <>
+              <Loader2 size={16} className="animate-spin" />
+              Updating Location...
+            </>
+          ) : (
+            <>
+              <MapPin size={16} />
+              Update My Location
+            </>
+          )}
         </Button>
         <p className="text-xs text-muted-foreground mt-2">
           This will update your current location to be used for distance calculations.

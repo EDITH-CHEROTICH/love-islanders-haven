@@ -12,13 +12,15 @@ export interface UserLocation {
  */
 export const updateUserLocation = async (location: UserLocation): Promise<boolean> => {
   try {
-    const user = supabase.auth.getUser();
-    const userId = (await user).data.user?.id;
+    const { data: { user } } = await supabase.auth.getUser();
+    const userId = user?.id;
 
     if (!userId) {
       console.error('User not authenticated');
       return false;
     }
+
+    console.log('Updating location for user:', userId, location);
 
     const { error } = await supabase
       .from('profiles')
@@ -34,6 +36,7 @@ export const updateUserLocation = async (location: UserLocation): Promise<boolea
       return false;
     }
 
+    console.log('Location updated successfully');
     return true;
   } catch (error) {
     console.error('Error updating location:', error);
@@ -51,19 +54,27 @@ export const getCurrentLocation = (): Promise<UserLocation> => {
       return;
     }
 
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        resolve({
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude
-        });
-      },
-      (error) => {
-        console.error('Error getting location:', error);
-        reject(error);
-      },
-      { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
-    );
+    navigator.permissions.query({ name: 'geolocation' }).then((result) => {
+      if (result.state === 'denied') {
+        reject(new Error('Location permission is denied. Please enable location services in your browser settings.'));
+        return;
+      }
+      
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          console.log('Got location:', position.coords);
+          resolve({
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude
+          });
+        },
+        (error) => {
+          console.error('Error getting location:', error);
+          reject(error);
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      );
+    });
   });
 };
 
@@ -72,19 +83,21 @@ export const getCurrentLocation = (): Promise<UserLocation> => {
  */
 export const requestAndUpdateLocation = async (): Promise<boolean> => {
   try {
+    console.log('Requesting user location...');
     // Get current location
     const location = await getCurrentLocation();
+    console.log('Got location, updating in database:', location);
     
     // Update location in database
     const success = await updateUserLocation(location);
     
     if (success) {
-      toast.success('Location updated successfully');
+      console.log('Location updated successfully');
+      return true;
     } else {
-      toast.error('Failed to update location');
+      console.error('Failed to update location in database');
+      return false;
     }
-    
-    return success;
   } catch (error) {
     console.error('Error requesting and updating location:', error);
     
@@ -102,6 +115,8 @@ export const requestAndUpdateLocation = async (): Promise<boolean> => {
         default:
           toast.error('An unknown error occurred while getting location.');
       }
+    } else if (error instanceof Error) {
+      toast.error(error.message);
     } else {
       toast.error('Failed to update location');
     }

@@ -26,6 +26,7 @@ const AccountSettings = () => {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
 
   useEffect(() => {
     setLocalSettings(settings.account_settings);
@@ -76,23 +77,17 @@ const AccountSettings = () => {
 
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setEmail(e.target.value);
-  };
-
-  const handleEmailSave = async () => {
-    try {
-      // Update account_settings with new email
-      const newSettings = { ...localSettings, email: email };
-      setLocalSettings(newSettings);
-      await updateSettings('account_settings', newSettings);
-      
-      // Update email in localStorage
-      localStorage.setItem('authContact', email);
-      
-      toast.success('Email updated successfully');
-    } catch (error) {
-      console.error('Error updating email:', error);
-      toast.error('Failed to update email');
-    }
+    
+    // Auto-save email when changed
+    const newSettings = { ...localSettings, email: e.target.value };
+    setLocalSettings(newSettings);
+    updateSettings('account_settings', newSettings)
+      .then(() => {
+        localStorage.setItem('authContact', e.target.value);
+      })
+      .catch(error => {
+        console.error('Error updating email:', error);
+      });
   };
 
   const handlePasswordSave = async () => {
@@ -104,6 +99,8 @@ const AccountSettings = () => {
       toast.error('Password must be at least 8 characters');
       return;
     }
+    
+    setIsUpdatingPassword(true);
     
     try {
       // Here you would update the user's password in Supabase Auth
@@ -119,9 +116,11 @@ const AccountSettings = () => {
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating password:', error);
-      toast.error('Failed to update password');
+      toast.error(error.message || 'Failed to update password');
+    } finally {
+      setIsUpdatingPassword(false);
     }
   };
 
@@ -141,18 +140,15 @@ const AccountSettings = () => {
       <div className="space-y-6">
         <div className="space-y-4">
           <h4 className="text-sm font-medium text-love">Email Address</h4>
-          <div className="flex items-center gap-2">
-            <div className="flex-1">
-              <Label htmlFor="email" className="sr-only">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={handleEmailChange}
-                className="bg-island-light/20 border-island-light"
-              />
-            </div>
-            <Button onClick={handleEmailSave} size="sm">Save</Button>
+          <div>
+            <Label htmlFor="email" className="sr-only">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              value={email}
+              onChange={handleEmailChange}
+              className="bg-island-light/20 border-island-light"
+            />
           </div>
         </div>
 
@@ -219,19 +215,14 @@ const AccountSettings = () => {
                 </button>
               </div>
             </div>
-            <Button onClick={handlePasswordSave} className="w-full">Update Password</Button>
+            <Button 
+              onClick={handlePasswordSave} 
+              className="w-full"
+              disabled={isUpdatingPassword}
+            >
+              {isUpdatingPassword ? 'Updating Password...' : 'Update Password'}
+            </Button>
           </div>
-        </div>
-
-        <div className="pt-4 border-t border-island-light/30">
-          <Button 
-            variant="destructive" 
-            className="w-full flex items-center justify-center gap-2"
-            onClick={handleLogout}
-          >
-            <LogOut size={16} />
-            Logout
-          </Button>
         </div>
       </div>
     </SettingsSection>

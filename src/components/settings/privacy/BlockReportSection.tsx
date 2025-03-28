@@ -13,6 +13,7 @@ const BlockReportSection = () => {
   const [blockedUsers, setBlockedUsers] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const [unblockingId, setUnblockingId] = useState<string | null>(null);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -46,13 +47,22 @@ const BlockReportSection = () => {
   const handleUnblockUser = async (blockedUserId: string) => {
     if (!userId) return;
     
+    setUnblockingId(blockedUserId);
+    
     try {
-      await unblockUser(userId, blockedUserId);
+      const { data, error } = await unblockUser(userId, blockedUserId);
+      
+      if (error) {
+        throw error;
+      }
+      
       setBlockedUsers(blockedUsers.filter(user => user.blocked_user_id !== blockedUserId));
       toast.success('User unblocked successfully');
     } catch (error) {
       console.error('Error unblocking user:', error);
       toast.error('Failed to unblock user');
+    } finally {
+      setUnblockingId(null);
     }
   };
 
@@ -101,9 +111,16 @@ const BlockReportSection = () => {
                       variant="ghost" 
                       size="sm"
                       onClick={() => handleUnblockUser(blockedUser.blocked_user_id)}
+                      disabled={unblockingId === blockedUser.blocked_user_id}
                       className="text-love hover:text-love hover:bg-love/10"
                     >
-                      <X size={16} className="mr-1" /> Unblock
+                      {unblockingId === blockedUser.blocked_user_id ? (
+                        "Unblocking..."
+                      ) : (
+                        <>
+                          <X size={16} className="mr-1" /> Unblock
+                        </>
+                      )}
                     </Button>
                   </div>
                 ))}

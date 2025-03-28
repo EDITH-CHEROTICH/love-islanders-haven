@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { toast } from 'sonner';
 import { 
@@ -29,13 +30,15 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   // Load settings when authenticated
   useEffect(() => {
     const loadSettings = async () => {
-      if (!isAuthenticated || !user) {
+      if (!isAuthenticated) {
+        console.log('User not authenticated, using default settings');
         setSettings(defaultSettings);
         setIsLoading(false);
         return;
       }
 
       try {
+        console.log('User authenticated, loading settings');
         setIsLoading(true);
         const userSettings = await fetchUserSettings();
         setSettings(userSettings);
@@ -57,12 +60,15 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     category: T, 
     newSettings: UserSettings[T]
   ): Promise<boolean> => {
-    if (!isAuthenticated || !user) {
+    if (!isAuthenticated) {
+      console.error('User must be logged in to save settings');
       toast.error('You must be logged in to save settings');
       return false;
     }
 
     try {
+      console.log(`Updating ${category}:`, newSettings);
+      
       // Update local state immediately for responsive UI
       setSettings(prev => ({
         ...prev,
@@ -77,11 +83,10 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
       
       if (success) {
         console.log(`${category} updated successfully`);
-        toast.success(`${category.toString().replace(/_/g, ' ')} updated successfully`);
         return true;
       } else {
+        console.error(`Failed to update ${category} in database`);
         // Revert on failure
-        toast.error(`Failed to update ${category.toString().replace(/_/g, ' ')}`);
         try {
           const revertedSettings = await fetchUserSettings();
           setSettings(revertedSettings);
@@ -92,38 +97,31 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
       }
     } catch (err) {
       console.error(`Error updating ${category}:`, err);
-      toast.error(`Failed to update ${category.toString().replace(/_/g, ' ')}`);
       return false;
     }
   };
 
   // Save all settings at once
   const saveAllSettings = async (): Promise<boolean> => {
-    if (!isAuthenticated || !user) {
+    if (!isAuthenticated) {
+      console.error('User must be logged in to save settings');
       toast.error('You must be logged in to save settings');
       return false;
     }
 
     try {
       const success = await saveUserSettings(settings);
-      
-      if (success) {
-        toast.success('All settings saved successfully');
-        return true;
-      } else {
-        toast.error('Failed to save settings');
-        return false;
-      }
+      return success;
     } catch (err) {
       console.error('Error saving all settings:', err);
-      toast.error('Failed to save settings');
       return false;
     }
   };
 
   // Reset all settings to default
   const resetAllSettings = async (): Promise<boolean> => {
-    if (!isAuthenticated || !user) {
+    if (!isAuthenticated) {
+      console.error('User must be logged in to reset settings');
       toast.error('You must be logged in to reset settings');
       return false;
     }
