@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -8,18 +9,20 @@ import ForgotPassword from '@/components/auth/ForgotPassword';
 const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
   const [isLoginMode, setIsLoginMode] = useState(true);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   
   // Check if user wants to explicitly access the login page
   const isDirectLoginAccess = location.pathname === '/login' && !location.state?.from;
   
-  // Only redirect if authenticated and not directly accessing login page
   useEffect(() => {
     console.log("Login page - isAuthenticated:", isAuthenticated);
     console.log("Login page - isDirectLoginAccess:", isDirectLoginAccess);
     console.log("Login page - location state:", location.state);
+    
+    // Wait until authentication state is determined
+    if (loading) return;
     
     // If user is authenticated
     if (isAuthenticated) {
@@ -35,7 +38,7 @@ const Login = () => {
         navigate('/discover', { replace: true });
       }
     }
-  }, [isAuthenticated, navigate, location, isDirectLoginAccess]);
+  }, [isAuthenticated, navigate, location, isDirectLoginAccess, loading]);
 
   const toggleAuthMode = () => {
     setIsLoginMode(!isLoginMode);
@@ -48,6 +51,15 @@ const Login = () => {
   const handleBackToLogin = () => {
     setIsForgotPassword(false);
   };
+
+  // Show a loading indicator while authentication state is being determined
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-island-dark via-island to-island-dark flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-love"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-island-dark via-island to-island-dark pt-4 pb-20 flex flex-col items-center justify-center px-4">

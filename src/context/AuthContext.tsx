@@ -34,7 +34,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (localAuth === 'true') {
       console.log("Local authentication found");
       setIsLocalAuth(true);
-      setLoading(false);
       
       // Get additional user info if available
       const authMethod = localStorage.getItem('authMethod');
@@ -46,26 +45,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         console.log("Auth state changed:", event);
-        setSession(session);
-        setUser(session?.user ?? null);
-        setLoading(false);
         
-        // If signed in, store local backup
-        if (event === 'SIGNED_IN' && session?.user) {
-          localStorage.setItem('isAuthenticated', 'true');
-          localStorage.setItem('authMethod', 'supabase');
-          localStorage.setItem('authContact', session.user.email || '');
-          setIsLocalAuth(true);
-          console.log("User signed in - setting localStorage backup");
+        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+          console.log("User signed in or token refreshed, setting session");
+          setSession(session);
+          setUser(session?.user ?? null);
+          
+          // If signed in, store local backup
+          if (session?.user) {
+            localStorage.setItem('isAuthenticated', 'true');
+            localStorage.setItem('authMethod', 'supabase');
+            localStorage.setItem('authContact', session.user.email || '');
+            setIsLocalAuth(true);
+            console.log("User signed in - setting localStorage backup");
+          }
         }
         
         // If signed out, clear local backup
         if (event === 'SIGNED_OUT') {
+          console.log("User signed out - clearing state and localStorage");
+          setSession(null);
+          setUser(null);
           localStorage.removeItem('isAuthenticated');
           localStorage.removeItem('authMethod');
           localStorage.removeItem('authContact');
           setIsLocalAuth(false);
-          console.log("User signed out - clearing localStorage backup");
           
           const url = new URL(window.location.href);
           const error = url.searchParams.get('error');
@@ -85,22 +89,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             window.history.replaceState({}, document.title, url.toString());
           }
         }
+        
+        setLoading(false);
       }
     );
 
     // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       console.log("Existing session check:", session ? "Found" : "Not found");
-      setSession(session);
-      setUser(session?.user ?? null);
       
-      // If there's a valid session, update local storage backup
-      if (session?.user) {
+      if (session) {
+        console.log("Valid session found - updating state and localStorage backup");
+        setSession(session);
+        setUser(session.user);
+        
+        // If there's a valid session, update local storage backup
         localStorage.setItem('isAuthenticated', 'true');
         localStorage.setItem('authMethod', 'supabase');
         localStorage.setItem('authContact', session.user.email || '');
         setIsLocalAuth(true);
-        console.log("Valid session found - updating localStorage backup");
       }
       
       setLoading(false);
@@ -113,24 +120,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signIn = async (email: string, password: string) => {
     console.log(`Attempting to sign in with email: ${email}`);
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    setLoading(true);
     
-    if (error) {
-      console.error("Sign in error:", error);
-      throw error;
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      
+      if (error) {
+        console.error("Sign in error:", error);
+        throw error;
+      }
+      
+      console.log("Sign in successful:", data);
+      
+      // Store local authentication as a fallback
+      localStorage.setItem('isAuthenticated', 'true');
+      localStorage.setItem('authMethod', 'email');
+      localStorage.setItem('authContact', email);
+      setIsLocalAuth(true);
+      
+      // Update session and user state
+      setSession(data.session);
+      setUser(data.user);
+    } finally {
+      setLoading(false);
     }
-    
-    console.log("Sign in successful:", data);
-    
-    // Store local authentication as a fallback
-    localStorage.setItem('isAuthenticated', 'true');
-    localStorage.setItem('authMethod', 'email');
-    localStorage.setItem('authContact', email);
-    setIsLocalAuth(true);
-    
-    // Update session and user state
-    setSession(data.session);
-    setUser(data.user);
   };
 
   const signInWithGoogle = async () => {
@@ -186,24 +199,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signOut = async () => {
     console.log("Signing out user");
-    // First, clear localStorage
-    localStorage.removeItem('isAuthenticated');
-    localStorage.removeItem('authMethod');
-    localStorage.removeItem('authContact');
-    localStorage.removeItem('oauth_state');
-    setIsLocalAuth(false);
+    setLoading(true);
     
-    // Then sign out from Supabase
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      console.error("Error signing out from Supabase:", error);
-      throw error;
+    try {
+      // First, clear localStorage
+      localStorage.removeItem('isAuthenticated');
+      localStorage.removeItem('authMethod');
+      localStorage.removeItem('authContact');
+      localStorage.removeItem('oauth_state');
+      setIsLocalAuth(false);
+      
+      // Then sign out from Supabase
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error("Error signing out from Supabase:", error);
+        throw error;
+      }
+      
+      // Update state
+      setSession(null);
+      setUser(null);
+      console.log("User signed out successfully");
+    } finally {
+      setLoading(false);
     }
-    
-    // Update state
-    setSession(null);
-    setUser(null);
-    console.log("User signed out successfully");
   };
 
   const value = {

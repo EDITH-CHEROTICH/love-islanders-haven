@@ -28,10 +28,13 @@ const AccountSettings = () => {
 
   useEffect(() => {
     setLocalSettings(settings.account_settings);
+    
+    // Make sure we update the email field when user data is available
     if (user?.email) {
       setEmail(user.email);
+      console.log("User email set in AccountSettings:", user.email);
     }
-  }, [settings.account_settings, user?.email]);
+  }, [settings.account_settings, user]);
 
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setEmail(e.target.value);

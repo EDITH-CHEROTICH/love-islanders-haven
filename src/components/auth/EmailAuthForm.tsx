@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -48,6 +49,7 @@ const EmailAuthForm = ({
           title: "Login successful",
           description: "Welcome back!",
         });
+        // No need to return early - the auth context will handle redirect
       } else {
         // For signup, generate a random 4-digit code and store credentials
         const code = Math.floor(1000 + Math.random() * 9000).toString();
