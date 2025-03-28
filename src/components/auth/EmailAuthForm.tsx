@@ -47,16 +47,20 @@ const EmailAuthForm = ({
         const result = await signIn(values.email, values.password);
         console.log("Login result:", result);
         
-        toast({
-          title: "Login successful",
-          description: "Welcome back!",
-        });
+        if (result) { // Make sure we got a valid result back
+          toast({
+            title: "Login successful",
+            description: "Welcome back!",
+          });
+        } else {
+          throw new Error("Invalid credentials");
+        }
         // No need to manually redirect - the auth context will handle this
       } else {
         console.log("Starting signup process for:", values.email);
         // For signup, we're going to complete the process directly instead of using verification
-        await signUp(values.email, values.password);
-        console.log("Signup completed successfully");
+        const result = await signUp(values.email, values.password);
+        console.log("Signup completed successfully", result);
         
         toast({
           title: "Account created successfully",

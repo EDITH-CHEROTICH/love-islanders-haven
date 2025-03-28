@@ -115,12 +115,14 @@ export const useAuthState = () => {
               }
             } catch (err) {
               console.error("Error during session refresh:", err);
+            } finally {
+              setLoading(false);
             }
           }, 0);
+        } else {
+          setLoading(false);
         }
       }
-      
-      setLoading(false);
     });
 
     return () => {

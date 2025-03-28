@@ -28,6 +28,7 @@ export const useAuthActions = () => {
       
       return data;
     } catch (error) {
+      console.error("Error during sign in:", error);
       throw error;
     } finally {
       setLoading(false);
@@ -41,18 +42,23 @@ export const useAuthActions = () => {
     const stateParam = Math.random().toString(36).substring(2, 15);
     localStorage.setItem('oauth_state', stateParam);
     
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${currentUrl}/discover`,
-        queryParams: {
-          prompt: 'select_account',
-          state: stateParam
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${currentUrl}/discover`,
+          queryParams: {
+            prompt: 'select_account',
+            state: stateParam
+          }
         }
-      }
-    });
-    
-    if (error) throw error;
+      });
+      
+      if (error) throw error;
+    } catch (error) {
+      console.error("Error during Google sign in:", error);
+      throw error;
+    }
   };
 
   const signUp = async (email: string, password: string) => {
@@ -91,7 +97,10 @@ export const useAuthActions = () => {
         localStorage.setItem('authMethod', 'email');
         localStorage.setItem('authContact', email);
       }
+      
+      return data;
     } catch (error) {
+      console.error("Error during sign up:", error);
       throw error;
     } finally {
       setLoading(false);
@@ -99,11 +108,16 @@ export const useAuthActions = () => {
   };
 
   const resetPassword = async (email: string) => {
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/login`,
-    });
-    
-    if (error) throw error;
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/login`,
+      });
+      
+      if (error) throw error;
+    } catch (error) {
+      console.error("Error during password reset:", error);
+      throw error;
+    }
   };
 
   const signOut = async () => {
@@ -125,6 +139,9 @@ export const useAuthActions = () => {
       }
       
       console.log("User signed out successfully");
+    } catch (error) {
+      console.error("Error during sign out:", error);
+      throw error;
     } finally {
       setLoading(false);
     }
