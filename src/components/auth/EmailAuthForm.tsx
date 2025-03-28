@@ -45,11 +45,12 @@ const EmailAuthForm = ({
       if (isLoginMode) {
         console.log("Attempting login with:", values.email);
         await signIn(values.email, values.password);
+        
         toast({
           title: "Login successful",
           description: "Welcome back!",
         });
-        // No need to return early - the auth context will handle redirect
+        // No need to manually redirect - the auth context will handle this
       } else {
         // For signup, generate a random 4-digit code and store credentials
         const code = Math.floor(1000 + Math.random() * 9000).toString();

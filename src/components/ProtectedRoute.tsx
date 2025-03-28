@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/auth';
@@ -26,7 +27,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
 
   // If not authenticated, redirect to login with the current location
   if (!isAuthenticated) {
-    console.log("Not authenticated, redirecting to login");
+    console.log("Not authenticated, redirecting to login from:", location.pathname);
     // Pass the current location so we can redirect back after login
     return <Navigate to="/login" state={{ from: location }} replace />;
   }

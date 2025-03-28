@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -128,6 +127,11 @@ export const useAuthState = () => {
       // Update session and user state
       setSession(data.session);
       setUser(data.user);
+      
+      return data;
+    } catch (error) {
+      setLoading(false);
+      throw error;
     } finally {
       setLoading(false);
     }

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/auth';
@@ -33,7 +32,7 @@ const Login = () => {
         navigate(from, { replace: true });
       } 
       // Otherwise redirect to discover
-      else {
+      else if (!isDirectLoginAccess) {
         console.log("Redirecting to discover");
         navigate('/discover', { replace: true });
       }
@@ -63,7 +62,7 @@ const Login = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-island-dark via-island to-island-dark pt-4 pb-20 flex flex-col items-center justify-center px-4">
-      {isAuthenticated ? (
+      {isAuthenticated && !isDirectLoginAccess ? (
         <AlreadyLoggedIn />
       ) : isForgotPassword ? (
         <ForgotPassword onBackToLogin={handleBackToLogin} />
