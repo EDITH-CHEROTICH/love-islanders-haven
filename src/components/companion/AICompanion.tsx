@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Sparkles } from 'lucide-react';
 import { ChatMessage } from './types';
@@ -171,7 +172,7 @@ const AICompanion: React.FC = () => {
         {messages.map((message, index) => (
           <React.Fragment key={message.id}>
             {message.type === 'recommendation' ? (
-              <RecommendationMessage message={message} />
+              <RecommendationMessage content={message.content} />
             ) : (
               <Message message={message} isLast={index === messages.length - 1} />
             )}
@@ -180,7 +181,7 @@ const AICompanion: React.FC = () => {
         {isLoading && <AILoadingIndicator />}
         <div ref={messagesEndRef} />
       </div>
-      <ChatInput onSendMessage={handleSendMessage} />
+      <ChatInput onSendMessage={handleSendMessage} isLoading={isLoading} />
     </div>
   );
 };
