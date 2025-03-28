@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { fetchDiscoverProfiles, recordSwipeAction } from '@/services/discover';
 import { Profile } from '@/utils/dummyData';
@@ -10,12 +11,26 @@ import AdvancedFilters from '@/components/discover/AdvancedFilters';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/auth';
 
+// Define the filters type with tuple for fixed-length arrays
+interface DiscoverFiltersState {
+  ageRange: [number, number];
+  distance: number;
+  height: [number, number];
+  relationshipGoals: string[];
+  hasChildren: boolean | null;
+  hasPets: boolean | null;
+  smoking: string | null;
+  education: string | null;
+  occupation: string | null;
+  interests: string[];
+}
+
 const Discover: React.FC = () => {
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [currentProfileIndex, setCurrentProfileIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [isFilterDialogOpen, setIsFilterDialogOpen] = useState(false);
-  const [filters, setFilters] = useState({
+  const [filters, setFilters] = useState<DiscoverFiltersState>({
     ageRange: [18, 35],
     distance: 50,
     height: [150, 190],
@@ -57,7 +72,7 @@ const Discover: React.FC = () => {
       toast({
         title: "No profiles available",
         description: "Please adjust your filters or try again later.",
-        variant: "warning",
+        variant: "destructive",
       });
       return;
     }
@@ -107,7 +122,7 @@ const Discover: React.FC = () => {
       toast({
         title: "No more profiles",
         description: "You've reached the end of available profiles. Check back later!",
-        variant: "info",
+        variant: "destructive",
       });
     }
   };
@@ -121,7 +136,7 @@ const Discover: React.FC = () => {
   };
 
   const applyFilters = (newFilters: any) => {
-    setFilters(newFilters);
+    setFilters(newFilters as DiscoverFiltersState);
     closeFilterDialog();
   };
 
@@ -138,7 +153,7 @@ const Discover: React.FC = () => {
           </div>
         ) : currentProfile ? (
           <>
-            <ProfileCard profile={currentProfile} />
+            <ProfileCard profile={currentProfile} onSwipe={handleSwipe} />
             <SwipeButtons onSwipe={handleSwipe} />
           </>
         ) : (
@@ -157,9 +172,8 @@ const Discover: React.FC = () => {
 
         <Dialog open={isFilterDialogOpen} onOpenChange={setIsFilterDialogOpen}>
           <AdvancedFilters
-            onClose={closeFilterDialog}
-            onApply={applyFilters}
             initialFilters={filters}
+            onApply={applyFilters}
           />
         </Dialog>
       </div>

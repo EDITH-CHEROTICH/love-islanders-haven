@@ -2,7 +2,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { Profile } from '@/utils/dummyData';
 
-interface DiscoverFilters {
+export interface DiscoverFilters {
   ageRange: [number, number];
   distance: number;
   height: [number, number];
@@ -30,12 +30,31 @@ export const fetchDiscoverProfiles = async (filters: DiscoverFilters): Promise<P
       return [];
     }
 
-    // Add necessary properties expected by the Profile type
-    const profiles: Profile[] = (data || []).map(profile => ({
-      ...profile,
-      images: profile.images || [],
-      interests: profile.interests || []
-    })) as Profile[];
+    // Convert database records to Profile type
+    const profiles: Profile[] = (data || []).map(profile => {
+      // Create a profile object with required fields
+      return {
+        id: profile.id,
+        name: profile.display_name || 'Anonymous',
+        age: profile.age || 25,
+        bio: profile.bio || 'No bio available',
+        distance: Math.floor(Math.random() * filters.distance), // Simulate distance
+        occupation: profile.occupation || 'Not specified',
+        education: profile.education || 'Not specified',
+        images: Array.isArray(profile.images) ? profile.images : [],
+        interests: Array.isArray(profile.interests) ? profile.interests : [],
+        relationshipGoal: profile.relationship_goal || 'Not specified',
+        height: profile.height || 175,
+        gender: profile.gender || 'Not specified',
+        lastActive: new Date(),
+        verified: Boolean(profile.verified),
+        children: profile.has_children ? 'Has children' : 'No children',
+        smoking: profile.smoking || 'Not specified',
+        drinking: profile.drinking || 'Not specified',
+        exercise: profile.exercise || 'Not specified',
+        pets: profile.has_pets ? 'Has pets' : 'No pets',
+      } as Profile;
+    });
 
     return profiles;
   } catch (error) {
