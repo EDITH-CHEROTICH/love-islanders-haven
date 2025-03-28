@@ -44,7 +44,8 @@ const EmailAuthForm = ({
     try {
       if (isLoginMode) {
         console.log("Attempting login with:", values.email);
-        await signIn(values.email, values.password);
+        const result = await signIn(values.email, values.password);
+        console.log("Login result:", result);
         
         toast({
           title: "Login successful",
