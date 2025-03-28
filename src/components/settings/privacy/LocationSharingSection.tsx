@@ -11,9 +11,33 @@ import {
 import PrivacyControlsSection from './PrivacyControlsSection';
 import PrivacyToggle from './PrivacyToggle';
 import { usePrivacy } from './PrivacyContext';
+import { Button } from '@/components/ui/button';
+import { useState } from 'react';
+import { requestAndUpdateLocation } from '@/services/profiles/location';
+import { toast } from 'sonner';
 
 const LocationSharingSection = () => {
   const { settings, updatePrivacySetting } = usePrivacy();
+  const [isUpdatingLocation, setIsUpdatingLocation] = useState(false);
+  
+  const handleUpdateLocation = async () => {
+    try {
+      setIsUpdatingLocation(true);
+      const success = await requestAndUpdateLocation();
+      
+      if (success) {
+        // If location toggle is off, turn it on since the user is explicitly sharing location
+        if (!settings.shareLocation) {
+          updatePrivacySetting('shareLocation', true);
+        }
+      }
+    } catch (error) {
+      console.error('Error updating location:', error);
+      toast.error('Failed to update your location');
+    } finally {
+      setIsUpdatingLocation(false);
+    }
+  };
   
   return (
     <PrivacyControlsSection title="Location Sharing" icon={<MapPin size={16} className="text-love" />}>
@@ -21,6 +45,12 @@ const LocationSharingSection = () => {
         label="Share your location"
         settingKey="shareLocation"
         icon={<MapPin size={16} className="text-muted-foreground" />}
+        onChange={(checked) => {
+          // If turning on, prompt to update location
+          if (checked) {
+            handleUpdateLocation();
+          }
+        }}
       />
       
       <PrivacyToggle 
@@ -45,6 +75,16 @@ const LocationSharingSection = () => {
           </SelectContent>
         </Select>
       </div>
+      
+      <Button 
+        onClick={handleUpdateLocation} 
+        variant="outline" 
+        size="sm" 
+        className="w-full mt-2"
+        disabled={isUpdatingLocation}
+      >
+        {isUpdatingLocation ? 'Updating Location...' : 'Update My Location Now'}
+      </Button>
     </PrivacyControlsSection>
   );
 };

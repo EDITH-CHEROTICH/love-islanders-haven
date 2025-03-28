@@ -8,35 +8,31 @@ export interface UserLocation {
 }
 
 /**
- * Updates the user's current location in their profile
+ * Updates the user's current location in their profile using the edge function
  */
 export const updateUserLocation = async (location: UserLocation): Promise<boolean> => {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
-    const userId = user?.id;
-
-    if (!userId) {
-      console.error('User not authenticated');
-      return false;
-    }
-
-    console.log('Updating location for user:', userId, location);
-
-    const { error } = await supabase
-      .from('profiles')
-      .update({
-        latitude: location.latitude,
-        longitude: location.longitude,
-        location_updated_at: new Date().toISOString()
-      })
-      .eq('id', userId);
+    console.log('Updating location for user:', location);
+    
+    // Call the location-services edge function
+    const { data, error } = await supabase.functions.invoke("location-services", {
+      body: {
+        action: "update",
+        location
+      }
+    });
 
     if (error) {
-      console.error('Error updating location:', error);
+      console.error('Error calling location-services function:', error);
       return false;
     }
 
-    console.log('Location updated successfully');
+    if (!data.success) {
+      console.error('Error from location-services function:', data.error);
+      return false;
+    }
+
+    console.log('Location updated successfully via edge function');
     return true;
   } catch (error) {
     console.error('Error updating location:', error);
@@ -86,16 +82,18 @@ export const requestAndUpdateLocation = async (): Promise<boolean> => {
     console.log('Requesting user location...');
     // Get current location
     const location = await getCurrentLocation();
-    console.log('Got location, updating in database:', location);
+    console.log('Got location, updating via edge function:', location);
     
-    // Update location in database
+    // Update location using edge function
     const success = await updateUserLocation(location);
     
     if (success) {
       console.log('Location updated successfully');
+      toast.success('Your location has been updated successfully');
       return true;
     } else {
-      console.error('Failed to update location in database');
+      console.error('Failed to update location');
+      toast.error('Failed to update your location');
       return false;
     }
   } catch (error) {
