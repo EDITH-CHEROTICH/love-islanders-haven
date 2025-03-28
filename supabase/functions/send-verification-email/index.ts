@@ -36,7 +36,7 @@ serve(async (req) => {
     console.log(`Sending verification code ${code} to ${email}`);
 
     const emailResponse = await resend.emails.send({
-      from: "Verification <onboarding@resend.dev>",
+      from: "Verification <onboarding@loveislanders.org>",
       to: [email],
       subject: "Your Verification Code",
       html: `
