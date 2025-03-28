@@ -1,0 +1,30 @@
+
+import { useAuthState } from './useAuthState';
+import { useAuthActions } from './useAuthActions';
+
+export const useAuthHooks = () => {
+  const { session, user, loading, isAuthenticated } = useAuthState();
+  const { 
+    loading: actionLoading, 
+    signIn, 
+    signInWithGoogle, 
+    signUp, 
+    resetPassword, 
+    signOut 
+  } = useAuthActions();
+  
+  return {
+    // State
+    session,
+    user,
+    loading: loading || actionLoading,
+    isAuthenticated,
+    
+    // Actions
+    signIn,
+    signInWithGoogle,
+    signUp,
+    resetPassword,
+    signOut,
+  };
+};
