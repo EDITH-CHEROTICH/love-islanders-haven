@@ -33,25 +33,27 @@ export const fetchDiscoverProfiles = async (filters: DiscoverFilters): Promise<P
     // Convert database records to Profile type
     const profiles: Profile[] = (data || []).map(profile => {
       // Create a profile object with required fields
+      // Use type assertion to ensure compatibility with Profile type
       return {
         id: profile.id,
-        name: profile.display_name || 'Anonymous',
+        name: profile.name || 'Anonymous',
         age: profile.age || 25,
         bio: profile.bio || 'No bio available',
         distance: Math.floor(Math.random() * filters.distance), // Simulate distance
         occupation: profile.occupation || 'Not specified',
         education: profile.education || 'Not specified',
-        images: Array.isArray(profile.images) ? profile.images : [],
-        interests: Array.isArray(profile.interests) ? profile.interests : [],
+        images: [], // Initialize with empty array as profile.images doesn't exist
+        interests: [], // Initialize with empty array as profile.interests doesn't exist
         relationshipGoal: profile.relationship_goal || 'Not specified',
         height: profile.height || 175,
         gender: profile.gender || 'Not specified',
         lastActive: new Date(),
         verified: Boolean(profile.verified),
+        location: profile.location || 'Not specified', // Add location field
         children: profile.has_children ? 'Has children' : 'No children',
-        smoking: profile.smoking || 'Not specified',
-        drinking: profile.drinking || 'Not specified',
-        exercise: profile.exercise || 'Not specified',
+        smoking: 'Not specified', // Default value as profile.smoking doesn't exist
+        drinking: 'Not specified', // Default value as profile.drinking doesn't exist
+        exercise: 'Not specified', // Default value as profile.exercise doesn't exist
         pets: profile.has_pets ? 'Has pets' : 'No pets',
       } as Profile;
     });

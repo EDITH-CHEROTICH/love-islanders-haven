@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { fetchDiscoverProfiles, recordSwipeAction } from '@/services/discover';
+import { fetchDiscoverProfiles, recordSwipeAction, DiscoverFilters } from '@/services/discover';
 import { Profile } from '@/utils/dummyData';
 import ProfileCard from '@/components/ProfileCard';
 import SwipeButtons from '@/components/SwipeButtons';
@@ -135,8 +135,8 @@ const Discover: React.FC = () => {
     setIsFilterDialogOpen(false);
   };
 
-  const applyFilters = (newFilters: any) => {
-    setFilters(newFilters as DiscoverFiltersState);
+  const applyFilters = (newFilters: DiscoverFiltersState) => {
+    setFilters(newFilters);
     closeFilterDialog();
   };
 
@@ -172,7 +172,7 @@ const Discover: React.FC = () => {
 
         <Dialog open={isFilterDialogOpen} onOpenChange={setIsFilterDialogOpen}>
           <AdvancedFilters
-            initialFilters={filters}
+            filters={filters}
             onApply={applyFilters}
           />
         </Dialog>

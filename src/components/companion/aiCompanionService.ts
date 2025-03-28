@@ -53,7 +53,7 @@ export const fetchChatHistory = async (userId: string): Promise<ChatMessage[]> =
       .from('ai_chat_history')
       .select('*')
       .eq('user_id', userId)
-      .order('timestamp', { ascending: true });
+      .order('created_at', { ascending: true });
 
     if (error) {
       console.error("Error fetching chat history:", error);
@@ -62,10 +62,10 @@ export const fetchChatHistory = async (userId: string): Promise<ChatMessage[]> =
 
     return (data || []).map(item => ({
       id: item.id,
-      role: item.role,
-      content: item.content,
-      timestamp: new Date(item.timestamp),
-      type: 'chat'
+      role: item.role as 'assistant' | 'user', // Type assertion to match ChatMessage type
+      content: item.message_content, // Mapping to the correct field
+      timestamp: new Date(item.created_at),
+      type: 'chat' as const
     }));
   } catch (error) {
     console.error("Error fetching chat history:", error);
@@ -76,25 +76,12 @@ export const fetchChatHistory = async (userId: string): Promise<ChatMessage[]> =
 // Function to fetch proactive messages from the AI
 export const fetchProactiveMessages = async (userId: string, lastChecked: Date): Promise<ChatMessage[]> => {
   try {
-    const { data, error } = await supabase
-      .from('ai_proactive_messages')
-      .select('*')
-      .eq('user_id', userId)
-      .gt('created_at', lastChecked.toISOString())
-      .order('created_at', { ascending: true });
-
-    if (error) {
-      console.error("Error fetching proactive messages:", error);
-      return [];
-    }
-
-    return (data || []).map(item => ({
-      id: item.id,
-      role: 'assistant',
-      content: item.content,
-      timestamp: new Date(item.created_at),
-      type: 'chat'
-    }));
+    // Note: This is a mock implementation as the 'ai_proactive_messages' table doesn't exist yet
+    // In a real implementation, this would fetch from an actual table
+    
+    // Placeholder implementation returning empty array
+    console.log("Checking for proactive messages since:", lastChecked.toISOString());
+    return [];
   } catch (error) {
     console.error("Error fetching proactive messages:", error);
     return [];
@@ -104,25 +91,12 @@ export const fetchProactiveMessages = async (userId: string, lastChecked: Date):
 // Function to fetch recommendations from the AI
 export const fetchRecommendations = async (userId: string, lastChecked: Date): Promise<ChatMessage[]> => {
   try {
-    const { data, error } = await supabase
-      .from('ai_recommendations')
-      .select('*')
-      .eq('user_id', userId)
-      .gt('created_at', lastChecked.toISOString())
-      .order('created_at', { ascending: true });
-
-    if (error) {
-      console.error("Error fetching recommendations:", error);
-      return [];
-    }
-
-    return (data || []).map(item => ({
-      id: item.id,
-      role: 'assistant',
-      content: item.content,
-      timestamp: new Date(item.created_at),
-      type: 'recommendation'
-    }));
+    // Note: This is a mock implementation as the 'ai_recommendations' table doesn't exist yet
+    // In a real implementation, this would fetch from an actual table
+    
+    // Placeholder implementation returning empty array
+    console.log("Checking for AI recommendations since:", lastChecked.toISOString());
+    return [];
   } catch (error) {
     console.error("Error fetching recommendations:", error);
     return [];
@@ -131,7 +105,11 @@ export const fetchRecommendations = async (userId: string, lastChecked: Date): P
 
 // For backward compatibility 
 const aiCompanionService = {
-  sendMessage: sendAIMessage
+  sendMessage: sendAIMessage,
+  getWelcomeMessage,
+  fetchChatHistory,
+  fetchProactiveMessages,
+  fetchRecommendations
 };
 
 export default aiCompanionService;
