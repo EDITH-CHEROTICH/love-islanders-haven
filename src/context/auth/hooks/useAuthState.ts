@@ -29,19 +29,19 @@ export const useAuthState = () => {
 
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, currentSession) => {
         console.log("Auth state changed:", event);
         
         if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
           console.log("User signed in or token refreshed, setting session");
-          setSession(session);
-          setUser(session?.user ?? null);
+          setSession(currentSession);
+          setUser(currentSession?.user ?? null);
           
           // If signed in, store local backup
-          if (session?.user) {
+          if (currentSession?.user) {
             localStorage.setItem('isAuthenticated', 'true');
             localStorage.setItem('authMethod', 'supabase');
-            localStorage.setItem('authContact', session.user.email || '');
+            localStorage.setItem('authContact', currentSession.user.email || '');
             setIsLocalAuth(true);
             console.log("User signed in - setting localStorage backup");
           }
@@ -81,19 +81,43 @@ export const useAuthState = () => {
     );
 
     // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log("Existing session check:", session ? "Found" : "Not found");
+    supabase.auth.getSession().then(({ data: { session: existingSession } }) => {
+      console.log("Existing session check:", existingSession ? "Found" : "Not found");
       
-      if (session) {
+      if (existingSession) {
         console.log("Valid session found - updating state and localStorage backup");
-        setSession(session);
-        setUser(session.user);
+        setSession(existingSession);
+        setUser(existingSession.user);
         
         // If there's a valid session, update local storage backup
         localStorage.setItem('isAuthenticated', 'true');
         localStorage.setItem('authMethod', 'supabase');
-        localStorage.setItem('authContact', session.user.email || '');
+        localStorage.setItem('authContact', existingSession.user.email || '');
         setIsLocalAuth(true);
+      } else {
+        // Try to refresh the session if we have local auth but no session
+        if (localAuth === 'true') {
+          console.log("Local auth found but no session - attempting to refresh");
+          setTimeout(async () => {
+            try {
+              const { data, error } = await supabase.auth.refreshSession();
+              if (data.session) {
+                console.log("Session refreshed successfully");
+                setSession(data.session);
+                setUser(data.session.user);
+              } else if (error) {
+                console.error("Error refreshing session:", error);
+                // Clear local storage if refresh fails
+                localStorage.removeItem('isAuthenticated');
+                localStorage.removeItem('authMethod');
+                localStorage.removeItem('authContact');
+                setIsLocalAuth(false);
+              }
+            } catch (err) {
+              console.error("Error during session refresh:", err);
+            }
+          }, 0);
+        }
       }
       
       setLoading(false);

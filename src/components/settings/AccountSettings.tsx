@@ -14,7 +14,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 const AccountSettings = () => {
   const { settings, updateSettings } = useSettings();
-  const { user, signOut } = useAuth();
+  const { user, updatePassword } = useAuth();
   const navigate = useNavigate();
   const [localSettings, setLocalSettings] = useState<AccountSettingsType>(
     settings.account_settings
@@ -92,33 +92,41 @@ const AccountSettings = () => {
 
   const handlePasswordSave = async () => {
     if (newPassword !== confirmPassword) {
-      toast.error('New passwords do not match');
+      toast("Passwords don't match", {
+        description: "New password and confirmation must match",
+        duration: 3000
+      });
       return;
     }
     if (newPassword.length < 8) {
-      toast.error('Password must be at least 8 characters');
+      toast("Password too short", {
+        description: "Password must be at least 8 characters",
+        duration: 3000
+      });
       return;
     }
     
     setIsUpdatingPassword(true);
     
     try {
-      // Here you would update the user's password in Supabase Auth
-      const { error } = await supabase.auth.updateUser({
-        password: newPassword
+      // Use the updatePassword from auth context
+      await updatePassword(newPassword);
+      
+      toast("Password updated", {
+        description: "Your password has been updated successfully",
+        duration: 3000
       });
       
-      if (error) {
-        throw error;
-      }
-      
-      toast.success('Password updated successfully');
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
     } catch (error: any) {
       console.error('Error updating password:', error);
-      toast.error(error.message || 'Failed to update password');
+      toast("Password update failed", {
+        description: error.message || "There was a problem updating your password",
+        duration: 5000,
+        style: { backgroundColor: "#f44336", color: "white" }
+      });
     } finally {
       setIsUpdatingPassword(false);
     }
@@ -126,12 +134,19 @@ const AccountSettings = () => {
 
   const handleLogout = async () => {
     try {
-      await signOut();
-      toast.success('You have been logged out successfully');
+      await useAuth().signOut();
+      toast("Logged out", {
+        description: "You have been logged out successfully",
+        duration: 3000
+      });
       navigate('/login');
     } catch (error) {
       console.error('Error logging out:', error);
-      toast.error('Failed to log out. Please try again.');
+      toast("Logout failed", {
+        description: "There was a problem logging you out",
+        duration: 3000,
+        style: { backgroundColor: "#f44336", color: "white" }
+      });
     }
   };
 

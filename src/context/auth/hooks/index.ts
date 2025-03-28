@@ -10,7 +10,8 @@ export const useAuthHooks = () => {
     signInWithGoogle, 
     signUp, 
     resetPassword, 
-    signOut 
+    signOut,
+    updatePassword
   } = useAuthActions();
   
   return {
@@ -26,5 +27,6 @@ export const useAuthHooks = () => {
     signUp,
     resetPassword,
     signOut,
+    updatePassword,
   };
 };

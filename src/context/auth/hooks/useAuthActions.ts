@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { createOrUpdateProfile } from '../utils';
+import { toast } from 'sonner';
 
 export const useAuthActions = () => {
   const [loading, setLoading] = useState(false);
@@ -129,12 +130,49 @@ export const useAuthActions = () => {
     }
   };
 
+  const updatePassword = async (newPassword: string) => {
+    console.log("Attempting to update password");
+    setLoading(true);
+    
+    try {
+      // Get current session first to ensure we're authenticated
+      const { data: sessionData } = await supabase.auth.getSession();
+      
+      if (!sessionData.session) {
+        console.error("No active session found when updating password");
+        toast("Authentication error: No active session found", {
+          description: "Please try logging in again",
+          duration: 5000,
+          style: { backgroundColor: "#f44336", color: "white" }
+        });
+        throw new Error("Auth session missing!");
+      }
+      
+      console.log("Session confirmed, updating password");
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      
+      if (error) {
+        console.error("Error updating password:", error);
+        throw error;
+      }
+      
+      console.log("Password updated successfully");
+      return true;
+    } catch (error) {
+      console.error("Password update error:", error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
     loading,
     signIn,
     signInWithGoogle,
     signUp,
     resetPassword,
-    signOut
+    signOut,
+    updatePassword
   };
 };
