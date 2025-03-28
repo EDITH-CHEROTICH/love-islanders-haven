@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { User, Eye, EyeOff } from 'lucide-react';
+import { User, Eye, EyeOff, LogOut } from 'lucide-react';
 import SettingsSection from './SettingsSection';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,10 +9,12 @@ import { toast } from 'sonner';
 import { useSettings } from '@/context/SettingsContext';
 import { AccountSettings as AccountSettingsType } from '@/services/settings';
 import { useAuth } from '@/context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const AccountSettings = () => {
   const { settings, updateSettings } = useSettings();
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
   const [localSettings, setLocalSettings] = useState<AccountSettingsType>(
     settings.account_settings
   );
@@ -72,6 +74,17 @@ const AccountSettings = () => {
     } catch (error) {
       console.error('Error updating password:', error);
       toast.error('Failed to update password');
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      toast.success('You have been logged out successfully');
+      navigate('/login');
+    } catch (error) {
+      console.error('Error logging out:', error);
+      toast.error('Failed to log out. Please try again.');
     }
   };
 
@@ -160,6 +173,17 @@ const AccountSettings = () => {
             </div>
             <Button onClick={handlePasswordSave} className="w-full">Update Password</Button>
           </div>
+        </div>
+
+        <div className="pt-4 border-t border-island-light/30">
+          <Button 
+            variant="destructive" 
+            className="w-full flex items-center justify-center gap-2"
+            onClick={handleLogout}
+          >
+            <LogOut size={16} />
+            Logout
+          </Button>
         </div>
       </div>
     </SettingsSection>
