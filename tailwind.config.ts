@@ -150,6 +150,20 @@ export default {
 						transform: 'scale(1)',
 						opacity: '1'
 					}
+				},
+				'login': {
+					'0%': {
+						transform: 'scale(1)',
+						boxShadow: '0 0 0 rgba(139, 92, 246, 0)'
+					},
+					'50%': {
+						transform: 'scale(1.03)',
+						boxShadow: '0 0 20px rgba(139, 92, 246, 0.5)'
+					},
+					'100%': {
+						transform: 'scale(1)',
+						boxShadow: '0 0 0 rgba(139, 92, 246, 0)'
+					}
 				}
 			},
 			animation: {
@@ -160,6 +174,7 @@ export default {
 				'fade-in': 'fade-in 0.5s ease-out forwards',
 				'slide-up': 'slide-up 0.5s ease-out forwards',
 				'pop-in': 'pop-in 0.4s ease-out forwards',
+				'login': 'login 1s ease-in-out infinite'
 			}
 		}
 	},
