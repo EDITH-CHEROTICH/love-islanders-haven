@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { fetchDiscoverProfiles, recordSwipeAction, DiscoverFilters } from '@/services/discover';
 import { Profile } from '@/utils/dummyData';
@@ -172,8 +171,8 @@ const Discover: React.FC = () => {
 
         <Dialog open={isFilterDialogOpen} onOpenChange={setIsFilterDialogOpen}>
           <AdvancedFilters
-            filters={filters}
-            onApply={applyFilters}
+            onFilterChange={applyFilters}
+            activeFilters={filters}
           />
         </Dialog>
       </div>
