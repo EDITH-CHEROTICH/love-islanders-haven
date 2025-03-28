@@ -6,22 +6,13 @@ import SwipeButtons from '@/components/SwipeButtons';
 import { Button } from '@/components/ui/button';
 import { Sliders } from 'lucide-react';
 import { Dialog } from '@/components/ui/dialog';
-import AdvancedFilters from '@/components/discover/AdvancedFilters';
+import AdvancedFilters, { AdvancedFilterOptions } from '@/components/discover/AdvancedFilters';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/auth';
 
-// Define the filters type with tuple for fixed-length arrays
-interface DiscoverFiltersState {
-  ageRange: [number, number];
-  distance: number;
-  height: [number, number];
-  relationshipGoals: string[];
-  hasChildren: boolean | null;
-  hasPets: boolean | null;
-  smoking: string | null;
-  education: string | null;
-  occupation: string | null;
-  interests: string[];
+// Update DiscoverFiltersState to match AdvancedFilterOptions
+interface DiscoverFiltersState extends AdvancedFilterOptions {
+  // No additional properties needed as we're extending the AdvancedFilterOptions type
 }
 
 const Discover: React.FC = () => {
@@ -134,7 +125,7 @@ const Discover: React.FC = () => {
     setIsFilterDialogOpen(false);
   };
 
-  const applyFilters = (newFilters: DiscoverFiltersState) => {
+  const applyFilters = (newFilters: AdvancedFilterOptions) => {
     setFilters(newFilters);
     closeFilterDialog();
   };

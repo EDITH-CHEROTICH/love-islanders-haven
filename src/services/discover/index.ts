@@ -1,19 +1,9 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Profile } from '@/utils/dummyData';
+import { AdvancedFilterOptions } from '@/components/discover/AdvancedFilters';
 
-export interface DiscoverFilters {
-  ageRange: [number, number];
-  distance: number;
-  height: [number, number];
-  relationshipGoals: string[];
-  hasChildren: boolean | null;
-  hasPets: boolean | null;
-  smoking: string | null;
-  education: string | null;
-  occupation: string | null;
-  interests: string[];
-}
+// Update DiscoverFilters to match AdvancedFilterOptions
+export type DiscoverFilters = AdvancedFilterOptions;
 
 export const fetchDiscoverProfiles = async (filters: DiscoverFilters): Promise<Profile[]> => {
   try {
