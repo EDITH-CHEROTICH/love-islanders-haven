@@ -1,16 +1,20 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useToast } from '@/hooks/use-toast';
-import SwipeButtons from '@/components/SwipeButtons';
-import ProfileCard from '@/components/ProfileCard';
+import { profiles, Profile } from '../utils/dummyData';
+import ProfileCard from '../components/ProfileCard';
+import SwipeButtons from '../components/SwipeButtons';
+import ProfileSetup from '../components/ProfileSetup';
+import { ProfilePreferences } from '../components/ProfileSetup';
+import Navbar from '../components/Navbar';
+import { Heart } from 'lucide-react';
+import { toast } from 'sonner';
+import { useAuth } from '@/context/auth';
 import { supabase } from '@/integrations/supabase/client';
 import AdvancedFilters from '@/components/discover/AdvancedFilters';
 import NotificationBell from '@/components/NotificationBell';
 import { fetchDiscoverProfiles, recordSwipeAction } from '@/services/discover';
-import { Profile } from '@/utils/dummyData';
 import { trackUserFeedback } from '@/services/recommendations';
 import { useBehaviorTracking } from '@/hooks/use-behavior-tracking';
-import { useAuth } from '@/context/AuthContext';
 
 const Discover = () => {
   const [profiles, setProfiles] = useState<Profile[]>([]);

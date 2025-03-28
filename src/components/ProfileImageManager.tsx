@@ -1,11 +1,10 @@
-
 import { useState } from 'react';
 import { Image, Plus, Trash2, ShieldCheck, ShieldAlert } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { saveProfileImage } from '@/services/profiles';
 import VerificationPopup from './verification/VerificationPopup';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/context/auth';
 
 interface ProfileImageManagerProps {
   images: string[];

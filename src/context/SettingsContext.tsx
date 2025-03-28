@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { toast } from 'sonner';
 import { 
@@ -8,7 +7,7 @@ import {
   updateSettingsCategory,
   saveUserSettings
 } from '@/services/settings';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/context/auth';
 
 interface SettingsContextType {
   settings: UserSettings;

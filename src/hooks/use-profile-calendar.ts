@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useDatingSafety, DatePlan } from '@/hooks/use-dating-safety';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/context/auth';
 import { useGoogleCalendar, CalendarEvent } from '@/hooks/use-google-calendar';
 
 export function useProfileCalendar() {

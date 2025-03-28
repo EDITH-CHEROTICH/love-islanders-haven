@@ -1,18 +1,20 @@
-
-import React from 'react';
-import { format } from 'date-fns';
-import { Calendar as CalendarIcon, MapPin, Clock, RefreshCw, Link2 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Badge } from '@/components/ui/badge';
+// Update the import in ProfileCalendar.tsx
+import React, { useState, useEffect } from 'react';
 import { useProfileCalendar } from '@/hooks/use-profile-calendar';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/context/AuthContext';
+import { Calendar as CalendarIcon, PlusCircle, Share2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { format } from 'date-fns';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { cn } from "@/lib/utils"
+import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/context/auth';
 
 const ProfileCalendar = () => {
   const { 
+    datePlans, 
     upcomingDates, 
     pastDates, 
     isLoading, 
@@ -20,177 +22,117 @@ const ProfileCalendar = () => {
     isGoogleAuthorized,
     initiateGoogleAuth
   } = useProfileCalendar();
-  const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const { toast } = useToast();
+  const [date, setDate] = React.useState<Date | undefined>(new Date())
   
-  if (isLoading) {
-    return (
-      <div className="space-y-4">
-        <Skeleton className="h-8 w-48" />
-        <Skeleton className="h-32 w-full" />
-      </div>
-    );
-  }
-  
-  if (!isAuthenticated) {
-    return (
+  useEffect(() => {
+    refresh();
+  }, []);
+
+  const handleGoogleAuth = async () => {
+    if (!isGoogleAuthorized) {
+      initiateGoogleAuth();
+    } else {
+      toast({
+        title: "Already Authorized",
+        description: "You are already authorized with Google Calendar.",
+      });
+    }
+  };
+
+  return (
+    <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Authentication Required</CardTitle>
-          <CardDescription>
-            Please log in to view and manage your date plans.
-          </CardDescription>
+          <CardTitle>Upcoming Dates</CardTitle>
         </CardHeader>
-        <CardContent>
-          <Button 
-            onClick={() => navigate('/login')} 
-            className="w-full"
-          >
-            Log In
-          </Button>
-        </CardContent>
-      </Card>
-    );
-  }
-  
-  const renderDatePlan = (plan: any) => {
-    const dateTime = new Date(plan.date_time);
-    const isGoogleEvent = plan.id.startsWith('google-') || plan.source === 'google';
-
-    return (
-      <Card key={plan.id} className="mb-4 overflow-hidden">
-        <CardContent className="p-4">
-          <div className="flex justify-between items-start mb-2">
-            <div>
-              <h3 className="font-medium">{format(dateTime, 'EEEE, MMMM d, yyyy')}</h3>
-              <div className="flex items-center text-sm text-muted-foreground">
-                <Clock className="h-3 w-3 mr-1" />
-                <span>{format(dateTime, 'h:mm a')}</span>
+        <CardContent className="space-y-4">
+          {isLoading ? (
+            <p>Loading upcoming dates...</p>
+          ) : upcomingDates.length > 0 ? (
+            upcomingDates.map((datePlan) => (
+              <div key={datePlan.id} className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-medium">{datePlan.location}</h3>
+                  <p className="text-xs text-muted-foreground">
+                    {format(new Date(datePlan.date_time), 'MMM d, yyyy h:mm a')}
+                  </p>
+                </div>
+                <Badge variant="secondary">Upcoming</Badge>
               </div>
-            </div>
-            <div className="flex space-x-2">
-              {isGoogleEvent && (
-                <Badge variant="outline" className="bg-blue-500/10 text-blue-500 border-blue-500/20">
-                  Google Calendar
-                </Badge>
-              )}
-              {plan.location_sharing_enabled && (
-                <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/20">
-                  Location Sharing
-                </Badge>
-              )}
-            </div>
-          </div>
-          
-          <div className="flex items-start mt-3">
-            <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 mr-2" />
-            <div>
-              <p className="text-sm">{plan.location}</p>
-              {plan.notes && <p className="text-xs text-muted-foreground mt-1">{plan.notes}</p>}
-            </div>
-          </div>
+            ))
+          ) : (
+            <p>No upcoming dates planned.</p>
+          )}
         </CardContent>
       </Card>
-    );
-  };
-  
-  return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold flex items-center">
-          <CalendarIcon className="h-5 w-5 mr-2" />
-          Date Calendar
-        </h2>
-        <div className="flex space-x-2">
+      
+      <Card>
+        <CardHeader>
+          <CardTitle>Past Dates</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {isLoading ? (
+            <p>Loading past dates...</p>
+          ) : pastDates.length > 0 ? (
+            pastDates.map((datePlan) => (
+              <div key={datePlan.id} className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-medium">{datePlan.location}</h3>
+                  <p className="text-xs text-muted-foreground">
+                    {format(new Date(datePlan.date_time), 'MMM d, yyyy h:mm a')}
+                  </p>
+                </div>
+                <Badge variant="outline">Past</Badge>
+              </div>
+            ))
+          ) : (
+            <p>No past dates available.</p>
+          )}
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardHeader>
+          <CardTitle>Calendar</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant={"outline"}
+                className={cn(
+                  "w-[240px] justify-start text-left font-normal",
+                  !date && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {date ? format(date, "PPP") : <span>Pick a date</span>}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="center">
+              <Calendar
+                mode="single"
+                selected={date}
+                onSelect={setDate}
+                disabled={(date) =>
+                  date > new Date()
+                }
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
+          
           <Button 
             variant="outline" 
-            size="sm"
-            onClick={() => refresh()}
-            title="Refresh calendar"
+            className="w-full bg-island-light/10 border-island-light/40"
+            onClick={handleGoogleAuth}
           >
-            <RefreshCw className="h-4 w-4" />
+            <Share2 size={16} className="mr-2" />
+            {isGoogleAuthorized ? 'Connected to Google Calendar' : 'Connect to Google Calendar'}
           </Button>
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => navigate('/messages')}
-          >
-            Plan New Date
-          </Button>
-        </div>
-      </div>
-      
-      {!isGoogleAuthorized && (
-        <Card className="mb-4 bg-muted/30">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-md flex items-center">
-              <Link2 className="h-4 w-4 mr-2" />
-              Connect Google Calendar
-            </CardTitle>
-            <CardDescription>
-              Link your Google Calendar to see all your events in one place
-            </CardDescription>
-          </CardHeader>
-          <CardFooter className="pt-2">
-            <Button 
-              variant="outline"
-              onClick={initiateGoogleAuth}
-              className="w-full"
-            >
-              Connect
-            </Button>
-          </CardFooter>
-        </Card>
-      )}
-      
-      <Tabs defaultValue="upcoming" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
-          <TabsTrigger value="past">Past</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="upcoming" className="mt-4">
-          {upcomingDates.length > 0 ? (
-            <div>
-              {upcomingDates.map(renderDatePlan)}
-            </div>
-          ) : (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">No upcoming dates</CardTitle>
-                <CardDescription>
-                  When you plan a date with someone, it will appear here.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button 
-                  onClick={() => navigate('/messages')} 
-                  className="w-full"
-                >
-                  Start Planning a Date
-                </Button>
-              </CardContent>
-            </Card>
-          )}
-        </TabsContent>
-        
-        <TabsContent value="past" className="mt-4">
-          {pastDates.length > 0 ? (
-            <div>
-              {pastDates.map(renderDatePlan)}
-            </div>
-          ) : (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">No past dates</CardTitle>
-                <CardDescription>
-                  Your dating history will be shown here.
-                </CardDescription>
-              </CardHeader>
-            </Card>
-          )}
-        </TabsContent>
-      </Tabs>
+        </CardContent>
+      </Card>
     </div>
   );
 };

@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/context/auth';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2, ArrowLeft } from 'lucide-react';
 import { 

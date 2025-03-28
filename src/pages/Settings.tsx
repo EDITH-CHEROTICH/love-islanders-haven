@@ -14,7 +14,7 @@ import SecuritySettings from '@/components/settings/SecuritySettings';
 import AppCustomization from '@/components/settings/AppCustomization';
 import FeedbackSupport from '@/components/settings/FeedbackSupport';
 import { useSettings } from '@/context/SettingsContext';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/context/auth';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useIsMobile } from '@/hooks/use-mobile';

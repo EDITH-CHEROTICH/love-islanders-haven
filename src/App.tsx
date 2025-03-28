@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider } from './context/auth';
 import { SettingsProvider } from './context/SettingsContext';
 import { Toaster } from '@/components/ui/sonner';
 import Feedback from './pages/Feedback';

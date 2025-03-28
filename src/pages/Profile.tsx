@@ -14,7 +14,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { fetchUserProfile } from '@/services/profiles/core';
 import { Skeleton } from '@/components/ui/skeleton';
 import { profiles } from '@/utils/dummyData';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/context/auth';
 
 const Profile = () => {
   const navigate = useNavigate();

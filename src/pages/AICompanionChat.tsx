@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import AICompanion from '@/components/companion/AICompanion';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -6,7 +5,7 @@ import Navbar from '@/components/Navbar';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { InfoIcon, Sparkles, Link2, Webhook, User } from "lucide-react";
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/context/auth';
 
 const AICompanionChat: React.FC = () => {
   const isMobile = useIsMobile();

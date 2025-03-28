@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { useSettings } from '@/context/SettingsContext';
 import { AccountSettings as AccountSettingsType } from '@/services/settings';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/context/auth';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 

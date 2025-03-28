@@ -1,5 +1,5 @@
 
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/context/auth";
 import { useStreaksState } from "./streaks/use-streaks-state";
 import { useStreaksData } from "./streaks/use-streaks-data";
 import { useStreaksActions } from "./streaks/use-streaks-actions";
