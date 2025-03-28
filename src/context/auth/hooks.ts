@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -188,13 +189,20 @@ export const useAuthState = () => {
       
       // For development environments where email verification might be disabled
       // This will set the user as authenticated immediately after sign up
-      if (data.user && !data.user.email_confirmed_at) {
+      if (data.user) {
+        // Set session and user state directly after signup
+        setSession(data.session);
+        setUser(data.user);
+        
         // Set local authentication for immediate access
         localStorage.setItem('isAuthenticated', 'true');
         localStorage.setItem('authMethod', 'email');
         localStorage.setItem('authContact', email);
         setIsLocalAuth(true);
       }
+    } catch (error) {
+      setLoading(false);
+      throw error;
     } finally {
       setLoading(false);
     }

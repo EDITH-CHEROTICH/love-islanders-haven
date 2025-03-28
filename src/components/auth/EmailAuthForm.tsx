@@ -24,7 +24,7 @@ const EmailAuthForm = ({
 }: EmailAuthFormProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [animateLogin, setAnimateLogin] = useState(false);
-  const { signIn } = useAuth();
+  const { signIn, signUp } = useAuth();
   const { toast } = useToast();
 
   const form = useForm({
@@ -53,10 +53,15 @@ const EmailAuthForm = ({
         });
         // No need to manually redirect - the auth context will handle this
       } else {
-        // For signup, generate a random 4-digit code and store credentials
-        const code = Math.floor(1000 + Math.random() * 9000).toString();
-        console.log("Generated verification code for signup:", code);
-        onStoreCredentials(values.email, values.password, code);
+        console.log("Starting signup process for:", values.email);
+        // For signup, we're going to complete the process directly instead of using verification
+        await signUp(values.email, values.password);
+        console.log("Signup completed successfully");
+        
+        toast({
+          title: "Account created successfully",
+          description: "You are now logged in!",
+        });
       }
     } catch (error: any) {
       console.error("Authentication error:", error);
@@ -124,7 +129,7 @@ const EmailAuthForm = ({
           {isLoading ? (
             <span className="flex items-center justify-center">
               <Spinner className="mr-2 h-4 w-4" />
-              {isLoginMode ? "Logging in..." : "Preparing verification..."}
+              {isLoginMode ? "Logging in..." : "Signing up..."}
             </span>
           ) : (
             isLoginMode ? "Log In with Email" : "Sign Up with Email"
