@@ -9,7 +9,7 @@ interface EmailVerificationHandlerProps {
   email: string;
   password: string;
   generatedCode: string;
-  onCompleteSignUp: (email: string, password: string) => Promise<boolean>;
+  onCompleteSignUp: () => Promise<boolean>;
 }
 
 const EmailVerificationHandler = ({
@@ -52,8 +52,33 @@ const EmailVerificationHandler = ({
 
   const completeSignUp = async () => {
     try {
-      const success = await onCompleteSignUp(email, password);
+      const success = await onCompleteSignUp();
       if (success) {
+        // Ensure we have a profile for this user
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user) {
+            // Try to upsert the profile
+            const { error } = await supabase
+              .from('profiles')
+              .upsert({
+                id: user.id,
+                name: email.split('@')[0], // Default name from email
+                email: email
+              }, {
+                onConflict: 'id'
+              });
+              
+            if (error) {
+              console.error("Error creating profile:", error);
+            } else {
+              console.log("Profile created/updated for new user");
+            }
+          }
+        } catch (profileError) {
+          console.error("Error creating profile during signup:", profileError);
+        }
+        
         setShowVerification(false);
         return true;
       }

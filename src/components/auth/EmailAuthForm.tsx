@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -53,6 +52,7 @@ const EmailAuthForm = ({
       } else {
         // For signup, generate a random 4-digit code and store credentials
         const code = Math.floor(1000 + Math.random() * 9000).toString();
+        console.log("Generated verification code for signup:", code);
         onStoreCredentials(values.email, values.password, code);
       }
     } catch (error: any) {

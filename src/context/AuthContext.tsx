@@ -168,24 +168,64 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signUp = async (email: string, password: string) => {
-    const { data, error } = await supabase.auth.signUp({ 
-      email, 
-      password,
-      options: {
-        emailRedirectTo: `${window.location.origin}/discover`
+    console.log(`Attempting to sign up with email: ${email}`);
+    setLoading(true);
+    
+    try {
+      const { data, error } = await supabase.auth.signUp({ 
+        email, 
+        password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/discover`,
+          data: {
+            email: email, // Store email in user metadata
+          }
+        }
+      });
+      
+      if (error) {
+        console.error("Sign up error:", error);
+        throw error;
       }
-    });
-    
-    if (error) throw error;
-    
-    // For development environments where email verification might be disabled
-    // This will set the user as authenticated immediately after sign up
-    if (data.user && !data.user.email_confirmed_at) {
-      // Set local authentication for immediate access
-      localStorage.setItem('isAuthenticated', 'true');
-      localStorage.setItem('authMethod', 'email');
-      localStorage.setItem('authContact', email);
-      setIsLocalAuth(true);
+      
+      console.log("Sign up successful:", data);
+      
+      // Check if we need to create or update a profile for this user
+      if (data.user) {
+        try {
+          // Try to upsert the user's profile to ensure email is stored
+          const { error: profileError } = await supabase
+            .from('profiles')
+            .upsert({ 
+              id: data.user.id,
+              name: email.split('@')[0], // Default name from email
+              email: email
+            }, { 
+              onConflict: 'id',
+              ignoreDuplicates: false
+            });
+          
+          if (profileError) {
+            console.error("Error creating/updating profile:", profileError);
+          } else {
+            console.log("Profile created/updated successfully");
+          }
+        } catch (profileError) {
+          console.error("Exception creating/updating profile:", profileError);
+        }
+      }
+      
+      // For development environments where email verification might be disabled
+      // This will set the user as authenticated immediately after sign up
+      if (data.user && !data.user.email_confirmed_at) {
+        // Set local authentication for immediate access
+        localStorage.setItem('isAuthenticated', 'true');
+        localStorage.setItem('authMethod', 'email');
+        localStorage.setItem('authContact', email);
+        setIsLocalAuth(true);
+      }
+    } finally {
+      setLoading(false);
     }
   };
 

@@ -10,6 +10,7 @@ import { useSettings } from '@/context/SettingsContext';
 import { AccountSettings as AccountSettingsType } from '@/services/settings';
 import { useAuth } from '@/context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 
 const AccountSettings = () => {
   const { settings, updateSettings } = useSettings();
@@ -33,7 +34,44 @@ const AccountSettings = () => {
     if (user?.email) {
       setEmail(user.email);
       console.log("User email set in AccountSettings:", user.email);
+    } else {
+      // If user email is not in the auth context, try to get it from localStorage
+      const authContact = localStorage.getItem('authContact');
+      if (authContact) {
+        setEmail(authContact);
+        console.log("User email set from localStorage:", authContact);
+      }
     }
+
+    // Try to fetch user profile from Supabase
+    const fetchUserProfile = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          console.log("Retrieved user from Supabase:", user);
+          if (user.email) {
+            setEmail(user.email);
+          }
+
+          // Also try to get profile data
+          const { data: profile, error } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', user.id)
+            .single();
+
+          if (error) {
+            console.error("Error fetching profile:", error);
+          } else if (profile) {
+            console.log("Retrieved profile:", profile);
+          }
+        }
+      } catch (error) {
+        console.error("Error getting user:", error);
+      }
+    };
+
+    fetchUserProfile();
   }, [settings.account_settings, user]);
 
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -47,7 +85,8 @@ const AccountSettings = () => {
       setLocalSettings(newSettings);
       await updateSettings('account_settings', newSettings);
       
-      // Here you would also update the actual user email in Supabase Auth if needed
+      // Update email in localStorage
+      localStorage.setItem('authContact', email);
       
       toast.success('Email updated successfully');
     } catch (error) {
@@ -68,7 +107,13 @@ const AccountSettings = () => {
     
     try {
       // Here you would update the user's password in Supabase Auth
-      // For now, just show success message
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+      
+      if (error) {
+        throw error;
+      }
       
       toast.success('Password updated successfully');
       setCurrentPassword('');
