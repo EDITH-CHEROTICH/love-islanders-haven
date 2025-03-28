@@ -7,7 +7,7 @@ import ChatInput from './ChatInput';
 import AILoadingIndicator from './AILoadingIndicator';
 import RecommendationMessage from './RecommendationMessage';
 import { sendAIMessage, getWelcomeMessage, fetchChatHistory, fetchProactiveMessages, fetchRecommendations } from './aiCompanionService';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/context/auth';
 import { useToast } from '@/hooks/use-toast';
 
 // Optional logging for debugging

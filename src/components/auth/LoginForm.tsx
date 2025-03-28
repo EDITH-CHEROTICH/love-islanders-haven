@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/context/auth";
 import { useToast } from "@/hooks/use-toast";
 import EmailAuthForm from "./EmailAuthForm";
 import AuthToggle from "./AuthToggle";

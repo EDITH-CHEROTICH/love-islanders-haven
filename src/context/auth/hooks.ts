@@ -1,24 +1,11 @@
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { useState, useEffect } from 'react';
 import { Session, User } from '@supabase/supabase-js';
+import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { createOrUpdateProfile } from './utils';
 
-interface AuthContextType {
-  session: Session | null;
-  user: User | null;
-  loading: boolean;
-  signIn: (email: string, password: string) => Promise<void>;
-  signInWithGoogle: () => Promise<void>;
-  signUp: (email: string, password: string) => Promise<void>;
-  signOut: () => Promise<void>;
-  resetPassword: (email: string) => Promise<void>;
-  isAuthenticated: boolean;
-}
-
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
+export const useAuthState = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -192,27 +179,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       // Check if we need to create or update a profile for this user
       if (data.user) {
-        try {
-          // Try to upsert the user's profile to ensure email is stored
-          const { error: profileError } = await supabase
-            .from('profiles')
-            .upsert({ 
-              id: data.user.id,
-              name: email.split('@')[0], // Default name from email
-              email: email
-            }, { 
-              onConflict: 'id',
-              ignoreDuplicates: false
-            });
-          
-          if (profileError) {
-            console.error("Error creating/updating profile:", profileError);
-          } else {
-            console.log("Profile created/updated successfully");
-          }
-        } catch (profileError) {
-          console.error("Exception creating/updating profile:", profileError);
-        }
+        await createOrUpdateProfile(data.user.id, email);
       }
       
       // For development environments where email verification might be disabled
@@ -265,7 +232,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const value = {
+  return {
     session,
     user,
     loading,
@@ -276,14 +243,4 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     resetPassword,
     isAuthenticated: !!user || isLocalAuth
   };
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-};
-
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
 };
