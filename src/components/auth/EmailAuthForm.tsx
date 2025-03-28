@@ -10,6 +10,7 @@ import { useAuth } from "@/context/auth";
 import { authSchema } from "./authSchema";
 import PasswordField from "./PasswordField";
 import { Spinner } from "@/components/ui/spinner";
+import { Loader } from "lucide-react";
 
 interface EmailAuthFormProps {
   isLoginMode: boolean;
@@ -54,14 +55,20 @@ const EmailAuthForm = ({
         // No need to manually redirect - the auth context will handle this
       } else {
         console.log("Starting signup process for:", values.email);
-        // For signup, we're going to complete the process directly instead of using verification
-        await signUp(values.email, values.password);
-        console.log("Signup completed successfully");
-        
-        toast({
-          title: "Account created successfully",
-          description: "You are now logged in!",
-        });
+        if (process.env.NODE_ENV === 'development') {
+          // For signup, directly complete the process in development mode
+          await signUp(values.email, values.password);
+          console.log("Signup completed successfully");
+          
+          toast({
+            title: "Account created successfully",
+            description: "You are now logged in!",
+          });
+        } else {
+          // In production, generate a verification code and store credentials
+          const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+          onStoreCredentials(values.email, values.password, verificationCode);
+        }
       }
     } catch (error: any) {
       console.error("Authentication error:", error);
@@ -123,12 +130,12 @@ const EmailAuthForm = ({
         
         <Button 
           type="submit" 
-          className={`w-full transition-all duration-300 ${animateLogin ? 'animate-login bg-love-light scale-105 shadow-lg' : 'bg-love hover:bg-love-dark'}`}
+          className={`w-full transition-all duration-300 ${animateLogin ? 'animate-pulse bg-love-light scale-105 shadow-lg' : 'bg-love hover:bg-love-dark'}`}
           disabled={isLoading}
         >
           {isLoading ? (
             <span className="flex items-center justify-center">
-              <Spinner className="mr-2 h-4 w-4" />
+              <Loader className="mr-2 h-4 w-4 animate-spin" />
               {isLoginMode ? "Logging in..." : "Signing up..."}
             </span>
           ) : (

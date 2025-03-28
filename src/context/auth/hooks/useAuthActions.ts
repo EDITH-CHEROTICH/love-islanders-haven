@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { createOrUpdateProfile } from '../utils';
@@ -28,6 +27,7 @@ export const useAuthActions = () => {
       
       return data;
     } catch (error) {
+      console.error("Sign in caught error:", error);
       throw error;
     } finally {
       setLoading(false);
@@ -91,7 +91,10 @@ export const useAuthActions = () => {
         localStorage.setItem('authMethod', 'email');
         localStorage.setItem('authContact', email);
       }
+      
+      return data;
     } catch (error) {
+      console.error("Sign up caught error:", error);
       throw error;
     } finally {
       setLoading(false);

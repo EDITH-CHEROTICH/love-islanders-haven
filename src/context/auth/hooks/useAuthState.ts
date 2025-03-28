@@ -107,20 +107,19 @@ export const useAuthState = () => {
                 setUser(data.session.user);
               } else if (error) {
                 console.error("Error refreshing session:", error);
-                // Clear local storage if refresh fails
-                localStorage.removeItem('isAuthenticated');
-                localStorage.removeItem('authMethod');
-                localStorage.removeItem('authContact');
-                setIsLocalAuth(false);
+                // Don't clear local storage immediately, as the user may have valid credentials
+                // but the token might be expired - let them try to login again
               }
             } catch (err) {
               console.error("Error during session refresh:", err);
+            } finally {
+              setLoading(false);
             }
           }, 0);
+        } else {
+          setLoading(false);
         }
       }
-      
-      setLoading(false);
     });
 
     return () => {
