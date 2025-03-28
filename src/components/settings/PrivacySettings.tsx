@@ -8,8 +8,7 @@ import {
   ProfileVisibilitySection,
   LocationSharingSection,
   ActivityStatusSection,
-  BlockReportSection,
-  DataManagementSection
+  BlockReportSection
 } from './privacy';
 
 const PrivacySettings = () => {
@@ -21,7 +20,6 @@ const PrivacySettings = () => {
           <LocationSharingSection />
           <ActivityStatusSection />
           <BlockReportSection />
-          <DataManagementSection />
         </div>
       </PrivacyProvider>
     </SettingsSection>
