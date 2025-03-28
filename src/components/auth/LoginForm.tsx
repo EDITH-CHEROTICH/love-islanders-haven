@@ -55,7 +55,10 @@ const LoginForm = ({ isLoginMode, toggleAuthMode, onForgotPassword }: LoginFormP
 
   const completeSignUp = async () => {
     try {
-      await signUp(storedEmail, storedPassword);
+      const result = await signUp(storedEmail, storedPassword);
+      if (!result) {
+        throw new Error("Signup failed");
+      }
       return true;
     } catch (error: any) {
       throw error;

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -58,13 +57,16 @@ const EmailAuthForm = ({
         // No need to manually redirect - the auth context will handle this
       } else {
         console.log("Starting signup process for:", values.email);
-        // For signup, we're going to complete the process directly instead of using verification
-        const result = await signUp(values.email, values.password);
-        console.log("Signup completed successfully", result);
+        // For signup, we're using the verification process
+        // Generate a random 6-digit code
+        const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+        
+        // Store credentials for later
+        onStoreCredentials(values.email, values.password, verificationCode);
         
         toast({
-          title: "Account created successfully",
-          description: "You are now logged in!",
+          title: "Verification required",
+          description: "Please check your email for a verification code.",
         });
       }
     } catch (error: any) {
