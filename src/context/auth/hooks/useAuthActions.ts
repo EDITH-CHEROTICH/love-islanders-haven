@@ -12,7 +12,11 @@ export const useAuthActions = () => {
     setLoading(true);
     
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      // Clear any previous error states
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
       
       if (error) {
         console.error("Sign in error:", error);
@@ -66,6 +70,7 @@ export const useAuthActions = () => {
     setLoading(true);
     
     try {
+      // Using signUp with email confirmation disabled
       const { data, error } = await supabase.auth.signUp({ 
         email, 
         password,

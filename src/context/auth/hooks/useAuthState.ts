@@ -45,6 +45,8 @@ export const useAuthState = () => {
             setIsLocalAuth(true);
             console.log("User signed in - setting localStorage backup");
           }
+          
+          setLoading(false);
         }
         
         // If signed out, clear local backup
@@ -74,9 +76,9 @@ export const useAuthState = () => {
             url.searchParams.delete('error_description');
             window.history.replaceState({}, document.title, url.toString());
           }
+          
+          setLoading(false);
         }
-        
-        setLoading(false);
       }
     );
 
