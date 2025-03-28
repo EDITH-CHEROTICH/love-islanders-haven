@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { fetchDiscoverProfiles, recordSwipeAction, DiscoverFilters } from '@/services/discover';
 import { Profile } from '@/utils/dummyData';
@@ -24,6 +25,7 @@ const Discover: React.FC = () => {
     ageRange: [18, 35],
     distance: 50,
     height: [150, 190],
+    heightUnit: 'cm',
     relationshipGoals: [],
     hasChildren: null,
     hasPets: null,

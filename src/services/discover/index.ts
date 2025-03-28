@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { Profile } from '@/utils/dummyData';
 import { AdvancedFilterOptions } from '@/components/discover/AdvancedFilters';
@@ -5,14 +6,23 @@ import { AdvancedFilterOptions } from '@/components/discover/AdvancedFilters';
 // Update DiscoverFilters to match AdvancedFilterOptions
 export type DiscoverFilters = AdvancedFilterOptions;
 
+// Conversion helpers
+const feetToCm = (feet: number) => Math.round(feet * 30.48);
+
 export const fetchDiscoverProfiles = async (filters: DiscoverFilters): Promise<Profile[]> => {
   try {
+    // Convert height range to cm for database query if needed
+    let heightMin = filters.height[0];
+    let heightMax = filters.height[1];
+
     // Simulate fetching profiles based on filters
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
       .gte('age', filters.ageRange[0])
       .lte('age', filters.ageRange[1])
+      .gte('height_cm', heightMin)
+      .lte('height_cm', heightMax)
       .limit(10);
 
     if (error) {

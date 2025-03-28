@@ -30,6 +30,7 @@ export interface AdvancedFilterOptions {
   ageRange: [number, number];
   distance: number;
   height: [number, number];
+  heightUnit: 'cm' | 'ft';
   relationshipGoals: string[];
   hasChildren: boolean | null;
   hasPets: boolean | null;
@@ -48,6 +49,7 @@ const DEFAULT_FILTERS: AdvancedFilterOptions = {
   ageRange: [18, 50],
   distance: 50,
   height: [150, 210],
+  heightUnit: 'cm',
   relationshipGoals: [],
   hasChildren: null,
   hasPets: null,
@@ -56,6 +58,10 @@ const DEFAULT_FILTERS: AdvancedFilterOptions = {
   occupation: null,
   interests: [],
 };
+
+// Conversion helpers
+const cmToFeet = (cm: number) => Math.round(cm / 30.48 * 10) / 10;
+const feetToCm = (feet: number) => Math.round(feet * 30.48);
 
 const RELATIONSHIP_GOALS = [
   'Casual dating',
@@ -99,6 +105,7 @@ const AdvancedFilters = ({ onFilterChange, activeFilters }: AdvancedFiltersProps
     if (filters.distance !== DEFAULT_FILTERS.distance) count++;
     if (filters.height[0] !== DEFAULT_FILTERS.height[0] || 
         filters.height[1] !== DEFAULT_FILTERS.height[1]) count++;
+    if (filters.heightUnit !== DEFAULT_FILTERS.heightUnit) count++;
     if (filters.relationshipGoals.length > 0) count++;
     if (filters.hasChildren !== null) count++;
     if (filters.hasPets !== null) count++;
@@ -149,6 +156,66 @@ const AdvancedFilters = ({ onFilterChange, activeFilters }: AdvancedFiltersProps
       });
     }
   };
+
+  // Get the height range display based on selected unit
+  const getHeightDisplay = () => {
+    if (filters.heightUnit === 'ft') {
+      return {
+        min: cmToFeet(filters.height[0]),
+        max: cmToFeet(filters.height[1]),
+        unit: 'ft'
+      };
+    }
+    return {
+      min: filters.height[0],
+      max: filters.height[1],
+      unit: 'cm'
+    };
+  };
+
+  // Handle height unit change
+  const handleHeightUnitChange = (unit: 'cm' | 'ft') => {
+    setFilters({
+      ...filters,
+      heightUnit: unit
+    });
+  };
+
+  // Get min and max values for the height slider based on the selected unit
+  const getHeightSliderProps = () => {
+    if (filters.heightUnit === 'ft') {
+      return {
+        min: 4.5,
+        max: 7.0,
+        step: 0.1,
+        values: [cmToFeet(filters.height[0]), cmToFeet(filters.height[1])]
+      };
+    }
+    return {
+      min: 140,
+      max: 220,
+      step: 1,
+      values: filters.height
+    };
+  };
+
+  // Handle height change
+  const handleHeightChange = (values: number[]) => {
+    if (filters.heightUnit === 'ft') {
+      setFilters({
+        ...filters,
+        height: [feetToCm(values[0]), feetToCm(values[1])]
+      });
+    } else {
+      setFilters({
+        ...filters,
+        height: [values[0], values[1]]
+      });
+    }
+  };
+
+  const heightProps = getHeightSliderProps();
+  const heightDisplay = getHeightDisplay();
 
   return (
     <div>
@@ -220,19 +287,31 @@ const AdvancedFilters = ({ onFilterChange, activeFilters }: AdvancedFiltersProps
             {/* Height Range */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-medium">Height (cm)</h3>
-                <span className="text-sm text-muted-foreground">
-                  {filters.height[0]} - {filters.height[1]} cm
-                </span>
+                <h3 className="text-sm font-medium">Height</h3>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">
+                    {heightDisplay.min} - {heightDisplay.max} {heightDisplay.unit}
+                  </span>
+                  <Select 
+                    value={filters.heightUnit} 
+                    onValueChange={(value: 'cm' | 'ft') => handleHeightUnitChange(value)}
+                  >
+                    <SelectTrigger className="w-16 h-7">
+                      <SelectValue placeholder="Unit" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="cm">cm</SelectItem>
+                      <SelectItem value="ft">ft</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
               <Slider
-                defaultValue={filters.height}
-                min={140}
-                max={220}
-                step={1}
-                onValueChange={(value) => 
-                  setFilters({ ...filters, height: [value[0], value[1]] as [number, number] })
-                }
+                value={heightProps.values}
+                min={heightProps.min}
+                max={heightProps.max}
+                step={heightProps.step}
+                onValueChange={(values) => handleHeightChange(values)}
                 className="mt-2"
               />
             </div>
