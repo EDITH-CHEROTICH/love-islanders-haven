@@ -8,7 +8,7 @@ const Spinner = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("animate-spin text-white", className)}
+    className={cn("animate-spin", className)}
     {...props}
   >
     <svg

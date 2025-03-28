@@ -12,7 +12,7 @@ export const useAuthActions = () => {
     setLoading(true);
     
     try {
-      // Clear any previous error states
+      // Attempt to sign in with Supabase
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -77,7 +77,7 @@ export const useAuthActions = () => {
         options: {
           emailRedirectTo: `${window.location.origin}/discover`,
           data: {
-            email: email, // Store email in user metadata
+            email: email,
           }
         }
       });
@@ -94,10 +94,8 @@ export const useAuthActions = () => {
         await createOrUpdateProfile(data.user.id, email);
       }
       
-      // For development environments where email verification might be disabled
-      // This will set the user as authenticated immediately after sign up
+      // Set local authentication for immediate access
       if (data.user) {
-        // Set local authentication for immediate access
         localStorage.setItem('isAuthenticated', 'true');
         localStorage.setItem('authMethod', 'email');
         localStorage.setItem('authContact', email);
@@ -164,8 +162,6 @@ export const useAuthActions = () => {
         console.error("No active session found when updating password");
         toast("Authentication error: No active session found", {
           description: "Please try logging in again",
-          duration: 5000,
-          style: { backgroundColor: "#f44336", color: "white" }
         });
         throw new Error("Auth session missing!");
       }

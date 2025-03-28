@@ -2,14 +2,13 @@
 import { useState, useEffect } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 export const useAuthState = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [isLocalAuth, setIsLocalAuth] = useState(false);
-  const { toast } = useToast();
 
   useEffect(() => {
     console.log("AuthProvider initialization");
@@ -45,8 +44,6 @@ export const useAuthState = () => {
             setIsLocalAuth(true);
             console.log("User signed in - setting localStorage backup");
           }
-          
-          setLoading(false);
         }
         
         // If signed out, clear local backup
@@ -64,10 +61,9 @@ export const useAuthState = () => {
           const errorDescription = url.searchParams.get('error_description');
           
           if (error) {
-            toast({
-              title: "Authentication Error",
+            toast("Authentication Error", {
               description: errorDescription || "There was a problem with authentication",
-              variant: "destructive",
+              style: { backgroundColor: "#f44336", color: "white" }
             });
             
             // Clean the URL of error parameters
@@ -76,9 +72,9 @@ export const useAuthState = () => {
             url.searchParams.delete('error_description');
             window.history.replaceState({}, document.title, url.toString());
           }
-          
-          setLoading(false);
         }
+        
+        setLoading(false);
       }
     );
 
@@ -96,6 +92,7 @@ export const useAuthState = () => {
         localStorage.setItem('authMethod', 'supabase');
         localStorage.setItem('authContact', existingSession.user.email || '');
         setIsLocalAuth(true);
+        setLoading(false);
       } else {
         // Try to refresh the session if we have local auth but no session
         if (localAuth === 'true') {
@@ -130,7 +127,7 @@ export const useAuthState = () => {
     return () => {
       subscription.unsubscribe();
     };
-  }, [toast]);
+  }, []);
 
   return {
     session,

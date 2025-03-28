@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { useAuth } from "@/context/auth";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import EmailAuthForm from "./EmailAuthForm";
 import AuthToggle from "./AuthToggle";
 import EmailVerificationHandler from "./EmailVerificationHandler";
@@ -18,7 +18,6 @@ const LoginForm = ({ isLoginMode, toggleAuthMode, onForgotPassword }: LoginFormP
   const [storedPassword, setStoredPassword] = useState("");
   const [generatedCode, setGeneratedCode] = useState("");
   const { signUp } = useAuth();
-  const { toast } = useToast();
 
   const handleStoreCredentials = async (email: string, password: string, code: string) => {
     setStoredEmail(email);
@@ -39,16 +38,14 @@ const LoginForm = ({ isLoginMode, toggleAuthMode, onForgotPassword }: LoginFormP
         throw new Error(error.message);
       }
       
-      toast({
-        title: "Verification code sent",
+      toast("Verification code sent", {
         description: `We've sent a verification code to ${email}. Please check your inbox.`,
       });
     } catch (error: any) {
       console.error("Error sending verification email:", error);
-      toast({
-        title: "Error sending email",
+      toast("Error sending email", {
         description: "We couldn't send the verification code. Please try again.",
-        variant: "destructive",
+        style: { backgroundColor: "#f44336", color: "white" }
       });
     }
   };

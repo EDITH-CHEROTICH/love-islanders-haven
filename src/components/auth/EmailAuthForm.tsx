@@ -1,7 +1,7 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/hooks/use-toast";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -9,6 +9,7 @@ import { useAuth } from "@/context/auth";
 import { authSchema } from "./authSchema";
 import PasswordField from "./PasswordField";
 import { Spinner } from "@/components/ui/spinner";
+import { toast } from "sonner";
 
 interface EmailAuthFormProps {
   isLoginMode: boolean;
@@ -22,9 +23,7 @@ const EmailAuthForm = ({
   onStoreCredentials 
 }: EmailAuthFormProps) => {
   const [isLoading, setIsLoading] = useState(false);
-  const [animateLogin, setAnimateLogin] = useState(false);
   const { signIn, signUp } = useAuth();
-  const { toast } = useToast();
 
   const form = useForm({
     resolver: zodResolver(authSchema),
@@ -38,23 +37,26 @@ const EmailAuthForm = ({
 
   const handleEmailAuth = async (values: any) => {
     setIsLoading(true);
-    setAnimateLogin(true);
     
     try {
       if (isLoginMode) {
         console.log("Attempting login with:", values.email);
-        const result = await signIn(values.email, values.password);
-        console.log("Login result:", result);
         
-        if (result) { // Make sure we got a valid result back
-          toast({
-            title: "Login successful",
-            description: "Welcome back!",
-          });
-        } else {
-          throw new Error("Invalid credentials");
+        try {
+          const result = await signIn(values.email, values.password);
+          console.log("Login result:", result);
+          
+          if (result) {
+            toast("Login successful", {
+              description: "Welcome back!",
+            });
+          } else {
+            throw new Error("Invalid credentials");
+          }
+        } catch (error: any) {
+          console.error("Login error:", error);
+          throw error;
         }
-        // No need to manually redirect - the auth context will handle this
       } else {
         console.log("Starting signup process for:", values.email);
         // For signup, we're using the verification process
@@ -64,22 +66,20 @@ const EmailAuthForm = ({
         // Store credentials for later
         onStoreCredentials(values.email, values.password, verificationCode);
         
-        toast({
-          title: "Verification required",
+        toast("Verification required", {
           description: "Please check your email for a verification code.",
         });
       }
     } catch (error: any) {
       console.error("Authentication error:", error);
-      toast({
-        title: isLoginMode ? "Login failed" : "Sign up failed",
+      toast("Authentication failed", {
         description: error.message || "Something went wrong",
-        variant: "destructive",
+        style: { backgroundColor: "#f44336", color: "white" }
       });
     } finally {
-      setIsLoading(false);
-      // Keep animation for a short time even after loading finishes
-      setTimeout(() => setAnimateLogin(false), 600);
+      setTimeout(() => {
+        setIsLoading(false);
+      }, 500);
     }
   };
 
@@ -129,12 +129,12 @@ const EmailAuthForm = ({
         
         <Button 
           type="submit" 
-          className={`w-full transition-all duration-300 ${animateLogin ? 'animate-login bg-love-light scale-105 shadow-lg' : 'bg-love hover:bg-love-dark'}`}
+          className="w-full bg-love hover:bg-love-dark transition-all duration-300"
           disabled={isLoading}
         >
           {isLoading ? (
             <span className="flex items-center justify-center">
-              <Spinner className="mr-2 h-4 w-4" />
+              <Spinner className="mr-2 h-4 w-4 text-white" />
               {isLoginMode ? "Logging in..." : "Signing up..."}
             </span>
           ) : (
