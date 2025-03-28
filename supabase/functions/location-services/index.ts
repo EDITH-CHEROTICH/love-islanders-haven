@@ -42,6 +42,7 @@ serve(async (req) => {
     // Get API key from environment
     const apiKey = Deno.env.get('LOCATION_API_KEY');
     if (!apiKey) {
+      console.error('Missing LOCATION_API_KEY');
       throw new Error('Missing LOCATION_API_KEY');
     }
 
@@ -61,6 +62,7 @@ serve(async (req) => {
     const { data: { user } } = await supabase.auth.getUser();
     
     if (!user) {
+      console.error('Unauthorized access attempt');
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -70,6 +72,8 @@ serve(async (req) => {
     console.log(`Processing ${action} request for user ${user.id}`);
 
     if (action === 'update' && location) {
+      console.log('Updating location with data:', JSON.stringify(location));
+      
       // Update user location in profiles table
       const { error } = await supabase
         .from('profiles')
@@ -81,9 +85,11 @@ serve(async (req) => {
         .eq('id', user.id);
 
       if (error) {
+        console.error(`Failed to update location: ${error.message}`);
         throw new Error(`Failed to update location: ${error.message}`);
       }
 
+      console.log('Location updated successfully');
       return new Response(JSON.stringify({ 
         success: true, 
         message: 'Location updated successfully',
@@ -100,6 +106,7 @@ serve(async (req) => {
         .single();
 
       if (error) {
+        console.error(`Failed to get location: ${error.message}`);
         throw new Error(`Failed to get location: ${error.message}`);
       }
 
@@ -124,7 +131,7 @@ serve(async (req) => {
     });
 
   } catch (error) {
-    console.error(`Error in location-services function:`, error.message);
+    console.error(`Error in location-services function:`, error);
     return new Response(JSON.stringify({ 
       error: error.message || 'Internal Server Error' 
     }), {

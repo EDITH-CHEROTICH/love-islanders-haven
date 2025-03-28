@@ -50,7 +50,7 @@ export const getCurrentLocation = (): Promise<UserLocation> => {
       return;
     }
 
-    navigator.permissions.query({ name: 'geolocation' }).then((result) => {
+    navigator.permissions.query({ name: 'geolocation' as PermissionName }).then((result) => {
       if (result.state === 'denied') {
         reject(new Error('Location permission is denied. Please enable location services in your browser settings.'));
         return;

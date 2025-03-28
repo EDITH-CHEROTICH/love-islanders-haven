@@ -30,6 +30,7 @@ const LocationSharingSection = () => {
         if (!settings.shareLocation) {
           updatePrivacySetting('shareLocation', true);
         }
+        toast.success('Your location has been updated successfully');
       }
     } catch (error) {
       console.error('Error updating location:', error);
@@ -45,11 +46,13 @@ const LocationSharingSection = () => {
         label="Share your location"
         settingKey="shareLocation"
         icon={<MapPin size={16} className="text-muted-foreground" />}
-        onChange={(checked) => {
+        description="Allow the app to use your location for distance calculation and matching"
+        onChange={async (checked) => {
           // If turning on, prompt to update location
           if (checked) {
-            handleUpdateLocation();
+            return handleUpdateLocation();
           }
+          return Promise.resolve();
         }}
       />
       
@@ -57,6 +60,7 @@ const LocationSharingSection = () => {
         label="Show distance to other users"
         settingKey="showDistance"
         icon={<MapPin size={16} className="text-muted-foreground" />}
+        description="Display how far away other users are from your location"
       />
       
       <div className="flex items-center justify-between">
