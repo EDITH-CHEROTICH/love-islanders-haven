@@ -1,6 +1,6 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { ChatMessage } from './types';
+import { useAuth } from '@/context/AuthContext';
 
 export const fetchChatHistory = async (userId: string | undefined) => {
   if (!userId) {
@@ -35,26 +35,29 @@ export const fetchChatHistory = async (userId: string | undefined) => {
 export const sendAIMessage = async (
   messageText: string, 
   conversationHistory: Array<{ role: string; content: string }>,
-  userId?: string
+  userId?: string,
+  userEmail?: string
 ) => {
   try {
     console.log('Sending message to AI companion (via n8n):', messageText);
     console.log('With conversation history of length:', conversationHistory.length);
     console.log('User ID for message:', userId || 'Not authenticated');
+    console.log('User email for message:', userEmail || 'Not provided');
     
-    // Format the request payload - always include userId even if undefined
+    // Format the request payload - include both userId and userEmail
     const payload = {
       message: messageText,
       conversationHistory,
       userId,
-      userEmail: null, // This will be filled by the edge function if available
+      userEmail, // Pass the email from the component
       timestamp: new Date().toISOString()
     };
     
     console.log('Request payload preview:', JSON.stringify({
       messageLength: messageText.length,
       historyLength: conversationHistory.length,
-      hasUserId: !!userId
+      hasUserId: !!userId,
+      hasUserEmail: !!userEmail
     }));
     
     // Call the Supabase Edge Function with retries

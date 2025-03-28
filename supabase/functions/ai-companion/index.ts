@@ -32,7 +32,7 @@ serve(async (req) => {
       message: message ? "Present" : "Missing", 
       historyLength: conversationHistory.length,
       userId: userId ? "Present" : "Missing",
-      userEmail: userEmail ? "Present" : "Missing"
+      userEmail: userEmail ? userEmail : "Missing"
     });
 
     // Fetch user context data if userId is provided
@@ -50,7 +50,8 @@ serve(async (req) => {
       supabase,
       userMemoryContext,
       userStreakActivity,
-      userProfile
+      userProfile,
+      userEmail
     );
 
     console.log("Successfully generated AI response via n8n");

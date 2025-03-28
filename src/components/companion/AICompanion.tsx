@@ -1,243 +1,186 @@
-
 import React, { useState, useEffect, useRef } from 'react';
-import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/context/AuthContext';
+import { Sparkles } from 'lucide-react';
+import { ChatMessage } from './types';
 import Message from './Message';
 import ChatInput from './ChatInput';
-import RecommendationMessage from './RecommendationMessage';
 import AILoadingIndicator from './AILoadingIndicator';
-import { ChatMessage } from './types';
-import { 
-  fetchChatHistory, 
-  sendAIMessage, 
-  fetchRecommendations,
-  fetchProactiveMessages,
-  getWelcomeMessage
-} from './aiCompanionService';
+import RecommendationMessage from './RecommendationMessage';
+import { sendAIMessage, getWelcomeMessage, fetchChatHistory, fetchProactiveMessages, fetchRecommendations } from './aiCompanionService';
+import { useAuth } from '@/context/AuthContext';
+import { useToast } from '@/hooks/use-toast';
+
+// Optional logging for debugging
+const DEBUG = false;
 
 const AICompanion: React.FC = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [initialLoading, setInitialLoading] = useState(true);
-  const [lastCheckedTimestamp, setLastCheckedTimestamp] = useState<Date>(new Date());
-  const { toast } = useToast();
-  const { user } = useAuth();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
+  const [lastChecked, setLastChecked] = useState<Date>(new Date());
+  const { toast } = useToast();
+  const { user, isAuthenticated } = useAuth();
 
-  // Fetch past conversation history when component mounts
+  // Debug logging helper
+  const log = (...args: any[]) => {
+    if (DEBUG) console.log('[AICompanion]', ...args);
+  };
+
   useEffect(() => {
+    // Initialize with welcome message if no history
+    if (messages.length === 0) {
+      setMessages([getWelcomeMessage()]);
+    }
+    
+    // Load chat history for authenticated users
     const loadChatHistory = async () => {
-      if (!user?.id) {
-        setInitialLoading(false);
-        // If not logged in, just add welcome message and return
-        setMessages([getWelcomeMessage()]);
-        return;
-      }
-
-      try {
-        const historyMessages = await fetchChatHistory(user.id);
-        
-        if (historyMessages && historyMessages.length > 0) {
-          setMessages(historyMessages);
-        } else {
-          // Add welcome message if no history exists
-          setMessages([getWelcomeMessage()]);
-        }
-      } catch (error) {
-        console.error('Error:', error);
-        toast({
-          title: "Couldn't load conversation history",
-          description: error instanceof Error ? error.message : 'Unknown error occurred',
-          variant: "destructive"
-        });
-        
-        // Add welcome message even if there's an error
-        setMessages([getWelcomeMessage()]);
-      } finally {
-        setInitialLoading(false);
-      }
-    };
-
-    loadChatHistory();
-  }, [user?.id, toast]);
-
-  // Check for new proactive messages periodically
-  useEffect(() => {
-    if (!user?.id) return;
-
-    // Set current timestamp as the reference point
-    setLastCheckedTimestamp(new Date());
-    
-    // Function to check for new messages
-    const checkForNewMessages = async () => {
-      try {
-        // Check for proactive messages
-        const proactiveMessages = await fetchProactiveMessages(user.id, lastCheckedTimestamp);
-        
-        if (proactiveMessages.length > 0) {
-          // Add proactive messages to the chat
-          setMessages(prev => [...prev, ...proactiveMessages]);
-          
-          // Notify the user
+      if (isAuthenticated && user?.id) {
+        try {
+          log('Loading chat history for user:', user.id);
+          const history = await fetchChatHistory(user.id);
+          if (history && history.length > 0) {
+            log('Loaded chat history:', history.length, 'messages');
+            setMessages(history);
+            setChatHistory(history);
+          }
+        } catch (error) {
+          console.error('Error loading chat history:', error);
           toast({
-            title: "New message from Isla",
-            description: proactiveMessages[0].content.substring(0, 60) + "...",
-            duration: 5000,
+            title: 'Could not load chat history',
+            description: 'There was a problem loading your previous conversations.',
+            variant: 'destructive',
           });
-          
-          // Update the timestamp to the latest message
-          setLastCheckedTimestamp(new Date());
         }
-      } catch (error) {
-        console.error('Error checking for new messages:', error);
       }
     };
     
-    // Check initially
-    checkForNewMessages();
-    
-    // Set up interval to check (every 60 seconds)
-    const intervalId = setInterval(checkForNewMessages, 60000);
-    
-    return () => clearInterval(intervalId);
-  }, [user?.id, lastCheckedTimestamp, toast]);
-
-  // Scroll to bottom whenever messages change
-  useEffect(() => {
+    loadChatHistory();
+  }, [isAuthenticated, user, toast]);
+  
+  // Function to scroll to the bottom of the chat
+  const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  // Effect to scroll to the bottom on new messages
+  useEffect(() => {
+    scrollToBottom();
   }, [messages]);
 
-  const sendMessage = async (messageText: string) => {
-    if (!messageText.trim()) return;
-
-    // Create a new user message
-    const userMessage: ChatMessage = {
-      id: Date.now().toString(),
-      role: 'user',
-      content: messageText,
-      timestamp: new Date(),
-      type: 'chat'
+  // Proactive message check
+  useEffect(() => {
+    const checkNewMessages = async () => {
+      if (isAuthenticated && user?.id) {
+        try {
+          log('Checking for new proactive messages since:', lastChecked);
+          const newProactiveMessages = await fetchProactiveMessages(user.id, lastChecked);
+          const newRecommendationMessages = await fetchRecommendations(user.id, lastChecked);
+          
+          if (newProactiveMessages && newProactiveMessages.length > 0) {
+            log('New proactive messages found:', newProactiveMessages.length);
+            setMessages(prevMessages => [...prevMessages, ...newProactiveMessages]);
+          }
+          
+          if (newRecommendationMessages && newRecommendationMessages.length > 0) {
+            log('New recommendation messages found:', newRecommendationMessages.length);
+            setMessages(prevMessages => [...prevMessages, ...newRecommendationMessages]);
+          }
+          
+          setLastChecked(new Date());
+        } catch (error) {
+          console.error('Error checking for new messages:', error);
+        }
+      }
     };
 
-    // Add user message to chat
-    setMessages(prev => [...prev, userMessage]);
-    setIsLoading(true);
+    // Check every 30 seconds for new messages
+    const intervalId = setInterval(checkNewMessages, 30000);
+    
+    // Initial check when component mounts
+    checkNewMessages();
 
+    return () => clearInterval(intervalId);
+  }, [isAuthenticated, user, lastChecked]);
+
+  const handleSendMessage = async (message: string) => {
     try {
-      // Format conversation history for the API
+      if (!message.trim()) return;
+      
+      // Add user message to the UI
+      const userMessage: ChatMessage = {
+        id: Date.now().toString(),
+        role: 'user',
+        content: message,
+        timestamp: new Date(),
+        type: 'chat'
+      };
+      
+      setMessages(prevMessages => [...prevMessages, userMessage]);
+      setIsLoading(true);
+      
+      // Scroll to bottom
+      setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
+      
+      // Get the conversation history in the format expected by the AI service
       const conversationHistory = messages.map(msg => ({
         role: msg.role,
         content: msg.content
       }));
-
-      // Send message to AI service
-      const aiResponse = await sendAIMessage(messageText, conversationHistory, user?.id);
-
-      // Check if this is a demo response
-      if (aiResponse.includes("running in demo mode")) {
-        // Post a message to notify the parent component
-        window.postMessage({ type: 'ai-companion-demo-mode' }, '*');
-      }
-
-      // Add AI response to chat
-      const aiMessage: ChatMessage = {
-        id: Date.now().toString(),
-        role: 'assistant',
-        content: aiResponse,
-        timestamp: new Date(),
-        type: 'chat'
-      };
-
-      setMessages(prev => [...prev, aiMessage]);
-
-      // After receiving the AI response, check for any new recommendations
-      if (user?.id) {
-        // Update timestamp for checking new messages
-        setLastCheckedTimestamp(new Date());
+      
+      try {
+        // Get the user ID and email if authenticated
+        const userId = isAuthenticated && user ? user.id : undefined;
+        const userEmail = isAuthenticated && user ? user.email : undefined;
         
-        try {
-          const recommendationMessages = await fetchRecommendations(user.id, aiMessage.timestamp);
-          if (recommendationMessages.length > 0) {
-            setMessages(prev => [...prev, ...recommendationMessages]);
-          }
-        } catch (error) {
-          console.error('Error fetching recommendations:', error);
-        }
+        log('Sending message with user context:', { userId, userEmail });
+        
+        // Send to AI service with user context
+        const response = await sendAIMessage(message, conversationHistory, userId, userEmail);
+        
+        // Add AI response to the UI
+        const aiMessage: ChatMessage = {
+          id: Date.now().toString(),
+          role: 'assistant',
+          content: response,
+          timestamp: new Date(),
+          type: 'chat'
+        };
+        
+        setMessages(prevMessages => [...prevMessages, aiMessage]);
+        setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
+        
+      } catch (error) {
+        console.error('Error sending message:', error);
+        toast({
+          title: 'Message sending failed',
+          description: error instanceof Error ? error.message : 'Could not get a response from the AI companion',
+          variant: 'destructive',
+        });
+      } finally {
+        setIsLoading(false);
       }
-    } catch (error) {
-      console.error('Error sending message:', error);
-      
-      // Show appropriate error message to user
-      let errorMessage = 'Failed to send message. Please try again later.';
-      
-      if (error instanceof Error) {
-        if (error.message.includes('API key is not set')) {
-          errorMessage = 'The AI service is not properly configured. Please contact support.';
-        } else {
-          errorMessage = `Error: ${error.message}`;
-        }
-      }
-      
-      toast({
-        title: "AI Companion Error",
-        description: errorMessage,
-        variant: "destructive"
-      });
-      
-      // Add error message as system message
-      const errorSystemMessage: ChatMessage = {
-        id: `error-${Date.now().toString()}`,
-        role: 'assistant',
-        content: "I'm sorry, I'm having trouble connecting to my servers right now. Please try again in a moment.",
-        timestamp: new Date(),
-        type: 'chat'
-      };
-      
-      setMessages(prev => [...prev, errorSystemMessage]);
-    } finally {
+    } catch (e) {
+      console.error('Error in handleSendMessage:', e);
       setIsLoading(false);
     }
   };
 
-  if (initialLoading) {
-    return (
-      <div className="flex flex-col h-full max-h-[calc(100vh-180px)] bg-island-dark text-white">
-        <div className="flex-1 flex items-center justify-center">
-          <div className="animate-pulse flex space-x-4">
-            <div className="h-12 w-12 bg-island-light rounded-full"></div>
-            <div className="space-y-2">
-              <div className="h-4 bg-island-light rounded w-36"></div>
-              <div className="h-4 bg-island-light rounded w-24"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="flex flex-col h-full max-h-[calc(100vh-180px)] bg-island-dark text-white pb-16">
-      <div className="flex-1 overflow-y-auto p-4 pb-20">
-        {messages.map(message => (
-          <div key={message.id} className="mb-4">
+    <div className="flex flex-col h-full">
+      <div className="flex-grow overflow-y-auto p-4">
+        {messages.map((message, index) => (
+          <React.Fragment key={message.id}>
             {message.type === 'recommendation' ? (
-              <RecommendationMessage content={message.content} />
+              <RecommendationMessage message={message} />
             ) : (
-              <Message
-                message={message.content}
-                isUser={message.role === 'user'}
-                timestamp={message.timestamp}
-                isProactive={message.type === 'proactive'}
-              />
+              <Message message={message} isLast={index === messages.length - 1} />
             )}
-          </div>
+          </React.Fragment>
         ))}
-        <div ref={messagesEndRef} />
-        
         {isLoading && <AILoadingIndicator />}
+        <div ref={messagesEndRef} />
       </div>
-
-      <ChatInput onSendMessage={sendMessage} isLoading={isLoading} />
+      <ChatInput onSendMessage={handleSendMessage} />
     </div>
   );
 };

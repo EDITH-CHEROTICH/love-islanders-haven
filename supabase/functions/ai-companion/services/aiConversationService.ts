@@ -21,7 +21,8 @@ export async function processConversationWithN8n(
   supabase: any,
   userMemoryContext: string,
   userStreakActivity: any[],
-  userProfile: any = null
+  userProfile: any = null,
+  userEmail: string | null = null
 ) {
   // Get the n8n webhook URL from environment variables
   const N8N_WEBHOOK_URL = Deno.env.get('N8N_WEBHOOK_URL');
@@ -37,10 +38,9 @@ export async function processConversationWithN8n(
   // If userId is provided, store message and fetch conversation
   let recentConversation = [];
   let chatMessages = [];
-  let userEmail = null;
   
-  // Try to fetch user email if userId is provided
-  if (userId) {
+  // Try to fetch user email if userId is provided and email wasn't passed
+  if (userId && !userEmail) {
     try {
       // Store the new user message in the chat history
       await saveUserMessage(supabase, userId, message);
@@ -64,6 +64,8 @@ export async function processConversationWithN8n(
     } catch (error) {
       console.error("Database error:", error);
     }
+  } else if (userEmail) {
+    console.log(`Using provided email for user ${userId || 'anonymous'}: ${userEmail}`);
   }
   
   // Prepare the chat history for n8n
