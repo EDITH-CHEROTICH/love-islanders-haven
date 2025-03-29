@@ -23,7 +23,7 @@ const EmailAuthForm = ({
   onStoreCredentials 
 }: EmailAuthFormProps) => {
   const [isLoading, setIsLoading] = useState(false);
-  const { signIn, signUp } = useAuth();
+  const { signIn } = useAuth();
 
   const form = useForm({
     resolver: zodResolver(authSchema),
@@ -42,20 +42,15 @@ const EmailAuthForm = ({
       if (isLoginMode) {
         console.log("Attempting login with:", values.email);
         
-        try {
-          const result = await signIn(values.email, values.password);
-          console.log("Login result:", result);
-          
-          if (result) {
-            toast("Login successful", {
-              description: "Welcome back!",
-            });
-          } else {
-            throw new Error("Invalid credentials");
-          }
-        } catch (error: any) {
-          console.error("Login error:", error);
-          throw error;
+        const result = await signIn(values.email, values.password);
+        console.log("Login result:", result);
+        
+        if (result) {
+          toast("Login successful", {
+            description: "Welcome back!",
+          });
+        } else {
+          throw new Error("Invalid credentials");
         }
       } else {
         console.log("Starting signup process for:", values.email);
@@ -77,9 +72,7 @@ const EmailAuthForm = ({
         style: { backgroundColor: "#f44336", color: "white" }
       });
     } finally {
-      setTimeout(() => {
-        setIsLoading(false);
-      }, 500);
+      setIsLoading(false);
     }
   };
 

@@ -58,6 +58,7 @@ const LoginForm = ({ isLoginMode, toggleAuthMode, onForgotPassword }: LoginFormP
       }
       return true;
     } catch (error: any) {
+      console.error("Signup error:", error);
       throw error;
     }
   };

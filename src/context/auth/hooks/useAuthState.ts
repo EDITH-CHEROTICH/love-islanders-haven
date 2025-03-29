@@ -19,11 +19,6 @@ export const useAuthState = () => {
     if (localAuth === 'true') {
       console.log("Local authentication found");
       setIsLocalAuth(true);
-      
-      // Get additional user info if available
-      const authMethod = localStorage.getItem('authMethod');
-      const authContact = localStorage.getItem('authContact');
-      console.log(`Local auth details - Method: ${authMethod}, Contact: ${authContact}`);
     }
 
     // Set up auth state listener FIRST
@@ -55,23 +50,6 @@ export const useAuthState = () => {
           localStorage.removeItem('authMethod');
           localStorage.removeItem('authContact');
           setIsLocalAuth(false);
-          
-          const url = new URL(window.location.href);
-          const error = url.searchParams.get('error');
-          const errorDescription = url.searchParams.get('error_description');
-          
-          if (error) {
-            toast("Authentication Error", {
-              description: errorDescription || "There was a problem with authentication",
-              style: { backgroundColor: "#f44336", color: "white" }
-            });
-            
-            // Clean the URL of error parameters
-            url.searchParams.delete('error');
-            url.searchParams.delete('error_code');
-            url.searchParams.delete('error_description');
-            window.history.replaceState({}, document.title, url.toString());
-          }
         }
         
         setLoading(false);
