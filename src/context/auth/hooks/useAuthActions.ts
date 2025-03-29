@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { createOrUpdateProfile } from '../utils';
@@ -110,17 +109,12 @@ export const useAuthActions = () => {
     }
   };
 
+  // This method is replaced by our new verification code flow
   const resetPassword = async (email: string) => {
-    try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/login`,
-      });
-      
-      if (error) throw error;
-    } catch (error) {
-      console.error("Error during password reset:", error);
-      throw error;
-    }
+    console.log(`Preparing password reset for: ${email}`);
+    // This is now just a placeholder as the actual reset logic is in the ForgotPassword component
+    // We keep it to avoid changing the auth context API
+    return Promise.resolve();
   };
 
   const signOut = async () => {
