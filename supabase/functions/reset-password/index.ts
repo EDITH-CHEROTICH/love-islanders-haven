@@ -39,15 +39,15 @@ serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Get the user by email
-    const { data: userData, error: userError } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('email', email)
-      .single();
+    // Get the user by email directly from auth.users table
+    const { data: userData, error: userError } = await supabase.auth.admin.listUsers({
+      filters: {
+        email: email
+      }
+    });
 
-    if (userError || !userData) {
-      console.error("Error finding user:", userError);
+    if (userError || !userData || userData.users.length === 0) {
+      console.error("Error finding user:", userError || "No user found");
       return new Response(
         JSON.stringify({ error: 'User not found' }),
         { 
@@ -60,9 +60,11 @@ serve(async (req) => {
       );
     }
 
+    const user = userData.users[0];
+
     // Reset the user's password using the admin API
     const { error: resetError } = await supabase.auth.admin.updateUserById(
-      userData.id,
+      user.id,
       { password }
     );
 

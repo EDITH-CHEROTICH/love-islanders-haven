@@ -1,7 +1,6 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -9,6 +8,7 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { Spinner } from "@/components/ui/spinner";
+import PasswordField from "./PasswordField";
 
 // Schema for password reset
 const resetPasswordSchema = z.object({
@@ -85,32 +85,16 @@ const ResetPasswordForm = ({ email, onSuccess }: ResetPasswordFormProps) => {
       
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleResetPassword)} className="space-y-4">
-          <FormField
-            control={form.control}
+          <PasswordField
+            form={form}
             name="password"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>New Password</FormLabel>
-                <FormControl>
-                  <Input type="password" placeholder="••••••••" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+            label="New Password"
           />
           
-          <FormField
-            control={form.control}
+          <PasswordField
+            form={form}
             name="confirmPassword"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Confirm New Password</FormLabel>
-                <FormControl>
-                  <Input type="password" placeholder="••••••••" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+            label="Confirm New Password"
           />
           
           <Button 
