@@ -81,6 +81,7 @@ const VerificationForm = ({
         
         toast.success("Verification successful!");
         
+        // Fix: Remove the reference to user property which doesn't exist
         // Navigate to discover page with a small delay to ensure state updates
         setTimeout(() => {
           console.log("Navigating to discover page");

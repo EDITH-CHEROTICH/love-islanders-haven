@@ -29,7 +29,8 @@ const LoginForm = ({ isLoginMode, toggleAuthMode, onForgotPassword }: LoginFormP
   const completeSignUp = async () => {
     try {
       console.log("LoginForm: Completing signup");
-      const result = await signUp(storedEmail);
+      // Fix: pass an empty string as the second argument (password) since signUp expects 2 arguments
+      const result = await signUp(storedEmail, "");
       if (!result) {
         throw new Error("Signup failed");
       }
