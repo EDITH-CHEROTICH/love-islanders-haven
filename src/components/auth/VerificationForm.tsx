@@ -60,7 +60,7 @@ const VerificationForm = ({
         // Create/update user profile
         if (data && data.session) {
           try {
-            // Fix: Properly access the user ID with type safety
+            // Properly access the user ID with type safety
             const userId = data.session.user?.id;
             
             if (userId) {
@@ -69,7 +69,8 @@ const VerificationForm = ({
                 .upsert({
                   id: userId,
                   name: email.split('@')[0], // Default name from email
-                  email: email
+                  email: email,
+                  email_verified: true // Set email as verified
                 }, {
                   onConflict: 'id'
                 });

@@ -198,6 +198,33 @@ export type Database = {
           },
         ]
       }
+      email_verification: {
+        Row: {
+          code: string
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          used: boolean | null
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          email: string
+          expires_at?: string
+          id?: string
+          used?: boolean | null
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          used?: boolean | null
+        }
+        Relationships: []
+      }
       emergency_alerts: {
         Row: {
           id: string
@@ -495,6 +522,7 @@ export type Database = {
           created_at: string
           dob: string | null
           education: string | null
+          email_verified: boolean | null
           gender: string | null
           gender_preference: string | null
           has_children: boolean | null
@@ -523,6 +551,7 @@ export type Database = {
           created_at?: string
           dob?: string | null
           education?: string | null
+          email_verified?: boolean | null
           gender?: string | null
           gender_preference?: string | null
           has_children?: boolean | null
@@ -551,6 +580,7 @@ export type Database = {
           created_at?: string
           dob?: string | null
           education?: string | null
+          email_verified?: boolean | null
           gender?: string | null
           gender_preference?: string | null
           has_children?: boolean | null

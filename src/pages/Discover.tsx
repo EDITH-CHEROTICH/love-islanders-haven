@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { fetchDiscoverProfiles, recordSwipeAction, DiscoverFilters } from '@/services/discover';
 import { Profile } from '@/utils/dummyData';
@@ -8,8 +7,10 @@ import { Button } from '@/components/ui/button';
 import { Sliders } from 'lucide-react';
 import { Dialog } from '@/components/ui/dialog';
 import AdvancedFilters, { AdvancedFilterOptions } from '@/components/discover/AdvancedFilters';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { useAuth } from '@/context/auth';
+import EmailVerificationPopup from '@/components/auth/EmailVerificationPopup';
+import { supabase } from '@/integrations/supabase/client';
 
 // Update DiscoverFiltersState to match AdvancedFilterOptions
 interface DiscoverFiltersState extends AdvancedFilterOptions {
@@ -21,6 +22,7 @@ const Discover: React.FC = () => {
   const [currentProfileIndex, setCurrentProfileIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [isFilterDialogOpen, setIsFilterDialogOpen] = useState(false);
+  const [showVerificationPopup, setShowVerificationPopup] = useState(false);
   const [filters, setFilters] = useState<DiscoverFiltersState>({
     ageRange: [18, 35],
     distance: 50,
@@ -35,11 +37,41 @@ const Discover: React.FC = () => {
     interests: [],
   });
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
 
   useEffect(() => {
     loadProfiles();
-  }, [filters]);
+    checkEmailVerification();
+  }, [filters, isAuthenticated]);
+
+  const checkEmailVerification = async () => {
+    // First check if user is authenticated
+    if (isAuthenticated) {
+      try {
+        // Check if we have an email in localStorage
+        const authContact = localStorage.getItem('authContact');
+        
+        if (authContact) {
+          // Check if this email exists in profiles
+          const { data: profile, error } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('email', authContact)
+            .maybeSingle();
+          
+          if (!profile) {
+            // If profile doesn't exist, show verification popup
+            setShowVerificationPopup(true);
+          }
+        } else {
+          // If no email in localStorage, show verification popup
+          setShowVerificationPopup(true);
+        }
+      } catch (error) {
+        console.error('Error checking email verification:', error);
+      }
+    }
+  };
 
   const loadProfiles = async () => {
     setIsLoading(true);
@@ -132,6 +164,12 @@ const Discover: React.FC = () => {
     closeFilterDialog();
   };
 
+  const handleVerificationComplete = () => {
+    setShowVerificationPopup(false);
+    // Reload the page to refresh the authentication state
+    window.location.reload();
+  };
+
   const currentProfile = profiles && profiles.length > 0 ? profiles[currentProfileIndex] : null;
 
   return (
@@ -168,6 +206,12 @@ const Discover: React.FC = () => {
             activeFilters={filters}
           />
         </Dialog>
+        
+        {/* Email Verification Popup */}
+        <EmailVerificationPopup 
+          isOpen={showVerificationPopup}
+          onClose={handleVerificationComplete}
+        />
       </div>
     </div>
   );

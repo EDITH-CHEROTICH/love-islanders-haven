@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { User, Eye, EyeOff } from 'lucide-react';
 import SettingsSection from './SettingsSection';
@@ -39,6 +38,13 @@ const AccountSettings = () => {
       if (authContact) {
         setEmail(authContact);
         console.log("User email set from localStorage:", authContact);
+        
+        // Also try to update settings with this email
+        const newSettings = { ...localSettings, email: authContact };
+        setLocalSettings(newSettings);
+        updateSettings('account_settings', newSettings).catch(error => {
+          console.error('Error updating email in settings:', error);
+        });
       }
     }
 
@@ -143,7 +149,13 @@ const AccountSettings = () => {
               value={email}
               onChange={handleEmailChange}
               className="bg-island-light/20 border-island-light"
+              disabled={user?.email !== undefined} // Disable if it's from Supabase auth
             />
+            {user?.email && (
+              <p className="text-xs text-muted-foreground mt-1">
+                This email is verified and cannot be changed.
+              </p>
+            )}
           </div>
         </div>
 
