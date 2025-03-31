@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { Button } from "@/components/ui/button";
@@ -12,6 +11,11 @@ interface VerificationFormProps {
   generatedCode: string;
   onResendCode: () => Promise<void>;
   isSendingCode: boolean;
+}
+
+interface ProfileQueryResult {
+  data: { id: string } | null;
+  error: any;
 }
 
 const VerificationForm = ({ 
@@ -47,7 +51,7 @@ const VerificationForm = ({
           .from('profiles')
           .select('id')
           .eq('email', email)
-          .maybeSingle() as { data: { id: string } | null, error: any };
+          .maybeSingle() as unknown as ProfileQueryResult;
         
         if (error) {
           console.error("Error checking user:", error);

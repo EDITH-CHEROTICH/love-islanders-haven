@@ -4,6 +4,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { createOrUpdateProfile } from '../utils';
 import { toast } from 'sonner';
 
+interface ProfileQueryResult {
+  data: { id: string } | null;
+  error: any;
+}
+
 export const useAuthActions = () => {
   const [loading, setLoading] = useState(false);
 
@@ -13,12 +18,11 @@ export const useAuthActions = () => {
     
     try {
       // Check if user exists by querying for users with the email
-      // Use explicit type specification to avoid deep type instantiation
       const { data, error } = await supabase
         .from('profiles')
         .select('id')
         .eq('email', email)
-        .single() as { data: { id: string } | null, error: any };
+        .single() as unknown as ProfileQueryResult;
       
       if (error) {
         console.error("Error checking user:", error);
@@ -51,12 +55,11 @@ export const useAuthActions = () => {
     
     try {
       // Check if user already exists
-      // Use maybeSingle with explicit type for safety
       const { data, error } = await supabase
         .from('profiles')
         .select('id')
         .eq('email', email)
-        .maybeSingle() as { data: { id: string } | null, error: any };
+        .maybeSingle() as unknown as ProfileQueryResult;
       
       if (error) {
         console.error("Error checking user:", error);
