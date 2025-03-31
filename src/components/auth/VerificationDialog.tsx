@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 
 interface VerificationDialogProps {
   email: string;
@@ -27,6 +28,7 @@ const VerificationDialog = ({
 }: VerificationDialogProps) => {
   const [verificationCode, setVerificationCode] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
 
   const sendVerificationEmail = async (email: string, code: string) => {
     setSendingEmail(true);
@@ -63,6 +65,9 @@ const VerificationDialog = ({
         await onVerifySuccess();
         
         toast.success("Verification successful! Your account has been created successfully!");
+        
+        // Ensure redirection to discover page
+        navigate('/discover', { replace: true });
         
         // Reset the verification code
         setVerificationCode("");

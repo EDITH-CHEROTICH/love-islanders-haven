@@ -60,7 +60,7 @@ const LoginForm = ({ isLoginMode, toggleAuthMode, onForgotPassword }: LoginFormP
       }
       
       // Explicitly navigate after successful signup
-      navigate('/discover');
+      navigate('/discover', { replace: true });
       return true;
     } catch (error: any) {
       console.error("Signup error:", error);

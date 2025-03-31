@@ -84,7 +84,7 @@ const EmailVerificationHandler = ({
         setShowVerification(false);
         
         // Navigate to discover page after successful verification
-        navigate('/discover');
+        navigate('/discover', { replace: true });
         return true;
       }
       return false;
