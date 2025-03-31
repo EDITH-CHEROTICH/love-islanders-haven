@@ -12,22 +12,15 @@ export const useAuthActions = () => {
     setLoading(true);
     
     try {
-      // Instead of using OTP, we'll directly query for the user
-      const { data: { users }, error: getUserError } = await supabase.auth.admin.listUsers({
-        filters: {
-          email: email
-        }
-      });
+      // Check if user exists by querying for users with the email
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('email', email)
+        .single();
       
-      if (getUserError) {
-        console.error("Error checking user:", getUserError);
-        throw getUserError;
-      }
-      
-      // Check if user exists
-      const userExists = users && users.length > 0;
-      
-      if (!userExists) {
+      if (error) {
+        console.error("Error checking user:", error);
         throw new Error("No account found with this email. Please sign up instead.");
       }
       
@@ -36,7 +29,7 @@ export const useAuthActions = () => {
       localStorage.setItem('authMethod', 'email');
       localStorage.setItem('authContact', email);
       
-      return { user: users[0] };
+      return { user: { id: data.id } };
     } catch (error) {
       console.error("Error during sign in:", error);
       throw error;
@@ -57,24 +50,24 @@ export const useAuthActions = () => {
     
     try {
       // Check if user already exists
-      const { data: { users }, error: getUserError } = await supabase.auth.admin.listUsers({
-        filters: {
-          email: email
-        }
-      });
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('email', email)
+        .maybeSingle();
       
-      if (getUserError) {
-        console.error("Error checking user:", getUserError);
-      } else if (users && users.length > 0) {
+      if (error) {
+        console.error("Error checking user:", error);
+      } else if (data) {
         // User already exists, just set local auth
         localStorage.setItem('isAuthenticated', 'true');
         localStorage.setItem('authMethod', 'email');
         localStorage.setItem('authContact', email);
-        return { user: users[0] };
+        return { user: { id: data.id } };
       }
       
       // Create a new user without sending email
-      const { data, error } = await supabase.auth.signUp({
+      const { data: authData, error: signUpError } = await supabase.auth.signUp({
         email,
         password: crypto.randomUUID(), // Generate a random password
         options: {
@@ -85,19 +78,19 @@ export const useAuthActions = () => {
         }
       });
       
-      if (error) {
-        console.error("Sign up error:", error);
-        throw error;
+      if (signUpError) {
+        console.error("Sign up error:", signUpError);
+        throw signUpError;
       }
       
-      console.log("User signup initiated:", data);
+      console.log("User signup initiated:", authData);
       
       // Set local authentication for immediate access
       localStorage.setItem('isAuthenticated', 'true');
       localStorage.setItem('authMethod', 'email');
       localStorage.setItem('authContact', email);
       
-      return data;
+      return authData;
     } catch (error) {
       console.error("Error during sign up:", error);
       throw error;

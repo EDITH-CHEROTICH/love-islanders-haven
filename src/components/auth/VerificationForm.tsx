@@ -43,19 +43,19 @@ const VerificationForm = ({
         let userId: string | undefined;
         
         // Check if user already exists
-        const { data: { users }, error: getUserError } = await supabase.auth.admin.listUsers({
-          filters: {
-            email: email
-          }
-        });
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('email', email)
+          .maybeSingle();
         
-        if (getUserError) {
-          console.error("Error checking user:", getUserError);
-          throw getUserError;
+        if (error) {
+          console.error("Error checking user:", error);
+          throw error;
         }
         
-        if (users && users.length > 0) {
-          userId = users[0].id;
+        if (data) {
+          userId = data.id;
         } else {
           // Create user
           const { data: signupData, error: signupError } = await supabase.auth.signUp({
@@ -84,6 +84,7 @@ const VerificationForm = ({
               .upsert({
                 id: userId,
                 name: email.split('@')[0], // Default name from email
+                email: email,
                 email_verified: true // Set email as verified
               }, {
                 onConflict: 'id'
