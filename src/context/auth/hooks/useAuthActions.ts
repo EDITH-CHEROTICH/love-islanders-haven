@@ -12,27 +12,31 @@ export const useAuthActions = () => {
     setLoading(true);
     
     try {
-      // Attempt to sign in with OTP (One-Time Password)
-      const { data, error } = await supabase.auth.signInWithOtp({
-        email,
-        options: {
-          shouldCreateUser: true,
+      // Instead of using OTP, we'll directly query for the user
+      const { data: { users }, error: getUserError } = await supabase.auth.admin.listUsers({
+        filters: {
+          email: email
         }
       });
       
-      if (error) {
-        console.error("Sign in error:", error);
-        throw error;
+      if (getUserError) {
+        console.error("Error checking user:", getUserError);
+        throw getUserError;
       }
       
-      console.log("OTP sign in initiated:", data);
+      // Check if user exists
+      const userExists = users && users.length > 0;
       
-      // Store local authentication as a fallback
+      if (!userExists) {
+        throw new Error("No account found with this email. Please sign up instead.");
+      }
+      
+      // Store local authentication
       localStorage.setItem('isAuthenticated', 'true');
       localStorage.setItem('authMethod', 'email');
       localStorage.setItem('authContact', email);
       
-      return data;
+      return { user: users[0] };
     } catch (error) {
       console.error("Error during sign in:", error);
       throw error;
@@ -52,11 +56,32 @@ export const useAuthActions = () => {
     setLoading(true);
     
     try {
-      // Using OTP for signup as well
-      const { data, error } = await supabase.auth.signInWithOtp({ 
+      // Check if user already exists
+      const { data: { users }, error: getUserError } = await supabase.auth.admin.listUsers({
+        filters: {
+          email: email
+        }
+      });
+      
+      if (getUserError) {
+        console.error("Error checking user:", getUserError);
+      } else if (users && users.length > 0) {
+        // User already exists, just set local auth
+        localStorage.setItem('isAuthenticated', 'true');
+        localStorage.setItem('authMethod', 'email');
+        localStorage.setItem('authContact', email);
+        return { user: users[0] };
+      }
+      
+      // Create a new user without sending email
+      const { data, error } = await supabase.auth.signUp({
         email,
+        password: crypto.randomUUID(), // Generate a random password
         options: {
-          shouldCreateUser: true,
+          emailRedirectTo: window.location.origin + '/discover',
+          data: {
+            email_verified: false
+          }
         }
       });
       
@@ -65,7 +90,7 @@ export const useAuthActions = () => {
         throw error;
       }
       
-      console.log("OTP signup initiated:", data);
+      console.log("User signup initiated:", data);
       
       // Set local authentication for immediate access
       localStorage.setItem('isAuthenticated', 'true');

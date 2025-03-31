@@ -6,7 +6,6 @@ import { toast } from "sonner";
 import { Loader2 } from 'lucide-react';
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { AuthResponse } from "@supabase/supabase-js";
 
 interface VerificationFormProps {
   email: string;
@@ -38,55 +37,72 @@ const VerificationForm = ({
       
       // Check if the verification code matches
       if (verificationCode === generatedCode) {
-        console.log("Code verified successfully, signing in");
+        console.log("Code verified successfully");
         
-        // Try to retrieve existing user or create a new one
-        const { data, error }: AuthResponse = await supabase.auth.signInWithOtp({
-          email,
-          options: {
-            shouldCreateUser: true,
+        // Get or create user
+        let userId: string | undefined;
+        
+        // Check if user already exists
+        const { data: { users }, error: getUserError } = await supabase.auth.admin.listUsers({
+          filters: {
+            email: email
           }
         });
         
-        if (error) {
-          throw error;
+        if (getUserError) {
+          console.error("Error checking user:", getUserError);
+          throw getUserError;
+        }
+        
+        if (users && users.length > 0) {
+          userId = users[0].id;
+        } else {
+          // Create user
+          const { data: signupData, error: signupError } = await supabase.auth.signUp({
+            email,
+            password: crypto.randomUUID(), // Generate a random password
+            options: {
+              emailRedirectTo: window.location.origin + '/discover',
+              data: {
+                email_verified: true
+              }
+            }
+          });
+          
+          if (signupError) {
+            throw signupError;
+          }
+          
+          userId = signupData.user?.id;
+        }
+        
+        // Create/update user profile
+        if (userId) {
+          try {
+            const { error: profileError } = await supabase
+              .from('profiles')
+              .upsert({
+                id: userId,
+                name: email.split('@')[0], // Default name from email
+                email_verified: true // Set email as verified
+              }, {
+                onConflict: 'id'
+              });
+                
+            if (profileError) {
+              console.error("Error creating profile:", profileError);
+            } else {
+              console.log("Profile created/updated for user");
+            }
+          } catch (err) {
+            console.error("Error creating profile:", err);
+          }
         }
         
         // Set authentication in localStorage
         localStorage.setItem('isAuthenticated', 'true');
         localStorage.setItem('authMethod', 'email');
         localStorage.setItem('authContact', email);
-        
-        // Create/update user profile
-        if (data && data.session) {
-          try {
-            // Properly access the user ID with type safety
-            const userId = data.session.user?.id;
-            
-            if (userId) {
-              const { error: profileError } = await supabase
-                .from('profiles')
-                .upsert({
-                  id: userId,
-                  name: email.split('@')[0], // Default name from email
-                  email: email,
-                  email_verified: true // Set email as verified
-                }, {
-                  onConflict: 'id'
-                });
-                
-              if (profileError) {
-                console.error("Error creating profile:", profileError);
-              } else {
-                console.log("Profile created/updated for user");
-              }
-            } else {
-              console.error("No user ID found in session");
-            }
-          } catch (err) {
-            console.error("Error creating profile:", err);
-          }
-        }
         
         toast.success("Verification successful!");
         

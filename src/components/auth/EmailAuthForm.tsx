@@ -35,7 +35,7 @@ const EmailAuthForm = ({ onEmailSubmit }: EmailAuthFormProps) => {
       // Generate a 4-digit verification code
       const verificationCode = Math.floor(1000 + Math.random() * 9000).toString();
       
-      // Send verification code via email
+      // Send verification code via our custom email function
       const { error } = await supabase.functions.invoke('send-verification-email', {
         body: { 
           email: data.email, 

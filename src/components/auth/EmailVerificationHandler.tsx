@@ -68,7 +68,7 @@ const EmailVerificationHandler = ({
               .upsert({
                 id: user.id,
                 name: email.split('@')[0], // Default name from email
-                email: email
+                email_verified: true // Mark email as verified
               }, {
                 onConflict: 'id'
               });
