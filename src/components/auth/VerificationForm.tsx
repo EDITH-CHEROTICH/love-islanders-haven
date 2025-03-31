@@ -59,7 +59,7 @@ const VerificationForm = ({
         // Create/update user profile
         if (data.session) {
           try {
-            // Fix: Remove reference to user property that doesn't exist
+            // Fix: Use the correct way to access user ID from session
             const { error: profileError } = await supabase
               .from('profiles')
               .upsert({
