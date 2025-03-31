@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/auth';
+import { toast } from 'sonner';
 
 export function useEmailVerification() {
   const [showVerificationPopup, setShowVerificationPopup] = useState(false);
@@ -20,7 +21,7 @@ export function useEmailVerification() {
             .from('profiles')
             .select('*')
             .eq('email', authContact)
-            .maybeSingle();
+            .single();
           
           if (!profile) {
             // If profile doesn't exist, show verification popup
