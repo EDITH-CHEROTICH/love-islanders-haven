@@ -3,24 +3,25 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/auth';
 import AlreadyLoggedIn from '@/components/auth/AlreadyLoggedIn';
-import LoginForm from '@/components/auth/LoginForm';
-import ForgotPassword from '@/components/auth/ForgotPassword';
 import { Spinner } from '@/components/ui/spinner';
+import EmailAuthForm from '@/components/auth/EmailAuthForm';
+import VerificationForm from '@/components/auth/VerificationForm';
+import { supabase } from '@/integrations/supabase/client';
 
 const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { isAuthenticated, loading } = useAuth();
-  const [isLoginMode, setIsLoginMode] = useState(false); // Changed default to false (signup mode)
-  const [isForgotPassword, setIsForgotPassword] = useState(false);
+  const [email, setEmail] = useState("");
+  const [verificationCode, setVerificationCode] = useState("");
+  const [isEmailSubmitted, setIsEmailSubmitted] = useState(false);
+  const [isSendingCode, setIsSendingCode] = useState(false);
   
   // Check if user wants to explicitly access the login page
   const isDirectLoginAccess = location.pathname === '/login' && !location.state?.from;
   
   useEffect(() => {
     console.log("Login page - isAuthenticated:", isAuthenticated);
-    console.log("Login page - isDirectLoginAccess:", isDirectLoginAccess);
-    console.log("Login page - location state:", location.state);
     
     // Wait until authentication state is determined
     if (loading) return;
@@ -41,16 +42,38 @@ const Login = () => {
     }
   }, [isAuthenticated, navigate, location, isDirectLoginAccess, loading]);
 
-  const toggleAuthMode = () => {
-    setIsLoginMode(!isLoginMode);
+  const handleEmailSubmit = (email: string, code: string) => {
+    setEmail(email);
+    setVerificationCode(code);
+    setIsEmailSubmitted(true);
   };
 
-  const handleForgotPassword = () => {
-    setIsForgotPassword(true);
-  };
-
-  const handleBackToLogin = () => {
-    setIsForgotPassword(false);
+  const handleResendCode = async () => {
+    setIsSendingCode(true);
+    
+    try {
+      // Generate a new 4-digit code
+      const newCode = Math.floor(1000 + Math.random() * 9000).toString();
+      setVerificationCode(newCode);
+      
+      // Send verification code via email
+      const { error } = await supabase.functions.invoke('send-verification-email', {
+        body: { 
+          email, 
+          code: newCode 
+        }
+      });
+      
+      if (error) {
+        throw new Error(error.message);
+      }
+      
+      console.log("Resent verification code:", newCode);
+    } catch (error: any) {
+      console.error("Error resending verification code:", error);
+    } finally {
+      setIsSendingCode(false);
+    }
   };
 
   // Show a loading indicator while authentication state is being determined
@@ -66,14 +89,23 @@ const Login = () => {
     <div className="min-h-screen bg-gradient-to-b from-island-dark via-island to-island-dark pt-4 pb-20 flex flex-col items-center justify-center px-4">
       {isAuthenticated && isDirectLoginAccess ? (
         <AlreadyLoggedIn />
-      ) : isForgotPassword ? (
-        <ForgotPassword onBackToLogin={handleBackToLogin} />
       ) : (
-        <LoginForm 
-          isLoginMode={isLoginMode} 
-          toggleAuthMode={toggleAuthMode} 
-          onForgotPassword={handleForgotPassword} 
-        />
+        <div className="glass-card w-full max-w-md p-6 rounded-xl shadow-lg">
+          <h1 className="text-2xl font-bold text-gradient text-center mb-6">
+            {isEmailSubmitted ? "Verify Your Email" : "Sign In / Sign Up"}
+          </h1>
+          
+          {isEmailSubmitted ? (
+            <VerificationForm 
+              email={email}
+              generatedCode={verificationCode}
+              onResendCode={handleResendCode}
+              isSendingCode={isSendingCode}
+            />
+          ) : (
+            <EmailAuthForm onEmailSubmit={handleEmailSubmit} />
+          )}
+        </div>
       )}
     </div>
   );

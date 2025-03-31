@@ -7,15 +7,17 @@ import { toast } from 'sonner';
 export const useAuthActions = () => {
   const [loading, setLoading] = useState(false);
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (email: string) => {
     console.log(`Attempting to sign in with email: ${email}`);
     setLoading(true);
     
     try {
-      // Attempt to sign in with Supabase
-      const { data, error } = await supabase.auth.signInWithPassword({
+      // Attempt to sign in with OTP (One-Time Password)
+      const { data, error } = await supabase.auth.signInWithOtp({
         email,
-        password,
+        options: {
+          shouldCreateUser: true,
+        }
       });
       
       if (error) {
@@ -23,7 +25,7 @@ export const useAuthActions = () => {
         throw error;
       }
       
-      console.log("Sign in successful:", data);
+      console.log("OTP sign in initiated:", data);
       
       // Store local authentication as a fallback
       localStorage.setItem('isAuthenticated', 'true');
@@ -45,20 +47,16 @@ export const useAuthActions = () => {
     throw new Error("Google sign-in is disabled");
   };
 
-  const signUp = async (email: string, password: string) => {
+  const signUp = async (email: string) => {
     console.log(`Attempting to sign up with email: ${email}`);
     setLoading(true);
     
     try {
-      // Using signUp with email confirmation disabled
-      const { data, error } = await supabase.auth.signUp({ 
-        email, 
-        password,
+      // Using OTP for signup as well
+      const { data, error } = await supabase.auth.signInWithOtp({ 
+        email,
         options: {
-          emailRedirectTo: `${window.location.origin}/discover`,
-          data: {
-            email: email,
-          }
+          shouldCreateUser: true,
         }
       });
       
@@ -67,24 +65,12 @@ export const useAuthActions = () => {
         throw error;
       }
       
-      console.log("Sign up successful:", data);
-      
-      // Check if we need to create or update a profile for this user
-      if (data.user) {
-        try {
-          await createOrUpdateProfile(data.user.id, email);
-          console.log("Profile created/updated for new user");
-        } catch (profileError) {
-          console.error("Error creating/updating profile:", profileError);
-        }
-      }
+      console.log("OTP signup initiated:", data);
       
       // Set local authentication for immediate access
-      if (data.user) {
-        localStorage.setItem('isAuthenticated', 'true');
-        localStorage.setItem('authMethod', 'email');
-        localStorage.setItem('authContact', email);
-      }
+      localStorage.setItem('isAuthenticated', 'true');
+      localStorage.setItem('authMethod', 'email');
+      localStorage.setItem('authContact', email);
       
       return data;
     } catch (error) {
@@ -95,11 +81,9 @@ export const useAuthActions = () => {
     }
   };
 
-  // This method is replaced by our new verification code flow
+  // This is a placeholder for compatibility
   const resetPassword = async (email: string) => {
-    console.log(`Preparing password reset for: ${email}`);
-    // This is now just a placeholder as the actual reset logic is in the ForgotPassword component
-    // We keep it to avoid changing the auth context API
+    console.log(`Sending reset link to: ${email}`);
     return Promise.resolve();
   };
 
@@ -131,37 +115,11 @@ export const useAuthActions = () => {
   };
 
   const updatePassword = async (newPassword: string) => {
-    console.log("Attempting to update password");
-    setLoading(true);
-    
-    try {
-      // Get current session first to ensure we're authenticated
-      const { data: sessionData } = await supabase.auth.getSession();
-      
-      if (!sessionData.session) {
-        console.error("No active session found when updating password");
-        toast("Authentication error: No active session found", {
-          description: "Please try logging in again",
-        });
-        throw new Error("Auth session missing!");
-      }
-      
-      console.log("Session confirmed, updating password");
-      const { error } = await supabase.auth.updateUser({ password: newPassword });
-      
-      if (error) {
-        console.error("Error updating password:", error);
-        throw error;
-      }
-      
-      console.log("Password updated successfully");
-      return true;
-    } catch (error) {
-      console.error("Password update error:", error);
-      throw error;
-    } finally {
-      setLoading(false);
-    }
+    console.log("Password updates not supported in passwordless auth");
+    toast("Not available with passwordless authentication", {
+      description: "Password updates are not available with passwordless authentication.",
+    });
+    return false;
   };
 
   return {

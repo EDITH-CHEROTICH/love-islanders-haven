@@ -1,8 +1,6 @@
-
 import { useState, useEffect } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
 
 export const useAuthState = () => {
   const [session, setSession] = useState<Session | null>(null);
@@ -26,7 +24,7 @@ export const useAuthState = () => {
       async (event, currentSession) => {
         console.log("Auth state changed:", event);
         
-        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
           console.log("User signed in or token refreshed, setting session");
           setSession(currentSession);
           setUser(currentSession?.user ?? null);
@@ -84,11 +82,7 @@ export const useAuthState = () => {
                 setUser(data.session.user);
               } else if (error) {
                 console.error("Error refreshing session:", error);
-                // Clear local storage if refresh fails
-                localStorage.removeItem('isAuthenticated');
-                localStorage.removeItem('authMethod');
-                localStorage.removeItem('authContact');
-                setIsLocalAuth(false);
+                // Keep local auth for now - this allows immediate access to app
               }
             } catch (err) {
               console.error("Error during session refresh:", err);

@@ -6,71 +6,57 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { useAuth } from "@/context/auth";
-import { authSchema } from "./authSchema";
-import PasswordField from "./PasswordField";
 import { toast } from "sonner";
 import { Loader2 } from 'lucide-react';
-import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+
+const emailSchema = z.object({
+  email: z.string().email("Please enter a valid email address"),
+});
 
 type EmailAuthFormProps = {
-  isLoginMode: boolean;
-  onForgotPassword: () => void;
-  onStoreCredentials?: (email: string, password: string, code: string) => void;
+  onEmailSubmit: (email: string, code: string) => void;
 };
 
-const EmailAuthForm = ({ isLoginMode, onForgotPassword, onStoreCredentials }: EmailAuthFormProps) => {
-  const { signIn } = useAuth();
+const EmailAuthForm = ({ onEmailSubmit }: EmailAuthFormProps) => {
   const [isLoading, setIsLoading] = useState(false);
-  const navigate = useNavigate();
 
-  const form = useForm<z.infer<typeof authSchema>>({
-    resolver: zodResolver(authSchema),
+  const form = useForm<z.infer<typeof emailSchema>>({
+    resolver: zodResolver(emailSchema),
     defaultValues: {
       email: "",
-      password: "",
     },
   });
 
-  const onSubmit = async (data: z.infer<typeof authSchema>) => {
+  const onSubmit = async (data: z.infer<typeof emailSchema>) => {
     setIsLoading(true);
     
     try {
-      if (isLoginMode) {
-        // Login mode
-        const result = await signIn(data.email, data.password);
-        
-        if (!result) {
-          throw new Error("Invalid credentials or user doesn't exist");
-        }
-
-        toast("Logged in successfully", {
-          description: "Welcome back!",
-        });
-        
-        console.log("EmailAuthForm: Login successful, navigating to discover");
-        // Redirect to discover after successful login with replace to prevent back navigation
-        navigate('/discover', { replace: true });
-      } else {
-        // Signup mode - We'll first verify email before actually signing up
-        if (onStoreCredentials) {
-          // Generate a 4-digit code
-          const verificationCode = Math.floor(1000 + Math.random() * 9000).toString();
-          
-          // Store credentials and verification code for the next step
-          onStoreCredentials(data.email, data.password, verificationCode);
-        }
-      }
-    } catch (error: any) {
-      console.error("Auth error:", error);
+      // Generate a 4-digit verification code
+      const verificationCode = Math.floor(1000 + Math.random() * 9000).toString();
       
-      let description = 
-        error.message === "Email not confirmed" 
-          ? "Please check your email for a confirmation link" 
-          : error.message || "There was a problem with authentication";
-          
-      toast(isLoginMode ? "Login failed" : "Signup failed", {
-        description,
+      // Send verification code via email
+      const { error } = await supabase.functions.invoke('send-verification-email', {
+        body: { 
+          email: data.email, 
+          code: verificationCode 
+        }
+      });
+      
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      // Pass the email and code to parent component
+      toast("Verification code sent", {
+        description: `We've sent a verification code to ${data.email}. Please check your inbox.`,
+      });
+      
+      onEmailSubmit(data.email, verificationCode);
+    } catch (error: any) {
+      console.error("Error sending verification email:", error);
+      toast("Error sending verification code", {
+        description: error.message || "We couldn't send the verification code. Please try again.",
         style: { backgroundColor: "#f44336", color: "white" }
       });
     } finally {
@@ -92,37 +78,8 @@ const EmailAuthForm = ({ isLoginMode, onForgotPassword, onStoreCredentials }: Em
                   placeholder="email@example.com"
                   {...field}
                   type="email"
-                  autoComplete={isLoginMode ? "email" : "new-email"}
+                  autoComplete="email"
                   className="bg-island-light/20 border-island-light"
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="password"
-          render={({ field }) => (
-            <FormItem>
-              <div className="flex items-center justify-between">
-                <FormLabel>Password</FormLabel>
-                {isLoginMode && (
-                  <Button
-                    type="button"
-                    variant="link"
-                    className="px-0 text-xs text-love"
-                    onClick={onForgotPassword}
-                  >
-                    Forgot password?
-                  </Button>
-                )}
-              </div>
-              <FormControl>
-                <PasswordField
-                  {...field}
-                  autoCompleteType={isLoginMode ? "current-password" : "new-password"}
                 />
               </FormControl>
               <FormMessage />
@@ -138,11 +95,9 @@ const EmailAuthForm = ({ isLoginMode, onForgotPassword, onStoreCredentials }: Em
           {isLoading ? (
             <span className="flex items-center">
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              {isLoginMode ? 'Logging in...' : 'Signing up...'}
+              Sending verification code...
             </span>
-          ) : (
-            isLoginMode ? 'Log In' : 'Sign Up'
-          )}
+          ) : "Send verification code"}
         </Button>
       </form>
     </Form>
