@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { X, Check, Camera } from 'lucide-react';
 import { 
@@ -29,7 +28,7 @@ const VerificationPopup = ({ open, onClose, onVerified, userId }: VerificationPo
   
   // In a real app, you would generate and send a real verification code
   // For this demo, we'll use a fixed code
-  const verificationCode = '123456';
+  const verificationCode = '1234';
   
   const handleStartVerification = () => {
     setVerificationStep('otp');
@@ -38,8 +37,8 @@ const VerificationPopup = ({ open, onClose, onVerified, userId }: VerificationPo
   };
   
   const handleVerifyCode = async () => {
-    if (otp.length !== 6) {
-      toast.error('Please enter a complete 6-digit verification code');
+    if (otp.length !== 4) {
+      toast.error('Please enter a complete 4-digit verification code');
       return;
     }
     
@@ -131,17 +130,15 @@ const VerificationPopup = ({ open, onClose, onVerified, userId }: VerificationPo
         
         {verificationStep === 'otp' && (
           <div className="space-y-6 py-2">
-            <p className="text-center">Enter the 6-digit verification code sent to your email</p>
+            <p className="text-center">Enter the 4-digit verification code sent to your email</p>
             
             <div className="flex justify-center py-4">
-              <InputOTP maxLength={6} value={otp} onChange={setOtp}>
+              <InputOTP maxLength={4} value={otp} onChange={setOtp}>
                 <InputOTPGroup>
                   <InputOTPSlot index={0} />
                   <InputOTPSlot index={1} />
                   <InputOTPSlot index={2} />
                   <InputOTPSlot index={3} />
-                  <InputOTPSlot index={4} />
-                  <InputOTPSlot index={5} />
                 </InputOTPGroup>
               </InputOTP>
             </div>
@@ -149,7 +146,7 @@ const VerificationPopup = ({ open, onClose, onVerified, userId }: VerificationPo
             <DialogFooter>
               <Button 
                 onClick={handleVerifyCode} 
-                disabled={otp.length !== 6 || isSubmitting}
+                disabled={otp.length !== 4 || isSubmitting}
                 className="w-full bg-love hover:bg-love-dark"
               >
                 {isSubmitting ? 'Verifying...' : 'Verify Code'}

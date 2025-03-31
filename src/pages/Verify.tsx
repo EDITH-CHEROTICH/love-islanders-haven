@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { useToast } from "@/hooks/use-toast";
 
 const Verify = () => {
@@ -32,10 +32,10 @@ const Verify = () => {
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (verificationCode.length !== 6) {
+    if (verificationCode.length !== 4) {
       toast({
         title: "Invalid Code",
-        description: "Please enter a valid 6-digit verification code.",
+        description: "Please enter a valid 4-digit verification code.",
         variant: "destructive"
       });
       return;
@@ -96,8 +96,8 @@ const Verify = () => {
   };
   
   const handleResendCode = async () => {
-    // Generate a new verification code
-    const newVerificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+    // Generate a new verification code (4 digits)
+    const newVerificationCode = Math.floor(1000 + Math.random() * 9000).toString();
     localStorage.setItem('verificationCode', newVerificationCode);
     
     toast({
@@ -112,27 +112,20 @@ const Verify = () => {
         <h1 className="text-2xl font-bold text-gradient text-center mb-2">Verify Your Account</h1>
         
         <p className="text-center text-muted-foreground mb-6">
-          Enter the 6-digit code sent to your {contactType === 'email' ? 'email' : 'phone'}:
+          Enter the 4-digit code sent to your {contactType === 'email' ? 'email' : 'phone'}:
           <span className="block font-medium mt-1">{contactInfo}</span>
         </p>
         
         <form onSubmit={handleVerify} className="space-y-6">
-          <div className="space-y-2">
-            <Input
-              id="code"
-              type="text"
-              inputMode="numeric"
-              maxLength={6}
-              placeholder="000000"
-              className="text-center text-xl tracking-widest"
-              value={verificationCode}
-              onChange={(e) => {
-                // Only allow numbers
-                const value = e.target.value.replace(/[^0-9]/g, '');
-                setVerificationCode(value);
-              }}
-              required
-            />
+          <div className="flex justify-center py-2">
+            <InputOTP maxLength={4} value={verificationCode} onChange={setVerificationCode}>
+              <InputOTPGroup>
+                <InputOTPSlot index={0} />
+                <InputOTPSlot index={1} />
+                <InputOTPSlot index={2} />
+                <InputOTPSlot index={3} />
+              </InputOTPGroup>
+            </InputOTP>
           </div>
           
           <Button 
