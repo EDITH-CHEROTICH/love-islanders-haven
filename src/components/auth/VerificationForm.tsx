@@ -59,8 +59,8 @@ const VerificationForm = ({
         // Create/update user profile
         if (data && data.session) {
           try {
-            // Explicitly type and check the session object
-            const userId = data.session.user?.id;
+            // Explicitly check and handle the user ID from the session
+            const userId = data.session?.user?.id;
             
             if (userId) {
               const { error: profileError } = await supabase
