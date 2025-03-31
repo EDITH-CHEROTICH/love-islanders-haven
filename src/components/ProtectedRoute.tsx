@@ -14,6 +14,7 @@ interface ProtectedRouteProps {
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [verificationCode, setVerificationCode] = useState("");
   const [isEmailSubmitted, setIsEmailSubmitted] = useState(false);
@@ -56,6 +57,12 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     }
   };
 
+  const handleAuthSuccess = () => {
+    // Reset form and reload page to reflect auth status
+    setIsEmailSubmitted(false);
+    window.location.reload();
+  };
+
   // If we're loading auth state, show a spinner
   if (loading) {
     return (
@@ -80,6 +87,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
               generatedCode={verificationCode}
               onResendCode={handleResendCode}
               isSendingCode={isSendingCode}
+              onClose={handleAuthSuccess}
             />
           ) : (
             <EmailAuthForm onEmailSubmit={handleEmailSubmit} />

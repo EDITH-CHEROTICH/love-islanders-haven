@@ -12,6 +12,7 @@ interface VerificationFormProps {
   generatedCode: string;
   onResendCode: () => Promise<void>;
   isSendingCode: boolean;
+  onClose?: () => void; // Make onClose optional
 }
 
 // Define a simple interface for the query result to avoid deep type instantiation
@@ -30,7 +31,8 @@ const VerificationForm = ({
   email, 
   generatedCode, 
   onResendCode,
-  isSendingCode
+  isSendingCode,
+  onClose
 }: VerificationFormProps) => {
   const [verificationCode, setVerificationCode] = useState("");
   const [isVerifying, setIsVerifying] = useState(false);
@@ -133,6 +135,11 @@ const VerificationForm = ({
         localStorage.setItem('authContact', email);
         
         toast.success("Verification successful!");
+        
+        // Close the popup if onClose is provided
+        if (onClose) {
+          onClose();
+        }
         
         // Navigate to discover page with a small delay to ensure state updates
         setTimeout(() => {

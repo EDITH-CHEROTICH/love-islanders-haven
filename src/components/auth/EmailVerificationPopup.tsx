@@ -96,6 +96,7 @@ const EmailVerificationPopup = ({ isOpen, onClose }: EmailVerificationPopupProps
             generatedCode={generatedCode}
             onResendCode={handleResendCode}
             isSendingCode={isSendingCode}
+            onClose={handleDialogClose}
           />
         ) : (
           <EmailAuthForm onEmailSubmit={handleEmailSubmit} />
