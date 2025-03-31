@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Loader2 } from 'lucide-react';
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { AuthResponse } from "@supabase/supabase-js";
 
 interface VerificationFormProps {
   email: string;
@@ -40,7 +41,7 @@ const VerificationForm = ({
         console.log("Code verified successfully, signing in");
         
         // Try to retrieve existing user or create a new one
-        const { data, error } = await supabase.auth.signInWithOtp({
+        const { data, error }: AuthResponse = await supabase.auth.signInWithOtp({
           email,
           options: {
             shouldCreateUser: true,
@@ -59,8 +60,8 @@ const VerificationForm = ({
         // Create/update user profile
         if (data && data.session) {
           try {
-            // Fix: Type the session data properly and use optional chaining
-            const userId = data.session ? data.session.user?.id : undefined;
+            // Fix: Properly access the user ID with type safety
+            const userId = data.session.user?.id;
             
             if (userId) {
               const { error: profileError } = await supabase
