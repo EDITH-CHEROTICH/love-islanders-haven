@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -61,8 +62,8 @@ const Verify = () => {
         // Clean up
         localStorage.removeItem('verificationCode');
         
-        // Redirect to the main page
-        navigate('/');
+        // Redirect to the discover page instead of main page
+        navigate('/discover');
       } else {
         // Decrease attempts
         const newAttemptsLeft = attemptsLeft - 1;

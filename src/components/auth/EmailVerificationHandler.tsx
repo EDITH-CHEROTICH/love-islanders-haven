@@ -4,6 +4,7 @@ import { Dialog } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import VerificationDialog from "./VerificationDialog";
+import { useNavigate } from "react-router-dom";
 
 interface EmailVerificationHandlerProps {
   email: string;
@@ -22,6 +23,7 @@ const EmailVerificationHandler = ({
   const [sendingEmail, setSendingEmail] = useState(false);
   const [currentCode, setCurrentCode] = useState(generatedCode);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const sendVerificationEmail = async (email: string, code: string) => {
     setSendingEmail(true);
@@ -80,6 +82,9 @@ const EmailVerificationHandler = ({
         }
         
         setShowVerification(false);
+        
+        // Navigate to discover page after successful verification
+        navigate('/discover');
         return true;
       }
       return false;

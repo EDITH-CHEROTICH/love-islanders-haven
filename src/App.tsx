@@ -10,6 +10,7 @@ import AICompanionChat from './pages/AICompanionChat';
 import Streaks from './pages/Streaks';
 import ProtectedRoute from './components/ProtectedRoute';
 import Login from './pages/Login';
+import Verify from './pages/Verify';
 import NotFound from './pages/NotFound';
 import Navbar from './components/Navbar';
 import Profile from './pages/Profile';
@@ -25,6 +26,7 @@ const App: React.FC = () => {
           <Routes>
             <Route path="/" element={<Navigate to="/discover" replace />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/verify" element={<Verify />} />
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             <Route path="/ai-companion" element={<ProtectedRoute><AICompanionChat /></ProtectedRoute>} />
             <Route path="/streaks" element={<ProtectedRoute><Streaks /></ProtectedRoute>} />
