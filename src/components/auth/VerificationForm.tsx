@@ -59,6 +59,7 @@ const VerificationForm = ({
         // Create/update user profile
         if (data.session) {
           try {
+            // Fix: Remove reference to user property that doesn't exist
             const { error: profileError } = await supabase
               .from('profiles')
               .upsert({
@@ -81,7 +82,6 @@ const VerificationForm = ({
         
         toast.success("Verification successful!");
         
-        // Fix: Remove the reference to user property which doesn't exist
         // Navigate to discover page with a small delay to ensure state updates
         setTimeout(() => {
           console.log("Navigating to discover page");
