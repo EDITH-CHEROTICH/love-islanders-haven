@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -48,7 +47,7 @@ const EmailAuthForm = ({ isLoginMode, onForgotPassword, onStoreCredentials }: Em
       } else {
         // Signup mode - We'll first verify email before actually signing up
         if (onStoreCredentials) {
-          // Generate a 4-digit code
+          // Generate a 4-digit code (changed from 6-digit)
           const verificationCode = Math.floor(1000 + Math.random() * 9000).toString();
           
           // Store credentials and verification code for the next step

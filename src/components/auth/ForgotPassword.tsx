@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,9 +21,9 @@ const resetEmailSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address." }),
 });
 
-// Schema for verification code
+// Schema for verification code - Updated to 4 digits
 const verificationCodeSchema = z.object({
-  code: z.string().length(6, { message: "Verification code must be 6 digits" }),
+  code: z.string().length(4, { message: "Verification code must be 4 digits" }),
 });
 
 type ForgotPasswordProps = {
@@ -51,8 +50,8 @@ const ForgotPassword = ({ onBackToLogin }: ForgotPasswordProps) => {
   const handleSendVerificationCode = async (values: z.infer<typeof resetEmailSchema>) => {
     setIsLoading(true);
     try {
-      // Generate a random 6-digit code
-      const code = Math.floor(100000 + Math.random() * 900000).toString();
+      // Generate a random 4-digit code (updated from 6-digit)
+      const code = Math.floor(1000 + Math.random() * 9000).toString();
       setGeneratedCode(code);
       setUserEmail(values.email);
       
@@ -148,12 +147,12 @@ const ForgotPassword = ({ onBackToLogin }: ForgotPasswordProps) => {
       {resetStep === 'verification' && (
         <div className="space-y-4">
           <p className="text-center">
-            Please enter the 6-digit verification code sent to {userEmail}
+            Please enter the 4-digit verification code sent to {userEmail}
           </p>
           
           <div className="flex justify-center py-4">
             <InputOTP 
-              maxLength={6} 
+              maxLength={4} 
               value={verificationCode} 
               onChange={setVerificationCode}
             >
@@ -162,8 +161,6 @@ const ForgotPassword = ({ onBackToLogin }: ForgotPasswordProps) => {
                 <InputOTPSlot index={1} />
                 <InputOTPSlot index={2} />
                 <InputOTPSlot index={3} />
-                <InputOTPSlot index={4} />
-                <InputOTPSlot index={5} />
               </InputOTPGroup>
             </InputOTP>
           </div>
@@ -171,7 +168,7 @@ const ForgotPassword = ({ onBackToLogin }: ForgotPasswordProps) => {
           <Button 
             onClick={handleVerifyCode}
             className="w-full bg-love hover:bg-love-dark"
-            disabled={verificationCode.length !== 6 || isLoading}
+            disabled={verificationCode.length !== 4 || isLoading}
           >
             Verify Code
           </Button>
