@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { createOrUpdateProfile } from '../utils';
@@ -70,7 +71,12 @@ export const useAuthActions = () => {
       
       // Check if we need to create or update a profile for this user
       if (data.user) {
-        await createOrUpdateProfile(data.user.id, email);
+        try {
+          await createOrUpdateProfile(data.user.id, email);
+          console.log("Profile created/updated for new user");
+        } catch (profileError) {
+          console.error("Error creating/updating profile:", profileError);
+        }
       }
       
       // Set local authentication for immediate access

@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -54,12 +54,16 @@ const EmailVerificationHandler = ({
 
   const completeSignUp = async () => {
     try {
+      console.log("EmailVerificationHandler: Starting completeSignUp");
       const success = await onCompleteSignUp();
+      console.log("EmailVerificationHandler: onCompleteSignUp result:", success);
+      
       if (success) {
         // Ensure we have a profile for this user
         try {
           const { data: { user } } = await supabase.auth.getUser();
           if (user) {
+            console.log("EmailVerificationHandler: Creating/updating profile for user:", user.id);
             // Try to upsert the profile
             const { error } = await supabase
               .from('profiles')
@@ -84,25 +88,33 @@ const EmailVerificationHandler = ({
         setShowVerification(false);
         
         console.log("EmailVerificationHandler: Navigating to discover page after verification");
-        // Use navigate with replace and delay slightly to ensure state updates complete
+        
+        // Set auth state in localStorage first
+        localStorage.setItem('isAuthenticated', 'true');
+        localStorage.setItem('authMethod', 'email');
+        localStorage.setItem('authContact', email);
+        
+        // Use navigate with replace and delay to ensure state updates complete
         setTimeout(() => {
+          console.log("EmailVerificationHandler: Executing delayed navigation to /discover");
           navigate('/discover', { replace: true });
-        }, 100);
+        }, 300);
         
         return true;
       }
       return false;
     } catch (error: any) {
+      console.error("Error in completeSignUp:", error);
       throw error;
     }
   };
 
   // Send the verification email when this component mounts
-  useState(() => {
+  useEffect(() => {
     if (email && generatedCode) {
       sendVerificationEmail(email, generatedCode);
     }
-  });
+  }, [email, generatedCode]);
 
   return (
     <Dialog open={showVerification} onOpenChange={setShowVerification}>

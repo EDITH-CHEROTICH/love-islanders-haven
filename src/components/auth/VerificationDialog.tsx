@@ -11,7 +11,7 @@ interface VerificationDialogProps {
   email: string;
   generatedCode: string;
   setGeneratedCode: (code: string) => void;
-  onVerifySuccess: () => void;
+  onVerifySuccess: () => Promise<boolean>;
   password: string;
   sendingEmail: boolean;
   setSendingEmail: (sending: boolean) => void;
@@ -59,16 +59,33 @@ const VerificationDialog = ({
     setIsLoading(true);
     
     try {
+      console.log("VerificationDialog: Verifying code entered:", verificationCode, "generated:", generatedCode);
       // Check if the entered code matches the generated code
       if (verificationCode === generatedCode) {
+        console.log("VerificationDialog: Code matched, completing signup");
         // Complete the signup process
-        await onVerifySuccess();
+        const success = await onVerifySuccess();
+        console.log("VerificationDialog: Signup completion result:", success);
         
-        toast.success("Verification successful! Your account has been created successfully!");
-        
-        console.log("VerificationDialog: Navigating to discover page");
-        // Ensure redirection to discover page with replace to prevent back navigation
-        navigate('/discover', { replace: true });
+        if (success) {
+          toast.success("Verification successful! Your account has been created successfully!");
+          
+          console.log("VerificationDialog: Setting auth in localStorage");
+          // Set localStorage auth
+          localStorage.setItem('isAuthenticated', 'true');
+          localStorage.setItem('authMethod', 'email');
+          localStorage.setItem('authContact', email);
+          
+          console.log("VerificationDialog: Navigating to discover page");
+          
+          // Ensure redirection to discover page with replace to prevent back navigation
+          setTimeout(() => {
+            console.log("VerificationDialog: Executing delayed navigation to /discover");
+            navigate('/discover', { replace: true });
+          }, 300);
+        } else {
+          toast.error("Something went wrong with account creation");
+        }
         
         // Reset the verification code
         setVerificationCode("");
@@ -76,6 +93,7 @@ const VerificationDialog = ({
         toast.error("The code you entered is incorrect. Please try again.");
       }
     } catch (error: any) {
+      console.error("Verification error:", error);
       toast.error(error.message || "Something went wrong");
     } finally {
       setIsLoading(false);
@@ -87,6 +105,7 @@ const VerificationDialog = ({
     const newCode = Math.floor(1000 + Math.random() * 9000).toString();
     setGeneratedCode(newCode);
     
+    console.log("VerificationDialog: Resending code:", newCode);
     // Send the new code via email
     await sendVerificationEmail(email, newCode);
   };

@@ -22,6 +22,7 @@ const LoginForm = ({ isLoginMode, toggleAuthMode, onForgotPassword }: LoginFormP
   const navigate = useNavigate();
 
   const handleStoreCredentials = async (email: string, password: string, code: string) => {
+    console.log("LoginForm: Storing credentials for verification, code:", code);
     setStoredEmail(email);
     setStoredPassword(password);
     setGeneratedCode(code);
@@ -59,6 +60,11 @@ const LoginForm = ({ isLoginMode, toggleAuthMode, onForgotPassword }: LoginFormP
       if (!result) {
         throw new Error("Signup failed");
       }
+      
+      // Set localStorage auth
+      localStorage.setItem('isAuthenticated', 'true');
+      localStorage.setItem('authMethod', 'email');
+      localStorage.setItem('authContact', storedEmail);
       
       console.log("LoginForm: Signup successful, navigating to discover");
       // Explicitly navigate after successful signup
