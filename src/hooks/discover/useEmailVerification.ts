@@ -17,14 +17,13 @@ export function useEmailVerification() {
         
         if (authContact) {
           // Check if this email exists in profiles
-          const { data: profile, error } = await supabase
+          const { data, error } = await supabase
             .from('profiles')
             .select('*')
-            .eq('email', authContact)
-            .single();
+            .eq('email', authContact);
           
-          if (!profile) {
-            // If profile doesn't exist, show verification popup
+          // If no profile found or query returned empty array, show verification popup
+          if (!data || data.length === 0) {
             setShowVerificationPopup(true);
           }
         } else {
