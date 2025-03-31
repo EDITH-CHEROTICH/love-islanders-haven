@@ -18,7 +18,7 @@ export const useAuthActions = () => {
         .from('profiles')
         .select('id')
         .eq('email', email)
-        .single();
+        .single() as { data: { id: string } | null, error: any };
       
       if (error) {
         console.error("Error checking user:", error);
@@ -56,7 +56,7 @@ export const useAuthActions = () => {
         .from('profiles')
         .select('id')
         .eq('email', email)
-        .maybeSingle();
+        .maybeSingle() as { data: { id: string } | null, error: any };
       
       if (error) {
         console.error("Error checking user:", error);
