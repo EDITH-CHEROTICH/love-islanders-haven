@@ -57,25 +57,29 @@ const VerificationForm = ({
         localStorage.setItem('authContact', email);
         
         // Create/update user profile
-        if (data.session) {
+        if (data && data.session) {
           try {
-            // Fix: Use the correct way to access user ID from session
-            const userId = data.session.user.id;
+            // Explicitly type and check the session object
+            const userId = data.session.user?.id;
             
-            const { error: profileError } = await supabase
-              .from('profiles')
-              .upsert({
-                id: userId,
-                name: email.split('@')[0], // Default name from email
-                email: email
-              }, {
-                onConflict: 'id'
-              });
-              
-            if (profileError) {
-              console.error("Error creating profile:", profileError);
+            if (userId) {
+              const { error: profileError } = await supabase
+                .from('profiles')
+                .upsert({
+                  id: userId,
+                  name: email.split('@')[0], // Default name from email
+                  email: email
+                }, {
+                  onConflict: 'id'
+                });
+                
+              if (profileError) {
+                console.error("Error creating profile:", profileError);
+              } else {
+                console.log("Profile created/updated for user");
+              }
             } else {
-              console.log("Profile created/updated for user");
+              console.error("No user ID found in session");
             }
           } catch (err) {
             console.error("Error creating profile:", err);
