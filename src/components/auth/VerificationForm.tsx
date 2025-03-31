@@ -60,10 +60,12 @@ const VerificationForm = ({
         if (data.session) {
           try {
             // Fix: Use the correct way to access user ID from session
+            const userId = data.session.user.id;
+            
             const { error: profileError } = await supabase
               .from('profiles')
               .upsert({
-                id: data.session.user.id,
+                id: userId,
                 name: email.split('@')[0], // Default name from email
                 email: email
               }, {
