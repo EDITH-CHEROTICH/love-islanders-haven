@@ -21,11 +21,13 @@ export function useEmailVerification() {
         const authContact = localStorage.getItem('authContact');
         
         if (authContact) {
-          // Check if this email exists in profiles
-          const { data, error } = await supabase
+          // Using a more explicit approach to avoid type inference issues
+          const result = await supabase
             .from('profiles')
             .select('id, email')
             .eq('email', authContact);
+          
+          const data = result.data as ProfileCheck[] | null;
           
           // If no profile found or query returned empty array, show verification popup
           if (!data || data.length === 0) {
