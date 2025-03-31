@@ -8,14 +8,12 @@ import { useNavigate } from "react-router-dom";
 
 interface EmailVerificationHandlerProps {
   email: string;
-  password: string;
   generatedCode: string;
   onCompleteSignUp: () => Promise<boolean>;
 }
 
 const EmailVerificationHandler = ({
   email,
-  password,
   generatedCode,
   onCompleteSignUp
 }: EmailVerificationHandlerProps) => {
@@ -123,7 +121,6 @@ const EmailVerificationHandler = ({
         generatedCode={currentCode}
         setGeneratedCode={setCurrentCode}
         onVerifySuccess={completeSignUp}
-        password={password}
         sendingEmail={sendingEmail}
         setSendingEmail={setSendingEmail}
       />

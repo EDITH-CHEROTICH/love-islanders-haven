@@ -16,47 +16,20 @@ type LoginFormProps = {
 
 const LoginForm = ({ isLoginMode, toggleAuthMode, onForgotPassword }: LoginFormProps) => {
   const [storedEmail, setStoredEmail] = useState("");
-  const [storedPassword, setStoredPassword] = useState("");
   const [generatedCode, setGeneratedCode] = useState("");
   const { signUp } = useAuth();
   const navigate = useNavigate();
 
-  const handleStoreCredentials = async (email: string, password: string, code: string) => {
-    console.log("LoginForm: Storing credentials for verification, code:", code);
+  const handleEmailSubmit = async (email: string, code: string) => {
+    console.log("LoginForm: Storing email for verification, code:", code);
     setStoredEmail(email);
-    setStoredPassword(password);
     setGeneratedCode(code);
-    
-    // Send the verification code email
-    await sendVerificationEmail(email, code);
-  };
-
-  const sendVerificationEmail = async (email: string, code: string) => {
-    try {
-      const { error } = await supabase.functions.invoke('send-verification-email', {
-        body: { email, code }
-      });
-      
-      if (error) {
-        throw new Error(error.message);
-      }
-      
-      toast("Verification code sent", {
-        description: `We've sent a verification code to ${email}. Please check your inbox.`,
-      });
-    } catch (error: any) {
-      console.error("Error sending verification email:", error);
-      toast("Error sending email", {
-        description: "We couldn't send the verification code. Please try again.",
-        style: { backgroundColor: "#f44336", color: "white" }
-      });
-    }
   };
 
   const completeSignUp = async () => {
     try {
       console.log("LoginForm: Completing signup");
-      const result = await signUp(storedEmail, storedPassword);
+      const result = await signUp(storedEmail);
       if (!result) {
         throw new Error("Signup failed");
       }
@@ -84,9 +57,7 @@ const LoginForm = ({ isLoginMode, toggleAuthMode, onForgotPassword }: LoginFormP
         </h1>
         
         <EmailAuthForm 
-          isLoginMode={isLoginMode}
-          onForgotPassword={onForgotPassword}
-          onStoreCredentials={handleStoreCredentials}
+          onEmailSubmit={handleEmailSubmit}
         />
         
         <AuthToggle 
@@ -99,7 +70,6 @@ const LoginForm = ({ isLoginMode, toggleAuthMode, onForgotPassword }: LoginFormP
       {generatedCode && (
         <EmailVerificationHandler
           email={storedEmail}
-          password={storedPassword}
           generatedCode={generatedCode}
           onCompleteSignUp={completeSignUp}
         />

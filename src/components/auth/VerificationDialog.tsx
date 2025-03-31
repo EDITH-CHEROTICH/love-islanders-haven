@@ -12,7 +12,6 @@ interface VerificationDialogProps {
   generatedCode: string;
   setGeneratedCode: (code: string) => void;
   onVerifySuccess: () => Promise<boolean>;
-  password: string;
   sendingEmail: boolean;
   setSendingEmail: (sending: boolean) => void;
 }
@@ -22,7 +21,6 @@ const VerificationDialog = ({
   generatedCode,
   setGeneratedCode,
   onVerifySuccess,
-  password,
   sendingEmail,
   setSendingEmail
 }: VerificationDialogProps) => {
