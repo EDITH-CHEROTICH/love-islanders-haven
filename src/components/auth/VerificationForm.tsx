@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { Button } from "@/components/ui/button";
@@ -13,6 +14,7 @@ interface VerificationFormProps {
   isSendingCode: boolean;
 }
 
+// Define a simple interface for the query result to avoid deep type instantiation
 interface ProfileQueryResult {
   data: { id: string } | null;
   error: any;
@@ -51,15 +53,18 @@ const VerificationForm = ({
           .from('profiles')
           .select('id')
           .eq('email', email)
-          .maybeSingle() as unknown as ProfileQueryResult;
+          .maybeSingle();
         
-        if (error) {
-          console.error("Error checking user:", error);
-          throw error;
+        // Explicitly type the result without using 'as unknown as'
+        const result: ProfileQueryResult = { data, error };
+        
+        if (result.error) {
+          console.error("Error checking user:", result.error);
+          throw result.error;
         }
         
-        if (data) {
-          userId = data.id;
+        if (result.data) {
+          userId = result.data.id;
         } else {
           // Create user
           const { data: signupData, error: signupError } = await supabase.auth.signUp({

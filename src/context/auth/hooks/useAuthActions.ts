@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { createOrUpdateProfile } from '../utils';
 import { toast } from 'sonner';
 
+// Define a simple interface for the query result to avoid deep type instantiation
 interface ProfileQueryResult {
   data: { id: string } | null;
   error: any;
@@ -22,10 +23,13 @@ export const useAuthActions = () => {
         .from('profiles')
         .select('id')
         .eq('email', email)
-        .single() as unknown as ProfileQueryResult;
+        .single();
       
-      if (error) {
-        console.error("Error checking user:", error);
+      // Explicitly type the result without using 'as unknown as'
+      const result: ProfileQueryResult = { data, error };
+      
+      if (result.error) {
+        console.error("Error checking user:", result.error);
         throw new Error("No account found with this email. Please sign up instead.");
       }
       
@@ -34,7 +38,7 @@ export const useAuthActions = () => {
       localStorage.setItem('authMethod', 'email');
       localStorage.setItem('authContact', email);
       
-      return { user: { id: data.id } };
+      return { user: { id: result.data?.id } };
     } catch (error) {
       console.error("Error during sign in:", error);
       throw error;
@@ -59,16 +63,19 @@ export const useAuthActions = () => {
         .from('profiles')
         .select('id')
         .eq('email', email)
-        .maybeSingle() as unknown as ProfileQueryResult;
+        .maybeSingle();
       
-      if (error) {
-        console.error("Error checking user:", error);
-      } else if (data) {
+      // Explicitly type the result without using 'as unknown as'
+      const result: ProfileQueryResult = { data, error };
+      
+      if (result.error) {
+        console.error("Error checking user:", result.error);
+      } else if (result.data) {
         // User already exists, just set local auth
         localStorage.setItem('isAuthenticated', 'true');
         localStorage.setItem('authMethod', 'email');
         localStorage.setItem('authContact', email);
-        return { user: { id: data.id } };
+        return { user: { id: result.data.id } };
       }
       
       // Create a new user without sending email
