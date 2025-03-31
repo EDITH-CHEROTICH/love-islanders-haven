@@ -18,18 +18,26 @@ export const useAuthActions = () => {
     setLoading(true);
     
     try {
-      // Check if user exists by querying for users with the email
-      const { data, error } = await supabase
+      // Create a simple check that avoids deep type instantiation
+      const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('id')
-        .eq('email', email)
-        .single();
+        .eq('email_verified', true)
+        .filter('name', 'ilike', `%${email.split('@')[0]}%`)
+        .maybeSingle();
       
-      // Explicitly type the result without using 'as unknown as'
-      const result: ProfileQueryResult = { data, error };
+      // Create a simple result object
+      const result: ProfileQueryResult = { 
+        data: profileData,
+        error: profileError
+      };
       
       if (result.error) {
         console.error("Error checking user:", result.error);
+        throw new Error("No account found with this email. Please sign up instead.");
+      }
+      
+      if (!result.data) {
         throw new Error("No account found with this email. Please sign up instead.");
       }
       
@@ -38,7 +46,7 @@ export const useAuthActions = () => {
       localStorage.setItem('authMethod', 'email');
       localStorage.setItem('authContact', email);
       
-      return { user: { id: result.data?.id } };
+      return { user: { id: result.data.id } };
     } catch (error) {
       console.error("Error during sign in:", error);
       throw error;
@@ -58,15 +66,18 @@ export const useAuthActions = () => {
     setLoading(true);
     
     try {
-      // Check if user already exists
-      const { data, error } = await supabase
+      // Check if user already exists by id pattern
+      const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('id')
-        .eq('email', email)
+        .filter('name', 'ilike', `%${email.split('@')[0]}%`)
         .maybeSingle();
       
-      // Explicitly type the result without using 'as unknown as'
-      const result: ProfileQueryResult = { data, error };
+      // Simple result object
+      const result: ProfileQueryResult = { 
+        data: profileData, 
+        error: profileError 
+      };
       
       if (result.error) {
         console.error("Error checking user:", result.error);

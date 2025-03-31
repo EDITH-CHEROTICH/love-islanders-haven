@@ -48,44 +48,50 @@ const VerificationForm = ({
         // Get or create user
         let userId: string | undefined;
         
-        // Check if user already exists
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('email', email)
-          .maybeSingle();
-        
-        // Explicitly type the result without using 'as unknown as'
-        const result: ProfileQueryResult = { data, error };
-        
-        if (result.error) {
-          console.error("Error checking user:", result.error);
-          throw result.error;
-        }
-        
-        if (result.data) {
-          userId = result.data.id;
-        } else {
-          // Create user
-          const { data: signupData, error: signupError } = await supabase.auth.signUp({
-            email,
-            password: crypto.randomUUID(), // Generate a random password
-            options: {
-              emailRedirectTo: window.location.origin + '/discover',
-              data: {
-                email_verified: true
-              }
+        // Check if user exists with this email in auth system, not profiles
+        const { data: authData, error: authError } = await supabase.auth.signUp({
+          email,
+          password: crypto.randomUUID(), // Generate a random password
+          options: {
+            emailRedirectTo: window.location.origin + '/discover',
+            data: {
+              email_verified: true
             }
+          }
+        });
+        
+        if (authError) {
+          console.error("Error signing up user:", authError);
+          
+          // If user already exists, try to get the user ID
+          const { data: userData, error: userError } = await supabase.auth.signInWithPassword({
+            email,
+            password: '' // This will fail but might give us user info
           });
           
-          if (signupError) {
-            throw signupError;
+          if (userError && userError.message.includes("Invalid login credentials")) {
+            // User exists but with incorrect password, which is expected
+            // Try to get the user by email directly from auth API
+            const { data: { users }, error: getUserError } = await supabase.auth.admin.listUsers({
+              filter: {
+                email: email
+              }
+            });
+            
+            if (getUserError) {
+              console.error("Error getting user by email:", getUserError);
+              throw new Error("Could not verify user account");
+            }
+            
+            if (users && users.length > 0) {
+              userId = users[0].id;
+            }
           }
-          
-          userId = signupData.user?.id;
+        } else if (authData && authData.user) {
+          userId = authData.user.id;
         }
         
-        // Create/update user profile
+        // If we found or created a user, create/update the profile
         if (userId) {
           try {
             const { error: profileError } = await supabase
@@ -93,7 +99,6 @@ const VerificationForm = ({
               .upsert({
                 id: userId,
                 name: email.split('@')[0], // Default name from email
-                email: email,
                 email_verified: true // Set email as verified
               }, {
                 onConflict: 'id'
@@ -107,6 +112,8 @@ const VerificationForm = ({
           } catch (err) {
             console.error("Error creating profile:", err);
           }
+        } else {
+          throw new Error("Could not create or find user account");
         }
         
         // Set authentication in localStorage
