@@ -6,6 +6,7 @@ import EmailAuthForm from "./EmailAuthForm";
 import AuthToggle from "./AuthToggle";
 import EmailVerificationHandler from "./EmailVerificationHandler";
 import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 
 type LoginFormProps = {
   isLoginMode: boolean;
@@ -18,6 +19,7 @@ const LoginForm = ({ isLoginMode, toggleAuthMode, onForgotPassword }: LoginFormP
   const [storedPassword, setStoredPassword] = useState("");
   const [generatedCode, setGeneratedCode] = useState("");
   const { signUp } = useAuth();
+  const navigate = useNavigate();
 
   const handleStoreCredentials = async (email: string, password: string, code: string) => {
     setStoredEmail(email);
@@ -56,6 +58,9 @@ const LoginForm = ({ isLoginMode, toggleAuthMode, onForgotPassword }: LoginFormP
       if (!result) {
         throw new Error("Signup failed");
       }
+      
+      // Explicitly navigate after successful signup
+      navigate('/discover');
       return true;
     } catch (error: any) {
       console.error("Signup error:", error);

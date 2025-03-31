@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -10,6 +11,7 @@ import { authSchema } from "./authSchema";
 import PasswordField from "./PasswordField";
 import { toast } from "sonner";
 import { Loader2 } from 'lucide-react';
+import { useNavigate } from "react-router-dom";
 
 type EmailAuthFormProps = {
   isLoginMode: boolean;
@@ -20,6 +22,7 @@ type EmailAuthFormProps = {
 const EmailAuthForm = ({ isLoginMode, onForgotPassword, onStoreCredentials }: EmailAuthFormProps) => {
   const { signIn } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
 
   const form = useForm<z.infer<typeof authSchema>>({
     resolver: zodResolver(authSchema),
@@ -44,10 +47,13 @@ const EmailAuthForm = ({ isLoginMode, onForgotPassword, onStoreCredentials }: Em
         toast("Logged in successfully", {
           description: "Welcome back!",
         });
+        
+        // Redirect to discover after successful login
+        navigate('/discover');
       } else {
         // Signup mode - We'll first verify email before actually signing up
         if (onStoreCredentials) {
-          // Generate a 4-digit code (changed from 6-digit)
+          // Generate a 4-digit code
           const verificationCode = Math.floor(1000 + Math.random() * 9000).toString();
           
           // Store credentials and verification code for the next step
