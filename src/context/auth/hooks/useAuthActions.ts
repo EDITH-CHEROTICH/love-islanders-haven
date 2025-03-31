@@ -39,29 +39,9 @@ export const useAuthActions = () => {
   };
 
   const signInWithGoogle = async () => {
-    const currentUrl = window.location.origin;
-    
-    // Generate a random state parameter to prevent CSRF attacks
-    const stateParam = Math.random().toString(36).substring(2, 15);
-    localStorage.setItem('oauth_state', stateParam);
-    
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${currentUrl}/discover`,
-          queryParams: {
-            prompt: 'select_account',
-            state: stateParam
-          }
-        }
-      });
-      
-      if (error) throw error;
-    } catch (error) {
-      console.error("Error during Google sign in:", error);
-      throw error;
-    }
+    // This function is kept for compatibility but will not be used
+    console.log("Google sign-in is disabled");
+    throw new Error("Google sign-in is disabled");
   };
 
   const signUp = async (email: string, password: string) => {

@@ -11,7 +11,6 @@ import { authSchema } from "./authSchema";
 import PasswordField from "./PasswordField";
 import { toast } from "sonner";
 import { Loader2 } from 'lucide-react';
-import SocialLoginButton from "./SocialLoginButton"; // Fixed import
 
 type EmailAuthFormProps = {
   isLoginMode: boolean;
@@ -20,7 +19,7 @@ type EmailAuthFormProps = {
 };
 
 const EmailAuthForm = ({ isLoginMode, onForgotPassword, onStoreCredentials }: EmailAuthFormProps) => {
-  const { signIn, signInWithGoogle } = useAuth();
+  const { signIn } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<z.infer<typeof authSchema>>({
@@ -30,18 +29,6 @@ const EmailAuthForm = ({ isLoginMode, onForgotPassword, onStoreCredentials }: Em
       password: "",
     },
   });
-
-  const handleGoogleSignIn = async () => {
-    try {
-      await signInWithGoogle();
-    } catch (error: any) {
-      console.error("Google sign-in error:", error);
-      toast("Google sign-in failed", {
-        description: error.message || "There was a problem signing in with Google",
-        style: { backgroundColor: "#f44336", color: "white" }
-      });
-    }
-  };
 
   const onSubmit = async (data: z.infer<typeof authSchema>) => {
     setIsLoading(true);
@@ -151,23 +138,6 @@ const EmailAuthForm = ({ isLoginMode, onForgotPassword, onStoreCredentials }: Em
             isLoginMode ? 'Log In' : 'Sign Up'
           )}
         </Button>
-        
-        <div className="relative mt-6">
-          <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t border-island-light/30" />
-          </div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-island-dark px-2 text-muted-foreground">
-              Or continue with
-            </span>
-          </div>
-        </div>
-        
-        <SocialLoginButton 
-          provider="google" 
-          onLogin={handleGoogleSignIn} 
-          isLoginMode={isLoginMode} 
-        />
       </form>
     </Form>
   );
