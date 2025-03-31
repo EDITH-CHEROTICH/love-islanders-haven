@@ -13,6 +13,7 @@ export const useAuthActions = () => {
     
     try {
       // Check if user exists by querying for users with the email
+      // Use explicit type specification to avoid deep type instantiation
       const { data, error } = await supabase
         .from('profiles')
         .select('id')
@@ -50,6 +51,7 @@ export const useAuthActions = () => {
     
     try {
       // Check if user already exists
+      // Use maybeSingle with explicit type for safety
       const { data, error } = await supabase
         .from('profiles')
         .select('id')
