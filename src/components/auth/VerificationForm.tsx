@@ -71,20 +71,23 @@ const VerificationForm = ({
           
           if (userError && userError.message.includes("Invalid login credentials")) {
             // User exists but with incorrect password, which is expected
-            // Try to get the user by email directly from auth API
-            const { data: { users }, error: getUserError } = await supabase.auth.admin.listUsers({
-              filter: {
-                email: email
-              }
-            });
+            // Try alternative approach to get user ID
             
-            if (getUserError) {
-              console.error("Error getting user by email:", getUserError);
+            // We'll use list method instead of filter, as filter is not supported
+            const { data: userList, error: listUsersError } = await supabase.auth.admin.listUsers();
+            
+            if (listUsersError) {
+              console.error("Error listing users:", listUsersError);
               throw new Error("Could not verify user account");
             }
             
-            if (users && users.length > 0) {
-              userId = users[0].id;
+            // Find the user with matching email
+            const matchingUser = userList?.users?.find(user => 
+              user.email?.toLowerCase() === email.toLowerCase()
+            );
+            
+            if (matchingUser) {
+              userId = matchingUser.id;
             }
           }
         } else if (authData && authData.user) {
