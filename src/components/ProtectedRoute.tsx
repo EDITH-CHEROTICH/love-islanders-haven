@@ -2,6 +2,10 @@
 import React, { useEffect } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/auth';
+import EmailAuthForm from './auth/EmailAuthForm';
+import VerificationForm from './auth/VerificationForm';
+import { useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -10,15 +14,47 @@ interface ProtectedRouteProps {
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
   const location = useLocation();
-  const navigate = useNavigate();
+  const [email, setEmail] = useState("");
+  const [verificationCode, setVerificationCode] = useState("");
+  const [isEmailSubmitted, setIsEmailSubmitted] = useState(false);
+  const [isSendingCode, setIsSendingCode] = useState(false);
 
-  useEffect(() => {
-    console.log("ProtectedRoute - Path:", location.pathname);
-    console.log("ProtectedRoute - Auth state:", { isAuthenticated, loading });
+  console.log("ProtectedRoute - Path:", location.pathname);
+  console.log("ProtectedRoute - Auth state:", { isAuthenticated, loading });
+  
+  const handleEmailSubmit = (email: string, code: string) => {
+    setEmail(email);
+    setVerificationCode(code);
+    setIsEmailSubmitted(true);
+  };
+
+  const handleResendCode = async () => {
+    setIsSendingCode(true);
     
-    // If user becomes authenticated while on this route, and this is a protected route
-    // we don't need a redirect since they're already where they need to be
-  }, [location.pathname, isAuthenticated, loading, navigate]);
+    try {
+      // Generate a new 4-digit code
+      const newCode = Math.floor(1000 + Math.random() * 9000).toString();
+      setVerificationCode(newCode);
+      
+      // Send verification code via email through Supabase function
+      const { error } = await supabase.functions.invoke('send-verification-email', {
+        body: { 
+          email, 
+          code: newCode 
+        }
+      });
+      
+      if (error) {
+        throw new Error(error.message);
+      }
+      
+      console.log("Resent verification code:", newCode);
+    } catch (error: any) {
+      console.error("Error resending verification code:", error);
+    } finally {
+      setIsSendingCode(false);
+    }
+  };
 
   // If we're loading auth state, show a spinner
   if (loading) {
@@ -29,11 +65,28 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     );
   }
 
-  // If not authenticated, redirect to login with the current location
+  // If not authenticated, show in-line auth form
   if (!isAuthenticated) {
-    console.log("Not authenticated, redirecting to login from:", location.pathname);
-    // Pass the current location so we can redirect back after login
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-island-dark via-island to-island-dark pt-4 pb-20 flex flex-col items-center justify-center px-4">
+        <div className="glass-card w-full max-w-md p-6 rounded-xl shadow-lg">
+          <h1 className="text-2xl font-bold text-gradient text-center mb-6">
+            {isEmailSubmitted ? "Verify Your Email" : "Sign In / Sign Up"}
+          </h1>
+          
+          {isEmailSubmitted ? (
+            <VerificationForm 
+              email={email}
+              generatedCode={verificationCode}
+              onResendCode={handleResendCode}
+              isSendingCode={isSendingCode}
+            />
+          ) : (
+            <EmailAuthForm onEmailSubmit={handleEmailSubmit} />
+          )}
+        </div>
+      </div>
+    );
   }
 
   // User is authenticated, render the protected content

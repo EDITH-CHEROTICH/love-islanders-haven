@@ -1,14 +1,14 @@
 
 import { Link, useLocation } from 'react-router-dom';
-import { Heart, User, Compass, Bot, Settings, Flame } from 'lucide-react';
+import { Heart, User, Compass, Bot, Flame } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 const Navbar = () => {
   const location = useLocation();
   const isMobile = useIsMobile();
   
-  // Hide navbar on login page
-  if (location.pathname === '/login') {
+  // Hide navbar on verify page
+  if (location.pathname === '/verify') {
     return null;
   }
   
