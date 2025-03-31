@@ -37,7 +37,6 @@ const Discover: React.FC = () => {
     occupation: null,
     interests: [],
   });
-  // Removed the useToast hook which was causing the error
   const { user, isAuthenticated } = useAuth();
 
   useEffect(() => {
@@ -81,8 +80,7 @@ const Discover: React.FC = () => {
       setProfiles(fetchedProfiles);
     } catch (error) {
       console.error("Error loading profiles:", error);
-      toast({
-        title: "Error loading profiles",
+      toast("Error loading profiles", {
         description: "Failed to load profiles. Please try again.",
         variant: "destructive",
       });
@@ -94,8 +92,7 @@ const Discover: React.FC = () => {
 
   const handleSwipe = async (action: string) => {
     if (!profiles || profiles.length === 0) {
-      toast({
-        title: "No profiles available",
+      toast("No profiles available", {
         description: "Please adjust your filters or try again later.",
         variant: "destructive",
       });
@@ -105,8 +102,7 @@ const Discover: React.FC = () => {
     const profileId = profiles[currentProfileIndex]?.id;
 
     if (!profileId) {
-      toast({
-        title: "Error",
+      toast("Error", {
         description: "Profile ID is missing.",
         variant: "destructive",
       });
@@ -117,23 +113,20 @@ const Discover: React.FC = () => {
       const result = await recordSwipeAction(profileId, action);
       if (result.success) {
         if (result.isMatch) {
-          toast({
-            title: "It's a Match!",
+          toast("It's a Match!", {
             description: "You and this person have liked each other!",
           });
         }
         goToNextProfile();
       } else {
-        toast({
-          title: "Swipe failed",
+        toast("Swipe failed", {
           description: "Failed to record swipe action. Please try again.",
           variant: "destructive",
         });
       }
     } catch (error) {
       console.error("Error recording swipe action:", error);
-      toast({
-        title: "Swipe failed",
+      toast("Swipe failed", {
         description: "An unexpected error occurred. Please try again.",
         variant: "destructive",
       });
@@ -144,8 +137,7 @@ const Discover: React.FC = () => {
     if (currentProfileIndex < profiles.length - 1) {
       setCurrentProfileIndex(currentProfileIndex + 1);
     } else {
-      toast({
-        title: "No more profiles",
+      toast("No more profiles", {
         description: "You've reached the end of available profiles. Check back later!",
         variant: "destructive",
       });
