@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { User, Eye, EyeOff, LogOut } from 'lucide-react';
+import { User, Eye, EyeOff } from 'lucide-react';
 import SettingsSection from './SettingsSection';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,13 +9,11 @@ import { toast } from 'sonner';
 import { useSettings } from '@/context/SettingsContext';
 import { AccountSettings as AccountSettingsType } from '@/services/settings';
 import { useAuth } from '@/context/auth';
-import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 
 const AccountSettings = () => {
   const { settings, updateSettings } = useSettings();
   const { user, updatePassword } = useAuth();
-  const navigate = useNavigate();
   const [localSettings, setLocalSettings] = useState<AccountSettingsType>(
     settings.account_settings
   );
@@ -129,24 +127,6 @@ const AccountSettings = () => {
       });
     } finally {
       setIsUpdatingPassword(false);
-    }
-  };
-
-  const handleLogout = async () => {
-    try {
-      await useAuth().signOut();
-      toast("Logged out", {
-        description: "You have been logged out successfully",
-        duration: 3000
-      });
-      navigate('/login');
-    } catch (error) {
-      console.error('Error logging out:', error);
-      toast("Logout failed", {
-        description: "There was a problem logging you out",
-        duration: 3000,
-        style: { backgroundColor: "#f44336", color: "white" }
-      });
     }
   };
 

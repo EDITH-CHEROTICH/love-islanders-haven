@@ -11,7 +11,7 @@ const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { isAuthenticated, loading } = useAuth();
-  const [isLoginMode, setIsLoginMode] = useState(true);
+  const [isLoginMode, setIsLoginMode] = useState(false); // Changed default to false (signup mode)
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   
   // Check if user wants to explicitly access the login page

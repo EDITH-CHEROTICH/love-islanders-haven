@@ -15,13 +15,13 @@ import AppCustomization from '@/components/settings/AppCustomization';
 import FeedbackSupport from '@/components/settings/FeedbackSupport';
 import { useSettings } from '@/context/SettingsContext';
 import { useAuth } from '@/context/auth';
-import { Loader2, LogOut } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 const Settings = () => {
   const navigate = useNavigate();
-  const { isAuthenticated, user, signOut } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const isMobile = useIsMobile();
   const [activeTab, setActiveTab] = useState('account');
   const { settings, isLoading, saveAllSettings, error } = useSettings();
@@ -58,17 +58,6 @@ const Settings = () => {
       toast.error('Failed to save settings. Please try again.');
     } finally {
       setIsSaving(false);
-    }
-  };
-
-  const handleLogout = async () => {
-    try {
-      await signOut();
-      toast.success('You have been logged out successfully');
-      navigate('/login');
-    } catch (error) {
-      console.error('Error logging out:', error);
-      toast.error('Failed to log out. Please try again.');
     }
   };
 
@@ -139,7 +128,7 @@ const Settings = () => {
             )}
           </Tabs>
 
-          <div className="sticky bottom-[120px] left-0 right-0 p-4 bg-gradient-to-t from-island-dark to-transparent flex flex-col gap-2">
+          <div className="sticky bottom-[120px] left-0 right-0 p-4 bg-gradient-to-t from-island-dark to-transparent">
             <Button 
               onClick={handleSaveAll}
               className="w-full bg-love hover:bg-love/90"
@@ -153,15 +142,6 @@ const Settings = () => {
               ) : (
                 'Save All Changes'
               )}
-            </Button>
-            
-            <Button 
-              variant="destructive" 
-              className="w-full flex items-center justify-center gap-2"
-              onClick={handleLogout}
-            >
-              <LogOut size={16} />
-              Logout
             </Button>
           </div>
         </main>
