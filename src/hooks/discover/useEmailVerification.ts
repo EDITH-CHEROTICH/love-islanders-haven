@@ -4,6 +4,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/auth';
 import { toast } from 'sonner';
 
+interface ProfileCheck {
+  id: string;
+  email: string;
+}
+
 export function useEmailVerification() {
   const [showVerificationPopup, setShowVerificationPopup] = useState(false);
   const { isAuthenticated } = useAuth();
@@ -16,11 +21,11 @@ export function useEmailVerification() {
         const authContact = localStorage.getItem('authContact');
         
         if (authContact) {
-          // Check if this email exists in profiles
+          // Check if this email exists in profiles with explicit type annotation
           const { data, error } = await supabase
             .from('profiles')
-            .select('*')
-            .eq('email', authContact);
+            .select('id, email')
+            .eq('email', authContact) as { data: ProfileCheck[] | null, error: any };
           
           // If no profile found or query returned empty array, show verification popup
           if (!data || data.length === 0) {
