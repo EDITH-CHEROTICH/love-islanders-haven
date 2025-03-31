@@ -11,7 +11,7 @@ import { authSchema } from "./authSchema";
 import PasswordField from "./PasswordField";
 import { toast } from "sonner";
 import { Loader2 } from 'lucide-react';
-import { SocialLoginButton } from "./SocialLoginButton";
+import SocialLoginButton from "./SocialLoginButton"; // Fixed import
 
 type EmailAuthFormProps = {
   isLoginMode: boolean;
@@ -129,7 +129,7 @@ const EmailAuthForm = ({ isLoginMode, onForgotPassword, onStoreCredentials }: Em
               <FormControl>
                 <PasswordField
                   {...field}
-                  autoComplete={isLoginMode ? "current-password" : "new-password"}
+                  autoCompleteType={isLoginMode ? "current-password" : "new-password"}
                 />
               </FormControl>
               <FormMessage />
@@ -163,7 +163,11 @@ const EmailAuthForm = ({ isLoginMode, onForgotPassword, onStoreCredentials }: Em
           </div>
         </div>
         
-        <SocialLoginButton onClick={handleGoogleSignIn} />
+        <SocialLoginButton 
+          provider="google" 
+          onLogin={handleGoogleSignIn} 
+          isLoginMode={isLoginMode} 
+        />
       </form>
     </Form>
   );
