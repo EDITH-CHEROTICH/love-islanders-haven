@@ -20,6 +20,12 @@ interface ProfileQueryResult {
   error: any;
 }
 
+// Define an interface for Supabase user
+interface SupabaseUser {
+  id: string;
+  email?: string;
+}
+
 const VerificationForm = ({ 
   email, 
   generatedCode, 
@@ -82,12 +88,14 @@ const VerificationForm = ({
             }
             
             // Find the user with matching email
-            const matchingUser = userList?.users?.find(user => 
-              user.email?.toLowerCase() === email.toLowerCase()
-            );
+            const matchingUser = userList?.users?.find(user => {
+              // Safely access the email property
+              const userEmail = (user as SupabaseUser).email;
+              return userEmail?.toLowerCase() === email.toLowerCase();
+            });
             
             if (matchingUser) {
-              userId = matchingUser.id;
+              userId = (matchingUser as SupabaseUser).id;
             }
           }
         } else if (authData && authData.user) {
