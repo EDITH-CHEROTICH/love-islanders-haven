@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { fetchDiscoverProfiles, recordSwipeAction, DiscoverFilters } from '@/services/discover';
 import { Profile } from '@/utils/dummyData';
@@ -36,7 +37,7 @@ const Discover: React.FC = () => {
     occupation: null,
     interests: [],
   });
-  const { toast } = useToast();
+  // Removed the useToast hook which was causing the error
   const { user, isAuthenticated } = useAuth();
 
   useEffect(() => {
