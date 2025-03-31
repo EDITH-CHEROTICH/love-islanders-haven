@@ -48,8 +48,9 @@ const EmailAuthForm = ({ isLoginMode, onForgotPassword, onStoreCredentials }: Em
           description: "Welcome back!",
         });
         
-        // Redirect to discover after successful login
-        navigate('/discover');
+        console.log("EmailAuthForm: Login successful, navigating to discover");
+        // Redirect to discover after successful login with replace to prevent back navigation
+        navigate('/discover', { replace: true });
       } else {
         // Signup mode - We'll first verify email before actually signing up
         if (onStoreCredentials) {

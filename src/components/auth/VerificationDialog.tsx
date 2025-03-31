@@ -66,7 +66,8 @@ const VerificationDialog = ({
         
         toast.success("Verification successful! Your account has been created successfully!");
         
-        // Ensure redirection to discover page
+        console.log("VerificationDialog: Navigating to discover page");
+        // Ensure redirection to discover page with replace to prevent back navigation
         navigate('/discover', { replace: true });
         
         // Reset the verification code

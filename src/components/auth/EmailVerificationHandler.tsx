@@ -83,8 +83,12 @@ const EmailVerificationHandler = ({
         
         setShowVerification(false);
         
-        // Navigate to discover page after successful verification
-        navigate('/discover', { replace: true });
+        console.log("EmailVerificationHandler: Navigating to discover page after verification");
+        // Use navigate with replace and delay slightly to ensure state updates complete
+        setTimeout(() => {
+          navigate('/discover', { replace: true });
+        }, 100);
+        
         return true;
       }
       return false;

@@ -54,11 +54,13 @@ const LoginForm = ({ isLoginMode, toggleAuthMode, onForgotPassword }: LoginFormP
 
   const completeSignUp = async () => {
     try {
+      console.log("LoginForm: Completing signup");
       const result = await signUp(storedEmail, storedPassword);
       if (!result) {
         throw new Error("Signup failed");
       }
       
+      console.log("LoginForm: Signup successful, navigating to discover");
       // Explicitly navigate after successful signup
       navigate('/discover', { replace: true });
       return true;
