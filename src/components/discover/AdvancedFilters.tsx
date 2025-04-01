@@ -1,31 +1,14 @@
-
 import { useState } from 'react';
 import { Filter, Coffee, Briefcase, GraduationCap, Cigarette, Plus, Minus } from 'lucide-react';
-import {
-  Sheet,
-  SheetClose,
-  SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
+import { Sheet, SheetClose, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
-
 export interface AdvancedFilterOptions {
   ageRange: [number, number];
   distance: number;
@@ -39,12 +22,10 @@ export interface AdvancedFilterOptions {
   occupation: string | null;
   interests: string[];
 }
-
 interface AdvancedFiltersProps {
   onFilterChange: (filters: AdvancedFilterOptions) => void;
   activeFilters: AdvancedFilterOptions;
 }
-
 const DEFAULT_FILTERS: AdvancedFilterOptions = {
   ageRange: [18, 50],
   distance: 50,
@@ -56,38 +37,19 @@ const DEFAULT_FILTERS: AdvancedFilterOptions = {
   smoking: null,
   education: null,
   occupation: null,
-  interests: [],
+  interests: []
 };
 
 // Conversion helpers
 const cmToFeet = (cm: number) => Math.round(cm / 30.48 * 10) / 10;
 const feetToCm = (feet: number) => Math.round(feet * 30.48);
-
-const RELATIONSHIP_GOALS = [
-  'Casual dating',
-  'Long-term relationship',
-  'Marriage',
-  'Friendship',
-  'Not sure yet'
-];
-
-const EDUCATION_LEVELS = [
-  'High School',
-  'Associate Degree',
-  'Bachelor\'s Degree',
-  'Master\'s Degree',
-  'Ph.D. or Doctorate',
-  'Prefer not to say'
-];
-
-const INTERESTS = [
-  'Travel', 'Cooking', 'Movies', 'Music', 'Reading',
-  'Sports', 'Fitness', 'Art', 'Photography', 'Gaming',
-  'Dancing', 'Hiking', 'Yoga', 'Meditation', 'Pets',
-  'Coffee', 'Wine', 'Food', 'Fashion', 'Technology'
-];
-
-const AdvancedFilters = ({ onFilterChange, activeFilters }: AdvancedFiltersProps) => {
+const RELATIONSHIP_GOALS = ['Casual dating', 'Long-term relationship', 'Marriage', 'Friendship', 'Not sure yet'];
+const EDUCATION_LEVELS = ['High School', 'Associate Degree', 'Bachelor\'s Degree', 'Master\'s Degree', 'Ph.D. or Doctorate', 'Prefer not to say'];
+const INTERESTS = ['Travel', 'Cooking', 'Movies', 'Music', 'Reading', 'Sports', 'Fitness', 'Art', 'Photography', 'Gaming', 'Dancing', 'Hiking', 'Yoga', 'Meditation', 'Pets', 'Coffee', 'Wine', 'Food', 'Fashion', 'Technology'];
+const AdvancedFilters = ({
+  onFilterChange,
+  activeFilters
+}: AdvancedFiltersProps) => {
   const [filters, setFilters] = useState<AdvancedFilterOptions>({
     ...DEFAULT_FILTERS,
     ...activeFilters
@@ -98,13 +60,11 @@ const AdvancedFilters = ({ onFilterChange, activeFilters }: AdvancedFiltersProps
   // Count active filters
   const countActiveFilters = () => {
     let count = 0;
-    
+
     // Check for modified filters from default values
-    if (filters.ageRange[0] !== DEFAULT_FILTERS.ageRange[0] || 
-        filters.ageRange[1] !== DEFAULT_FILTERS.ageRange[1]) count++;
+    if (filters.ageRange[0] !== DEFAULT_FILTERS.ageRange[0] || filters.ageRange[1] !== DEFAULT_FILTERS.ageRange[1]) count++;
     if (filters.distance !== DEFAULT_FILTERS.distance) count++;
-    if (filters.height[0] !== DEFAULT_FILTERS.height[0] || 
-        filters.height[1] !== DEFAULT_FILTERS.height[1]) count++;
+    if (filters.height[0] !== DEFAULT_FILTERS.height[0] || filters.height[1] !== DEFAULT_FILTERS.height[1]) count++;
     if (filters.heightUnit !== DEFAULT_FILTERS.heightUnit) count++;
     if (filters.relationshipGoals.length > 0) count++;
     if (filters.hasChildren !== null) count++;
@@ -113,19 +73,15 @@ const AdvancedFilters = ({ onFilterChange, activeFilters }: AdvancedFiltersProps
     if (filters.education !== null) count++;
     if (filters.occupation !== null) count++;
     if (filters.interests.length > 0) count++;
-    
     return count;
   };
-
   const handleApplyFilters = () => {
     onFilterChange(filters);
     setSheetOpen(false);
   };
-
   const handleResetFilters = () => {
     setFilters(DEFAULT_FILTERS);
   };
-
   const addInterest = () => {
     if (newInterest && !filters.interests.includes(newInterest)) {
       setFilters({
@@ -135,14 +91,12 @@ const AdvancedFilters = ({ onFilterChange, activeFilters }: AdvancedFiltersProps
       setNewInterest('');
     }
   };
-
   const removeInterest = (interest: string) => {
     setFilters({
       ...filters,
       interests: filters.interests.filter(i => i !== interest)
     });
   };
-
   const toggleRelationshipGoal = (goal: string) => {
     if (filters.relationshipGoals.includes(goal)) {
       setFilters({
@@ -213,22 +167,17 @@ const AdvancedFilters = ({ onFilterChange, activeFilters }: AdvancedFiltersProps
       });
     }
   };
-
   const heightProps = getHeightSliderProps();
   const heightDisplay = getHeightDisplay();
-
-  return (
-    <div>
+  return <div>
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
         <SheetTrigger asChild>
-          <Button variant="outline" size="sm" className="flex items-center gap-2">
+          <Button variant="outline" size="sm" className="flex items-center gap-2 py-[14px] my-[39px] mx-[240px]">
             <Filter className="h-4 w-4" />
             <span>Filters</span>
-            {countActiveFilters() > 0 && (
-              <Badge variant="secondary" className="ml-1 h-5 text-[10px]">
+            {countActiveFilters() > 0 && <Badge variant="secondary" className="ml-1 h-5 text-[10px]">
                 {countActiveFilters()}
-              </Badge>
-            )}
+              </Badge>}
           </Button>
         </SheetTrigger>
         <SheetContent side="right" className="w-full sm:max-w-md overflow-y-auto">
@@ -248,16 +197,10 @@ const AdvancedFilters = ({ onFilterChange, activeFilters }: AdvancedFiltersProps
                   {filters.ageRange[0]} - {filters.ageRange[1]} years
                 </span>
               </div>
-              <Slider
-                defaultValue={filters.ageRange}
-                min={18}
-                max={70}
-                step={1}
-                onValueChange={(value) => 
-                  setFilters({ ...filters, ageRange: [value[0], value[1]] as [number, number] })
-                }
-                className="mt-2"
-              />
+              <Slider defaultValue={filters.ageRange} min={18} max={70} step={1} onValueChange={value => setFilters({
+              ...filters,
+              ageRange: [value[0], value[1]] as [number, number]
+            })} className="mt-2" />
             </div>
             
             <Separator />
@@ -270,16 +213,10 @@ const AdvancedFilters = ({ onFilterChange, activeFilters }: AdvancedFiltersProps
                   Up to {filters.distance} km
                 </span>
               </div>
-              <Slider
-                defaultValue={[filters.distance]}
-                min={1}
-                max={150}
-                step={1}
-                onValueChange={(value) => 
-                  setFilters({ ...filters, distance: value[0] })
-                }
-                className="mt-2"
-              />
+              <Slider defaultValue={[filters.distance]} min={1} max={150} step={1} onValueChange={value => setFilters({
+              ...filters,
+              distance: value[0]
+            })} className="mt-2" />
             </div>
             
             <Separator />
@@ -292,10 +229,7 @@ const AdvancedFilters = ({ onFilterChange, activeFilters }: AdvancedFiltersProps
                   <span className="text-sm text-muted-foreground">
                     {heightDisplay.min} - {heightDisplay.max} {heightDisplay.unit}
                   </span>
-                  <Select 
-                    value={filters.heightUnit} 
-                    onValueChange={(value: 'cm' | 'ft') => handleHeightUnitChange(value)}
-                  >
+                  <Select value={filters.heightUnit} onValueChange={(value: 'cm' | 'ft') => handleHeightUnitChange(value)}>
                     <SelectTrigger className="w-16 h-7">
                       <SelectValue placeholder="Unit" />
                     </SelectTrigger>
@@ -306,14 +240,7 @@ const AdvancedFilters = ({ onFilterChange, activeFilters }: AdvancedFiltersProps
                   </Select>
                 </div>
               </div>
-              <Slider
-                value={heightProps.values}
-                min={heightProps.min}
-                max={heightProps.max}
-                step={heightProps.step}
-                onValueChange={(values) => handleHeightChange(values)}
-                className="mt-2"
-              />
+              <Slider value={heightProps.values} min={heightProps.min} max={heightProps.max} step={heightProps.step} onValueChange={values => handleHeightChange(values)} className="mt-2" />
             </div>
             
             <Separator />
@@ -322,16 +249,9 @@ const AdvancedFilters = ({ onFilterChange, activeFilters }: AdvancedFiltersProps
             <div className="space-y-2">
               <h3 className="text-sm font-medium">Relationship Goals</h3>
               <div className="flex flex-wrap gap-2 mt-2">
-                {RELATIONSHIP_GOALS.map(goal => (
-                  <Badge
-                    key={goal}
-                    variant={filters.relationshipGoals.includes(goal) ? "default" : "outline"}
-                    className="cursor-pointer"
-                    onClick={() => toggleRelationshipGoal(goal)}
-                  >
+                {RELATIONSHIP_GOALS.map(goal => <Badge key={goal} variant={filters.relationshipGoals.includes(goal) ? "default" : "outline"} className="cursor-pointer" onClick={() => toggleRelationshipGoal(goal)}>
                     {goal}
-                  </Badge>
-                ))}
+                  </Badge>)}
               </div>
             </div>
             
@@ -346,15 +266,15 @@ const AdvancedFilters = ({ onFilterChange, activeFilters }: AdvancedFiltersProps
                   <Cigarette className="h-4 w-4 text-muted-foreground" />
                   <Label htmlFor="smoking">Smoking</Label>
                 </div>
-                <Select
-                  value={filters.smoking === null ? "any" : filters.smoking ? "yes" : "no"}
-                  onValueChange={(value) => {
-                    let smokingValue = null;
-                    if (value === "yes") smokingValue = true;
-                    if (value === "no") smokingValue = false;
-                    setFilters({ ...filters, smoking: smokingValue });
-                  }}
-                >
+                <Select value={filters.smoking === null ? "any" : filters.smoking ? "yes" : "no"} onValueChange={value => {
+                let smokingValue = null;
+                if (value === "yes") smokingValue = true;
+                if (value === "no") smokingValue = false;
+                setFilters({
+                  ...filters,
+                  smoking: smokingValue
+                });
+              }}>
                   <SelectTrigger className="w-24">
                     <SelectValue placeholder="Any" />
                   </SelectTrigger>
@@ -371,15 +291,15 @@ const AdvancedFilters = ({ onFilterChange, activeFilters }: AdvancedFiltersProps
                   <Plus className="h-4 w-4 text-muted-foreground" />
                   <Label htmlFor="hasChildren">Has Children</Label>
                 </div>
-                <Select
-                  value={filters.hasChildren === null ? "any" : filters.hasChildren ? "yes" : "no"}
-                  onValueChange={(value) => {
-                    let childrenValue = null;
-                    if (value === "yes") childrenValue = true;
-                    if (value === "no") childrenValue = false;
-                    setFilters({ ...filters, hasChildren: childrenValue });
-                  }}
-                >
+                <Select value={filters.hasChildren === null ? "any" : filters.hasChildren ? "yes" : "no"} onValueChange={value => {
+                let childrenValue = null;
+                if (value === "yes") childrenValue = true;
+                if (value === "no") childrenValue = false;
+                setFilters({
+                  ...filters,
+                  hasChildren: childrenValue
+                });
+              }}>
                   <SelectTrigger className="w-24">
                     <SelectValue placeholder="Any" />
                   </SelectTrigger>
@@ -396,15 +316,15 @@ const AdvancedFilters = ({ onFilterChange, activeFilters }: AdvancedFiltersProps
                   <Coffee className="h-4 w-4 text-muted-foreground" />
                   <Label htmlFor="hasPets">Has Pets</Label>
                 </div>
-                <Select
-                  value={filters.hasPets === null ? "any" : filters.hasPets ? "yes" : "no"}
-                  onValueChange={(value) => {
-                    let petsValue = null;
-                    if (value === "yes") petsValue = true;
-                    if (value === "no") petsValue = false;
-                    setFilters({ ...filters, hasPets: petsValue });
-                  }}
-                >
+                <Select value={filters.hasPets === null ? "any" : filters.hasPets ? "yes" : "no"} onValueChange={value => {
+                let petsValue = null;
+                if (value === "yes") petsValue = true;
+                if (value === "no") petsValue = false;
+                setFilters({
+                  ...filters,
+                  hasPets: petsValue
+                });
+              }}>
                   <SelectTrigger className="w-24">
                     <SelectValue placeholder="Any" />
                   </SelectTrigger>
@@ -426,20 +346,16 @@ const AdvancedFilters = ({ onFilterChange, activeFilters }: AdvancedFiltersProps
                   <GraduationCap className="h-4 w-4 text-muted-foreground" />
                   <Label>Education</Label>
                 </div>
-                <Select
-                  value={filters.education || "any"}
-                  onValueChange={(value) => 
-                    setFilters({ ...filters, education: value === "any" ? null : value })
-                  }
-                >
+                <Select value={filters.education || "any"} onValueChange={value => setFilters({
+                ...filters,
+                education: value === "any" ? null : value
+              })}>
                   <SelectTrigger>
                     <SelectValue placeholder="Any Education Level" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="any">Any Education Level</SelectItem>
-                    {EDUCATION_LEVELS.map(level => (
-                      <SelectItem key={level} value={level}>{level}</SelectItem>
-                    ))}
+                    {EDUCATION_LEVELS.map(level => <SelectItem key={level} value={level}>{level}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
@@ -449,13 +365,10 @@ const AdvancedFilters = ({ onFilterChange, activeFilters }: AdvancedFiltersProps
                   <Briefcase className="h-4 w-4 text-muted-foreground" />
                   <Label>Occupation</Label>
                 </div>
-                <Input 
-                  placeholder="Any occupation" 
-                  value={filters.occupation || ""} 
-                  onChange={(e) => 
-                    setFilters({ ...filters, occupation: e.target.value || null })
-                  }
-                />
+                <Input placeholder="Any occupation" value={filters.occupation || ""} onChange={e => setFilters({
+                ...filters,
+                occupation: e.target.value || null
+              })} />
               </div>
             </div>
             
@@ -467,17 +380,12 @@ const AdvancedFilters = ({ onFilterChange, activeFilters }: AdvancedFiltersProps
               <p className="text-xs text-muted-foreground">Find people who share your interests</p>
               
               <div className="flex gap-2 mt-2">
-                <Select
-                  value={newInterest}
-                  onValueChange={setNewInterest}
-                >
+                <Select value={newInterest} onValueChange={setNewInterest}>
                   <SelectTrigger className="w-[180px]">
                     <SelectValue placeholder="Select interest" />
                   </SelectTrigger>
                   <SelectContent>
-                    {INTERESTS.filter(i => !filters.interests.includes(i)).map(interest => (
-                      <SelectItem key={interest} value={interest}>{interest}</SelectItem>
-                    ))}
+                    {INTERESTS.filter(i => !filters.interests.includes(i)).map(interest => <SelectItem key={interest} value={interest}>{interest}</SelectItem>)}
                   </SelectContent>
                 </Select>
                 <Button type="button" variant="outline" onClick={addInterest}>
@@ -486,24 +394,13 @@ const AdvancedFilters = ({ onFilterChange, activeFilters }: AdvancedFiltersProps
               </div>
               
               <div className="flex flex-wrap gap-2 mt-2">
-                {filters.interests.map(interest => (
-                  <Badge
-                    key={interest}
-                    variant="secondary"
-                    className="cursor-pointer"
-                  >
+                {filters.interests.map(interest => <Badge key={interest} variant="secondary" className="cursor-pointer">
                     {interest}
-                    <button
-                      className="ml-1 text-muted-foreground hover:text-foreground"
-                      onClick={() => removeInterest(interest)}
-                    >
+                    <button className="ml-1 text-muted-foreground hover:text-foreground" onClick={() => removeInterest(interest)}>
                       <Minus className="h-3 w-3" />
                     </button>
-                  </Badge>
-                ))}
-                {filters.interests.length === 0 && (
-                  <p className="text-xs text-muted-foreground">No interests selected</p>
-                )}
+                  </Badge>)}
+                {filters.interests.length === 0 && <p className="text-xs text-muted-foreground">No interests selected</p>}
               </div>
             </div>
           </div>
@@ -518,8 +415,6 @@ const AdvancedFilters = ({ onFilterChange, activeFilters }: AdvancedFiltersProps
           </SheetFooter>
         </SheetContent>
       </Sheet>
-    </div>
-  );
+    </div>;
 };
-
 export default AdvancedFilters;
