@@ -1,114 +1,158 @@
 
-import React, { useState } from 'react';
-import { Search } from 'lucide-react';
-import { Input } from '@/components/ui/input';
+import { useState, useEffect } from 'react';
+import { Search, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useSongSearch } from '@/hooks/use-song-search';
-import SelectedSongDisplay from './SelectedSongDisplay';
+import { Input } from '@/components/ui/input';
+import { SongOption } from '@/hooks/use-song-search';
 
-// Update type definitions to match expected props
-interface SongSearchSectionProps {
-  onSelectSong: (song: {
-    title: string;
-    artist: string;
-    albumArt: string;
-    previewUrl: string;
-  }) => void;
-  selectedSong: {
-    title: string;
-    artist: string;
-    albumArt: string;
-    previewUrl: string;
-  } | null;
+export interface SongSearchSectionProps {
+  songTitle: string;
+  setSongTitle: React.Dispatch<React.SetStateAction<string>>;
+  isSearching: boolean;
+  songOptions: SongOption[];
+  clearSearch: () => void;
+  performSearch?: () => void;
+  searchError?: string;
+  searchResults?: SongOption[];
+  showSongInput?: boolean;
+  onSongSelect?: (id: string) => void;
+  onSongTitleChange?: React.Dispatch<React.SetStateAction<string>>;
+  onCancelSearch?: () => void;
 }
 
-const SongSearchSection: React.FC<SongSearchSectionProps> = ({ onSelectSong, selectedSong }) => {
-  const [query, setQuery] = useState('');
-  const { searchResults, isSearching, searchError, performSearch } = useSongSearch();
+const SongSearchSection: React.FC<SongSearchSectionProps> = ({
+  songTitle,
+  setSongTitle,
+  isSearching,
+  songOptions,
+  clearSearch,
+  performSearch,
+  searchError,
+  searchResults,
+  showSongInput,
+  onSongSelect,
+  onSongTitleChange,
+  onCancelSearch
+}) => {
+  const [debouncedTitle, setDebouncedTitle] = useState(songTitle);
   
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (query.trim()) {
-      performSearch(query);
+  // Handle controlled input
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    if (onSongTitleChange) {
+      onSongTitleChange(value);
+    } else {
+      setSongTitle(value);
     }
   };
   
-  const handleSelectSong = (song: any) => {
-    onSelectSong({
-      title: song.name,
-      artist: song.artists[0].name,
-      albumArt: song.album.images[0]?.url || '',
-      previewUrl: song.preview_url
-    });
-    setQuery('');
+  // When song title changes, debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedTitle(songTitle);
+    }, 500);
+    
+    return () => clearTimeout(timer);
+  }, [songTitle]);
+  
+  // Auto-search when debounced title changes
+  useEffect(() => {
+    if (debouncedTitle && debouncedTitle.length > 2 && performSearch) {
+      performSearch();
+    }
+  }, [debouncedTitle, performSearch]);
+  
+  const handleSearch = () => {
+    if (performSearch) performSearch();
+  };
+
+  const handleSelectSong = (id: string) => {
+    if (onSongSelect) {
+      onSongSelect(id);
+    }
   };
   
-  const handleClearSong = () => {
-    onSelectSong({
-      title: '',
-      artist: '',
-      albumArt: '',
-      previewUrl: ''
-    });
+  const handleCancelSearch = () => {
+    if (onCancelSearch) {
+      onCancelSearch();
+    } else {
+      clearSearch();
+    }
   };
+  
+  if (showSongInput === false) {
+    return null;
+  }
   
   return (
-    <div className="mb-4">
-      <h3 className="text-lg font-medium mb-2">Add Music (Optional)</h3>
-      
-      {selectedSong && selectedSong.title ? (
-        <SelectedSongDisplay
-          selectedSong={selectedSong}
-          onClearSong={handleClearSong}
-        />
-      ) : (
-        <form onSubmit={handleSearch} className="flex space-x-2">
+    <div className="space-y-4">
+      <div className="flex space-x-2">
+        <div className="relative flex-1">
           <Input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
             placeholder="Search for a song..."
-            className="flex-1"
+            value={songTitle}
+            onChange={handleTitleChange}
+            className="w-full"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && performSearch) {
+                e.preventDefault();
+                performSearch();
+              }
+            }}
           />
-          <Button 
-            type="submit" 
-            disabled={!query.trim() || isSearching}
-            className="bg-love hover:bg-love/90"
-          >
-            <Search size={16} className="mr-1" />
-            {isSearching ? 'Searching...' : 'Search'}
-          </Button>
-        </form>
-      )}
+          {isSearching && (
+            <div className="absolute right-3 top-2.5">
+              <Loader2 size={16} className="animate-spin text-muted-foreground" />
+            </div>
+          )}
+        </div>
+        <Button 
+          type="button" 
+          variant="outline" 
+          onClick={handleSearch}
+          disabled={isSearching || !songTitle}
+        >
+          <Search size={16} />
+        </Button>
+      </div>
       
-      {searchError && (
-        <p className="text-red-500 text-sm mt-2">{searchError}</p>
-      )}
+      {searchError && <p className="text-sm text-red-500">{searchError}</p>}
       
-      {searchResults && searchResults.length > 0 && !selectedSong?.title && (
-        <div className="mt-3 max-h-60 overflow-y-auto bg-black/20 rounded-lg p-2">
-          <h4 className="text-sm font-semibold mb-2 px-2">Results</h4>
-          <ul className="space-y-1">
-            {searchResults.map((song) => (
+      {songOptions.length > 0 && (
+        <div className="bg-black/20 rounded-md max-h-48 overflow-y-auto">
+          <ul>
+            {songOptions.map((song) => (
               <li 
                 key={song.id}
-                onClick={() => handleSelectSong(song)}
-                className="flex items-center p-2 hover:bg-white/10 rounded-md cursor-pointer transition-colors"
+                className="p-2 hover:bg-black/30 cursor-pointer flex items-center space-x-2"
+                onClick={() => handleSelectSong(song.id)}
               >
-                <img 
-                  src={song.album.images[2]?.url || '/placeholder.svg'} 
-                  alt={song.name} 
-                  className="w-10 h-10 mr-3 rounded"
-                />
-                <div className="min-w-0 flex-1">
-                  <p className="font-medium truncate">{song.name}</p>
-                  <p className="text-xs opacity-70 truncate">
-                    {song.artists.map(a => a.name).join(', ')}
-                  </p>
+                {song.albumArt && (
+                  <img 
+                    src={song.albumArt} 
+                    alt={song.title} 
+                    className="w-10 h-10 rounded object-cover"
+                  />
+                )}
+                <div>
+                  <p className="font-medium">{song.title}</p>
+                  <p className="text-sm opacity-80">{song.artist}</p>
                 </div>
               </li>
             ))}
           </ul>
         </div>
+      )}
+      
+      {(songTitle || songOptions.length > 0) && (
+        <Button 
+          type="button" 
+          variant="ghost" 
+          onClick={handleCancelSearch}
+          size="sm"
+        >
+          Cancel
+        </Button>
       )}
     </div>
   );
