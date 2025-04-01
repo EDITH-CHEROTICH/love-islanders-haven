@@ -62,6 +62,7 @@ const Streaks = () => {
       setIsSubmitting(true);
       console.log("Streak form submitted with data:", {
         contentLength: postData.content.length,
+        content: postData.content.slice(0, 1), // Log just first item for debugging
         caption: postData.caption,
         duration: postData.duration
       });

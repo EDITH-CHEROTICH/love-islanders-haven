@@ -83,7 +83,7 @@ export const createStreakPost = async (
     contentLength: content.length,
     streakCount,
     expiresAt,
-    caption
+    caption: caption || null
   });
 
   try {

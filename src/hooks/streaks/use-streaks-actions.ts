@@ -58,6 +58,7 @@ export const useStreaksActions = (
       }
       
       console.log('Creating streak post with expiration:', expiresAt.toISOString());
+      console.log('Caption type:', typeof postData.caption);
       
       // Create a new streak post
       const streakData = await createStreakPost(

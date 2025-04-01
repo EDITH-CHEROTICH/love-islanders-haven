@@ -38,9 +38,10 @@ const StreakPostFormContainer = ({
     console.log("Form state updated:", { 
       contentLength: content.length, 
       isUploading,
-      isSubmitting
+      isSubmitting,
+      caption
     });
-  }, [content, isUploading, isSubmitting]);
+  }, [content, isUploading, isSubmitting, caption]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,11 +59,12 @@ const StreakPostFormContainer = ({
       console.log("Form submission started with content length:", content.length);
       console.log("Content data type:", typeof content);
       console.log("Content is array:", Array.isArray(content));
+      console.log("Caption value:", caption);
       
-      // Prepare submission data
+      // Prepare submission data - only include caption if it's not empty
       const submissionData = { 
         content, 
-        caption: caption || undefined,
+        caption: caption.trim() || undefined,
         duration: duration
       };
       
