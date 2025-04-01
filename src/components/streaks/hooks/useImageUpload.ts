@@ -2,6 +2,10 @@
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 
+interface UseImageUploadProps {
+  toast: ReturnType<typeof useToast>["toast"];
+}
+
 interface UseImageUploadReturn {
   content: string[];
   previewUrls: string[];
@@ -11,7 +15,7 @@ interface UseImageUploadReturn {
   clearImages: () => void;
 }
 
-const useImageUpload = (toast: ReturnType<typeof useToast>): UseImageUploadReturn => {
+const useImageUpload = ({ toast }: UseImageUploadProps): UseImageUploadReturn => {
   const [content, setContent] = useState<string[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [isUploading, setIsUploading] = useState(false);
@@ -22,7 +26,7 @@ const useImageUpload = (toast: ReturnType<typeof useToast>): UseImageUploadRetur
     
     // Check if adding new files would exceed the limit
     if (previewUrls.length + files.length > 10) {
-      toast.toast({
+      toast({
         title: "Too many images",
         description: "You can only upload up to 10 images for a streak post.",
         variant: "destructive",
