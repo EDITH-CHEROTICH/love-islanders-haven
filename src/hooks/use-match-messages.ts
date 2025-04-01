@@ -84,6 +84,22 @@ export const useMatchMessages = (matchId: string | undefined, currentUserId: str
     if (!matchId) return;
     
     try {
+      // This is just a fallback until the database loads
+      if (matchId.startsWith('m')) {
+        // Temporarily use dummy data for testing without database
+        import('@/utils/dummyData').then(({ matches }) => {
+          const match = matches.find(m => m.id === matchId);
+          if (match) {
+            setMatchInfo({
+              id: match.id,
+              matched_at: match.matchDate,
+              profile: match.profile
+            });
+          }
+        });
+        return;
+      }
+      
       const { data, error } = await supabase
         .from('matches')
         .select(`
@@ -95,16 +111,32 @@ export const useMatchMessages = (matchId: string | undefined, currentUserId: str
           user2:user2_id(id, name, verified)
         `)
         .eq('id', matchId)
-        .single();
+        .maybeSingle(); // Use maybeSingle instead of single to avoid errors
       
       if (error) throw error;
       
-      const otherUser = data.user1_id === currentUserId ? data.user2 : data.user1;
-      
-      setMatchInfo({
-        ...data,
-        otherUser
-      });
+      if (data) {
+        const otherUser = data.user1_id === currentUserId ? data.user2 : data.user1;
+        
+        // Get profile images for the other user
+        const { data: imageData } = await supabase
+          .from('profile_images')
+          .select('url')
+          .eq('profile_id', otherUser.id)
+          .order('position', { ascending: true });
+          
+        const images = imageData ? imageData.map(img => img.url) : ['/placeholder.svg'];
+        
+        setMatchInfo({
+          ...data,
+          profile: {
+            ...otherUser,
+            images
+          }
+        });
+      } else {
+        console.log('No match found with ID:', matchId);
+      }
     } catch (error) {
       console.error('Error loading match details:', error);
       toast({

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -15,7 +16,11 @@ const Messages = () => {
   const { toast } = useToast();
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const { fetchSafetyContacts } = useDatingSafety();
-  const { matchInfo } = useMatchMessages(matchId, currentUserId);
+  const { matchInfo, messages, isLoading } = useMatchMessages(matchId, currentUserId);
+  
+  // Add console logs to debug matchInfo
+  console.log('Messages component - matchId:', matchId);
+  console.log('Messages component - matchInfo:', matchInfo);
   
   // Fetch safety contacts on component mount
   useEffect(() => {

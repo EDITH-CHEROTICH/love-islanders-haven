@@ -3,8 +3,21 @@ import { supabase } from '@/integrations/supabase/client';
 import { Profile } from '@/utils/dummyData';
 import { AdvancedFilterOptions } from '@/components/discover/AdvancedFilters';
 
-// Update DiscoverFilters to match AdvancedFilterOptions without creating recursive type
-export type DiscoverFilters = AdvancedFilterOptions;
+// Define DiscoverFilters without recursive types
+export type DiscoverFilters = {
+  ageRange: [number, number];
+  distance: number;
+  height: [number, number];
+  relationshipGoals: string[];
+  hasChildren: string[];
+  education: string[];
+  verified: boolean;
+  showVIP: boolean;
+  drinking: string[];
+  smoking: string[];
+  languages: string[];
+  interests: string[];
+};
 
 // Conversion helpers
 const feetToCm = (feet: number) => Math.round(feet * 30.48);
@@ -61,9 +74,9 @@ export const fetchDiscoverProfiles = async (filters: DiscoverFilters): Promise<P
           'https://images.unsplash.com/photo-1615109398623-88346a601842?q=80&w=1964&auto=format&fit=crop'
         ],
         interests: interests.length > 0 ? interests : ['Travel', 'Music'],
-        relationshipGoal: profile.relationship_goal || 'Not specified',
+        relationshipGoal: profile.relationship_goal || 'both',
         height: profile.height || 175,
-        gender: profile.gender || 'Not specified',
+        gender: profile.gender || 'not-specified',
         lastActive: new Date(),
         verified: Boolean(profile.verified),
         location: profile.location || 'Not specified',

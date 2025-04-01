@@ -29,6 +29,7 @@ export interface Profile {
   drinking?: string; // Add drinking preference
   exercise?: string; // Add exercise habit
   pets?: string; // Add pet information
+  children?: string; // Add children information
 }
 
 export const profiles: Profile[] = [
