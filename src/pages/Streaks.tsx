@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context/auth";
 import { Button } from "@/components/ui/button";
@@ -45,8 +44,7 @@ const Streaks = () => {
   };
 
   const onPostSubmit = async (postData: { 
-    content: string[]; 
-    caption?: string; 
+    content: string[];
     duration?: number 
   }) => {
     if (!user) {
@@ -63,7 +61,6 @@ const Streaks = () => {
       console.log("Streak form submitted with data:", {
         contentLength: postData.content.length,
         content: postData.content.slice(0, 1), // Log just first item for debugging
-        caption: postData.caption,
         duration: postData.duration
       });
       
@@ -76,12 +73,6 @@ const Streaks = () => {
           variant: "destructive",
         });
         return false;
-      }
-      
-      // Validate caption
-      if (postData.caption && typeof postData.caption !== 'string') {
-        console.error("Invalid caption format:", postData.caption);
-        postData.caption = undefined;
       }
       
       // Submit post

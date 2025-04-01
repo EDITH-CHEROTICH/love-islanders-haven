@@ -1,4 +1,3 @@
-
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from "@/integrations/supabase/client";
 import { StreakData } from "../types";
@@ -75,15 +74,13 @@ export const createStreakPost = async (
   userId: string, 
   content: string[], 
   streakCount: number,
-  expiresAt: string,
-  caption?: string
+  expiresAt: string
 ) => {
   console.log("Creating streak post with data:", {
     userId,
     contentLength: content.length,
     streakCount,
-    expiresAt,
-    caption: caption || null
+    expiresAt
   });
 
   try {
@@ -93,9 +90,6 @@ export const createStreakPost = async (
       throw new Error("Invalid content format");
     }
 
-    // Clean caption - ensure it's a string or null
-    const cleanedCaption = typeof caption === 'string' ? caption : null;
-
     // Create a unique ID for the post
     const postId = uuidv4();
     
@@ -104,7 +98,6 @@ export const createStreakPost = async (
       id: postId,
       user_id: userId,
       content: JSON.stringify(content), // Convert array to JSON string
-      caption: cleanedCaption,
       streak_count: streakCount,
       expires_at: expiresAt,
       likes_count: 0, // Initialize likes count

@@ -3,7 +3,7 @@ import React from "react";
 import StreakPostFormContainer from "./StreakPostFormContainer";
 
 interface StreakPostFormProps {
-  onSubmit: (data: { content: string[]; caption?: string; duration?: number }) => Promise<boolean>;
+  onSubmit: (data: { content: string[]; duration?: number }) => Promise<boolean>;
   onCancel: () => void;
   isSubmitting?: boolean;
 }

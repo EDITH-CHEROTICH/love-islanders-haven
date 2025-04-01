@@ -4,12 +4,11 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import ImageUploadSection from "./ImageUploadSection";
 import FormControls from "./FormControls";
-import CaptionInput from "./CaptionInput";
 import DurationSelector from "./DurationSelector";
 import useImageUpload from "./hooks/useImageUpload";
 
 interface StreakPostFormContainerProps {
-  onSubmit: (data: { content: string[]; caption?: string; duration?: number }) => Promise<boolean>;
+  onSubmit: (data: { content: string[]; duration?: number }) => Promise<boolean>;
   onCancel: () => void;
   isSubmitting?: boolean;
 }
@@ -19,7 +18,6 @@ const StreakPostFormContainer = ({
   onCancel, 
   isSubmitting = false 
 }: StreakPostFormContainerProps) => {
-  const [caption, setCaption] = useState<string>("");
   const [duration, setDuration] = useState<number>(24); // Default to 24 hours
   const { toast } = useToast();
   
@@ -38,10 +36,9 @@ const StreakPostFormContainer = ({
     console.log("Form state updated:", { 
       contentLength: content.length, 
       isUploading,
-      isSubmitting,
-      caption
+      isSubmitting
     });
-  }, [content, isUploading, isSubmitting, caption]);
+  }, [content, isUploading, isSubmitting]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,12 +56,10 @@ const StreakPostFormContainer = ({
       console.log("Form submission started with content length:", content.length);
       console.log("Content data type:", typeof content);
       console.log("Content is array:", Array.isArray(content));
-      console.log("Caption value:", caption);
       
-      // Prepare submission data - only include caption if it's not empty
+      // Prepare submission data
       const submissionData = { 
-        content, 
-        caption: caption.trim() || undefined, // Ensure we send a string or undefined, not an empty string
+        content,
         duration: duration
       };
       
@@ -76,7 +71,6 @@ const StreakPostFormContainer = ({
       if (success) {
         console.log("Form submitted successfully");
         clearImages();
-        setCaption("");
         setDuration(24);
         toast({
           title: "Success",
@@ -113,12 +107,6 @@ const StreakPostFormContainer = ({
         onClearPreview={clearImages}
         onRemoveImage={removeImage}
         imageCount={previewUrls.length}
-      />
-      
-      <CaptionInput 
-        caption={caption}
-        onCaptionChange={setCaption}
-        disabled={isSubmitting}
       />
 
       <DurationSelector

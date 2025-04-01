@@ -1,4 +1,3 @@
-
 import { useToast } from "@/hooks/use-toast";
 import { createStreakPost, likeStreakPost } from "./api";
 
@@ -17,7 +16,6 @@ export const useStreaksActions = (
 
   const handlePostSubmit = async (postData: { 
     content: string[]; 
-    caption?: string; 
     duration?: number 
   }) => {
     if (!user?.id) {
@@ -42,15 +40,8 @@ export const useStreaksActions = (
       console.log("Submitting post with data:", {
         contentLength: postData.content.length,
         content: postData.content.slice(0, 1), // Log just first item for debugging
-        caption: postData.caption,
         duration: postData.duration
       });
-      
-      // Validate caption
-      if (postData.caption && typeof postData.caption !== 'string') {
-        console.error('Invalid caption format:', postData.caption);
-        postData.caption = undefined; // Reset invalid caption
-      }
       
       // Calculate the new streak count
       const newStreakCount = userStreakCount + 1;
@@ -64,15 +55,13 @@ export const useStreaksActions = (
       }
       
       console.log('Creating streak post with expiration:', expiresAt.toISOString());
-      console.log('Caption type:', typeof postData.caption);
       
       // Create a new streak post
       const streakData = await createStreakPost(
         user.id,
         postData.content,
         newStreakCount,
-        expiresAt.toISOString(),
-        postData.caption
+        expiresAt.toISOString()
       );
       
       if (!streakData) {
@@ -106,7 +95,6 @@ export const useStreaksActions = (
         id: streakData.id,
         user_id: streakData.user_id,
         content: parsedContent,
-        caption: streakData.caption || undefined,
         created_at: streakData.created_at,
         streak_count: streakData.streak_count,
         likes_count: 0,
