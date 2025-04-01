@@ -60,7 +60,13 @@ const Streaks = () => {
     
     try {
       setIsSubmitting(true);
-      console.log("Streak form submitted, calling handlePostSubmit with content length:", postData.content.length);
+      console.log("Streak form submitted with data:", {
+        contentLength: postData.content.length,
+        content: postData.content,
+        caption: postData.caption,
+        songTitle: postData.song?.title,
+        duration: postData.duration
+      });
       
       // Submit post
       const success = await handlePostSubmit(postData);

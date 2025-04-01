@@ -15,6 +15,8 @@ const FormControls = ({
   isSubmitting = false, 
   submitText = "Post Streak" 
 }: FormControlsProps) => {
+  console.log("FormControls state:", { isSubmitDisabled, isSubmitting });
+  
   return (
     <div className="flex gap-2 justify-end">
       <Button 

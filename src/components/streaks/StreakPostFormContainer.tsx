@@ -64,14 +64,31 @@ const StreakPostFormContainer = ({
     
     try {
       console.log("Form submission started with content length:", content.length);
+      console.log("Content data:", content);
       
-      // Call the onSubmit function passed from parent component
-      const success = await onSubmit({ 
+      // Ensure we have the right data format before submission
+      if (!Array.isArray(content)) {
+        console.error("Content is not an array");
+        toast({
+          title: "Error",
+          description: "There was a problem with the image data. Please try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // Prepare submission data
+      const submissionData = { 
         content, 
         caption: caption || undefined,
         song: song || undefined,
         duration: duration
-      });
+      };
+      
+      console.log("Submitting data:", submissionData);
+      
+      // Call the onSubmit function passed from parent component
+      const success = await onSubmit(submissionData);
       
       if (success) {
         console.log("Form submitted successfully");
@@ -79,6 +96,10 @@ const StreakPostFormContainer = ({
         setCaption("");
         setSong(null);
         setDuration(24);
+        toast({
+          title: "Success",
+          description: "Your streak has been posted successfully!",
+        });
       } else {
         console.error("Form submission failed");
         toast({
