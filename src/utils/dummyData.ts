@@ -23,6 +23,12 @@ export interface Profile {
   childrenCount?: number;
   occupation?: string;
   activityStatus?: string;
+  distance?: number; // Add distance property
+  lastActive?: Date; // Add lastActive property
+  smoking?: string; // Add smoking preference
+  drinking?: string; // Add drinking preference
+  exercise?: string; // Add exercise habit
+  pets?: string; // Add pet information
 }
 
 export const profiles: Profile[] = [

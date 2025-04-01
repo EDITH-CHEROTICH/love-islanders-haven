@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Profile } from '@/utils/dummyData';
 import { AdvancedFilterOptions } from '@/components/discover/AdvancedFilters';
 
-// Update DiscoverFilters to match AdvancedFilterOptions
+// Update DiscoverFilters to match AdvancedFilterOptions without creating recursive type
 export type DiscoverFilters = AdvancedFilterOptions;
 
 // Conversion helpers
@@ -53,7 +53,7 @@ export const fetchDiscoverProfiles = async (filters: DiscoverFilters): Promise<P
         name: profile.name || 'Anonymous',
         age: profile.age || 25,
         bio: profile.bio || 'No bio available',
-        distance: Math.floor(Math.random() * filters.distance), // Simulate distance
+        distance: Math.floor(Math.random() * (filters.distance || 50)), // Simulate distance
         occupation: profile.occupation || 'Not specified',
         education: profile.education || 'Not specified',
         images: images.length > 0 ? images : [
@@ -72,7 +72,7 @@ export const fetchDiscoverProfiles = async (filters: DiscoverFilters): Promise<P
         drinking: 'Not specified', // Default value
         exercise: 'Not specified', // Default value
         pets: profile.has_pets ? 'Has pets' : 'No pets',
-      } as Profile;
+      };
     });
 
     return profiles;
