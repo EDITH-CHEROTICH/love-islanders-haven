@@ -37,7 +37,7 @@ const ProfileImageCarousel = ({ images, name }: ProfileImageCarouselProps) => {
       <img 
         src={images[0]} 
         alt={name} 
-        className="w-full h-[50vh] object-cover"
+        className="w-full h-full object-cover"
         loading="lazy"
       />
     );
@@ -45,7 +45,7 @@ const ProfileImageCarousel = ({ images, name }: ProfileImageCarouselProps) => {
 
   // For multiple images, use the carousel
   return (
-    <Carousel className="w-full h-[50vh]">
+    <Carousel className="w-full h-full">
       <CarouselContent className="h-full">
         {images.map((image, idx) => (
           <CarouselItem key={idx} className="h-full">
