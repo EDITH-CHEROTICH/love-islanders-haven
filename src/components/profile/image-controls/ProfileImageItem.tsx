@@ -1,5 +1,5 @@
 
-import { Trash2, EyeOff } from 'lucide-react';
+import { Trash2, EyeOff, Eye } from 'lucide-react';
 import ImageVisibilityToggle from './ImageVisibilityToggle';
 import ImageOrderControls from './ImageOrderControls';
 

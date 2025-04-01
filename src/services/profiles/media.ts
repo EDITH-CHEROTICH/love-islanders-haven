@@ -1,7 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 
-export const saveProfileImage = async (imageUrl: string, position: number) => {
+export const saveProfileImage = async (imageUrl: string, position: number, isVisible = true) => {
   const user = supabase.auth.getUser();
   const userId = (await user).data.user?.id;
 
@@ -21,7 +21,10 @@ export const saveProfileImage = async (imageUrl: string, position: number) => {
     // Update existing image
     const { error } = await supabase
       .from('profile_images')
-      .update({ url: imageUrl })
+      .update({ 
+        url: imageUrl,
+        is_visible: isVisible 
+      })
       .eq('id', existingImage.id);
 
     if (error) {
@@ -35,7 +38,8 @@ export const saveProfileImage = async (imageUrl: string, position: number) => {
       .insert({
         profile_id: userId,
         url: imageUrl,
-        position
+        position,
+        is_visible: isVisible
       });
 
     if (error) {
@@ -86,6 +90,29 @@ export const fetchProfileImages = async (profileId?: string) => {
 
   if (error) {
     console.error('Error fetching images:', error);
+    throw error;
+  }
+
+  return data.map(image => image.url);
+};
+
+export const fetchVisibleProfileImages = async (profileId?: string) => {
+  const user = supabase.auth.getUser();
+  const userId = profileId || (await user).data.user?.id;
+
+  if (!userId) {
+    throw new Error('User not authenticated');
+  }
+
+  const { data, error } = await supabase
+    .from('profile_images')
+    .select('*')
+    .eq('profile_id', userId)
+    .eq('is_visible', true)
+    .order('position', { ascending: true });
+
+  if (error) {
+    console.error('Error fetching visible images:', error);
     throw error;
   }
 

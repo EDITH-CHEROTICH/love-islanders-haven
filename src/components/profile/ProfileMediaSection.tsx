@@ -2,7 +2,6 @@
 import { useState } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import ProfileImageCarousel from './ProfileImageCarousel';
-import { useProfileImages } from '@/hooks/profile/useProfileImages';
 
 interface ProfileMediaSectionProps {
   profile: {

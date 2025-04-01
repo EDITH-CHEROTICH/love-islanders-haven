@@ -13,6 +13,11 @@ const ImageVisibilityToggle = ({ index, isVisible, onToggle }: ImageVisibilityTo
   
   const handleToggle = () => {
     onToggle(index);
+    
+    toast({
+      title: isVisible ? "Image hidden" : "Image visible",
+      description: isVisible ? "Others won't see this image" : "This image is now visible to others",
+    });
   };
   
   return (
@@ -20,8 +25,9 @@ const ImageVisibilityToggle = ({ index, isVisible, onToggle }: ImageVisibilityTo
       className="bg-black/60 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
       onClick={handleToggle}
       aria-label={isVisible ? "Hide image" : "Show image"}
+      title={isVisible ? "Hide image" : "Show image"}
     >
-      {isVisible ? <Eye size={16} /> : <EyeOff size={16} />}
+      {isVisible ? <EyeOff size={16} /> : <Eye size={16} />}
     </button>
   );
 };
