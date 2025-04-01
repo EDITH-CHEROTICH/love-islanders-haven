@@ -116,6 +116,7 @@ export const fetchUserProfile = async () => {
     gender_preference: genderPreference || 'both', // Use 'both' as a default value
     relationship_goal: relationshipGoal || 'both', // Ensure it matches our type
     height_unit: heightUnit, // Use the properly cast height_unit value
+    show_age: data.show_age !== undefined ? data.show_age : true, // Make sure show_age is included
     images: data.profile_images 
       ? data.profile_images
           .sort((a: any, b: any) => a.position - b.position)

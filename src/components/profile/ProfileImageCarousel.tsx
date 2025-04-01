@@ -12,30 +12,25 @@ import {
 interface ProfileImageCarouselProps {
   images: string[];
   name: string;
+  visibleImagesIndices?: number[]; // Optional indices of images that should be visible
 }
 
-const ProfileImageCarousel = ({ images, name }: ProfileImageCarouselProps) => {
+const ProfileImageCarousel = ({ images, name, visibleImagesIndices }: ProfileImageCarouselProps) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-  const handleNextImage = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (currentImageIndex < images.length - 1) {
-      setCurrentImageIndex(currentImageIndex + 1);
-    }
-  };
+  // Filter images if visibleImagesIndices is provided, otherwise use all images
+  const visibleImages = visibleImagesIndices 
+    ? images.filter((_, index) => visibleImagesIndices.includes(index))
+    : images;
 
-  const handlePrevImage = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (currentImageIndex > 0) {
-      setCurrentImageIndex(currentImageIndex - 1);
-    }
-  };
+  // If no images are visible after filtering, use the first image
+  const displayImages = visibleImages.length > 0 ? visibleImages : [images[0]];
 
   // If there's only one image, show it directly
-  if (images.length === 1) {
+  if (displayImages.length === 1) {
     return (
       <img 
-        src={images[0]} 
+        src={displayImages[0]} 
         alt={name} 
         className="w-full h-full object-cover"
         loading="lazy"
@@ -47,7 +42,7 @@ const ProfileImageCarousel = ({ images, name }: ProfileImageCarouselProps) => {
   return (
     <Carousel className="w-full h-full">
       <CarouselContent className="h-full">
-        {images.map((image, idx) => (
+        {displayImages.map((image, idx) => (
           <CarouselItem key={idx} className="h-full">
             <div className="h-full w-full">
               <img 
