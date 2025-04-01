@@ -131,6 +131,13 @@ const StreakPostFormContainer = ({
     setDuration(value[0]);
   };
 
+  // Log form state for debugging
+  console.log("Form state:", { 
+    contentLength: content.length, 
+    isUploading,
+    isSubmitDisabled: content.length === 0 || isUploading
+  });
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <ImageUploadSection

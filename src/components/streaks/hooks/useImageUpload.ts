@@ -37,16 +37,21 @@ const useImageUpload = ({ toast }: UseImageUploadProps): UseImageUploadReturn =>
     setIsUploading(true);
     
     // Process each file
+    const newImages: string[] = [];
+    const fileCount = files.length;
+    let processed = 0;
+    
     Array.from(files).forEach(file => {
       const reader = new FileReader();
       reader.onload = () => {
         const imageUrl = reader.result as string;
+        newImages.push(imageUrl);
+        processed++;
         
-        setPreviewUrls(prev => [...prev, imageUrl]);
-        setContent(prev => [...prev, imageUrl]);
-        
-        // When all files are processed
-        if (previewUrls.length + 1 >= files.length) {
+        // When all files are processed, update state
+        if (processed === fileCount) {
+          setPreviewUrls(prev => [...prev, ...newImages]);
+          setContent(prev => [...prev, ...newImages]);
           setIsUploading(false);
         }
       };
