@@ -75,7 +75,9 @@ const Discover: React.FC = () => {
         {/* Filters component */}
         <DiscoverFilters 
           activeFilters={filters} 
-          onFilterChange={setFilters} 
+          onFilterChange={setFilters}
+          isOpen={isFilterDialogOpen}
+          onOpenChange={setIsFilterDialogOpen}
         />
         
         {/* Email Verification Popup */}

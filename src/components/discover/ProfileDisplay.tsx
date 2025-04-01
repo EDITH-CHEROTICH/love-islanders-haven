@@ -10,6 +10,7 @@ import { Sliders } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { AdvancedFilterOptions } from '@/components/discover/AdvancedFilters';
+
 interface ProfileDisplayProps {
   profile: Profile | null;
   isLoading: boolean;
@@ -17,6 +18,7 @@ interface ProfileDisplayProps {
   onOpenFilters: () => void;
   filterCount: number;
 }
+
 const ProfileDisplay: React.FC<ProfileDisplayProps> = ({
   profile,
   isLoading,
@@ -26,16 +28,19 @@ const ProfileDisplay: React.FC<ProfileDisplayProps> = ({
 }) => {
   const [showChatOverlay, setShowChatOverlay] = useState(false);
   const navigate = useNavigate();
+
   if (isLoading) {
     return <div className="flex items-center justify-center h-48">
         <p className="text-white">Loading profiles...</p>
       </div>;
   }
+
   if (!profile) {
     return <div className="flex items-center justify-center h-48">
         <p className="text-white">No profiles found with the current filters.</p>
       </div>;
   }
+
   const handleMessageClick = () => {
     // In a real app, you would check if there's a match first
     // For now, we'll simulate by checking if the profile is verified
@@ -60,6 +65,7 @@ const ProfileDisplay: React.FC<ProfileDisplayProps> = ({
     ...profile,
     images: profile.images && profile.images.length > 0 ? profile.images : ['https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?q=80&w=1964&auto=format&fit=crop', 'https://images.unsplash.com/photo-1604072366595-e75dc92d6bdc?q=80&w=1964&auto=format&fit=crop']
   };
+
   return <>
       <ProfileCard profile={profileWithImages} onSwipe={onSwipe} />
       
@@ -98,4 +104,5 @@ const ProfileDisplay: React.FC<ProfileDisplayProps> = ({
       {showChatOverlay && <InlineChatOverlay matchId={profile.id} matchName={profile.name} onClose={() => setShowChatOverlay(false)} />}
     </>;
 };
+
 export default ProfileDisplay;
