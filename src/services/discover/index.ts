@@ -1,10 +1,9 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { Profile } from '@/utils/dummyData';
-import { AdvancedFilterOptions } from '@/components/discover/AdvancedFilters';
 
 // Define DiscoverFilters without recursive types
-export type DiscoverFilters = {
+export interface DiscoverFilters {
   ageRange: [number, number];
   distance: number;
   height: [number, number];
@@ -17,7 +16,7 @@ export type DiscoverFilters = {
   smoking: string[];
   languages: string[];
   interests: string[];
-};
+}
 
 // Conversion helpers
 const feetToCm = (feet: number) => Math.round(feet * 30.48);
@@ -74,7 +73,7 @@ export const fetchDiscoverProfiles = async (filters: DiscoverFilters): Promise<P
           'https://images.unsplash.com/photo-1615109398623-88346a601842?q=80&w=1964&auto=format&fit=crop'
         ],
         interests: interests.length > 0 ? interests : ['Travel', 'Music'],
-        relationshipGoal: profile.relationship_goal || 'both',
+        relationshipGoal: (profile.relationship_goal as "long-term" | "casual" | "both") || 'both',
         height: profile.height || 175,
         gender: profile.gender || 'not-specified',
         lastActive: new Date(),
@@ -95,7 +94,7 @@ export const fetchDiscoverProfiles = async (filters: DiscoverFilters): Promise<P
   }
 };
 
-interface SwipeResult {
+export interface SwipeResult {
   success: boolean;
   isMatch: boolean;
 }

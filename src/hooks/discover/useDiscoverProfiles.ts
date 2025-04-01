@@ -1,6 +1,5 @@
-
 import { useState, useEffect } from 'react';
-import { fetchDiscoverProfiles, recordSwipeAction } from '@/services/discover';
+import { fetchDiscoverProfiles, recordSwipeAction, DiscoverFilters } from '@/services/discover';
 import { Profile } from '@/utils/dummyData';
 import { AdvancedFilterOptions } from '@/components/discover/AdvancedFilters';
 import { toast } from 'sonner';
@@ -149,6 +148,24 @@ const SAMPLE_PROFILES: Profile[] = [
   }
 ];
 
+// Convert AdvancedFilterOptions to DiscoverFilters
+const mapFiltersToDiscoverFilters = (options: AdvancedFilterOptions): DiscoverFilters => {
+  return {
+    ageRange: options.ageRange,
+    distance: options.distance,
+    height: options.height,
+    relationshipGoals: options.relationshipGoals,
+    hasChildren: options.hasChildren === null ? [] : [options.hasChildren ? 'yes' : 'no'],
+    education: options.education === null ? [] : [options.education],
+    verified: false, // Default
+    showVIP: false, // Default
+    drinking: [], // Default
+    smoking: options.smoking === null ? [] : [options.smoking ? 'yes' : 'no'],
+    languages: [], // Default
+    interests: options.interests || [],
+  };
+};
+
 export function useDiscoverProfiles(filters: AdvancedFilterOptions) {
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [currentProfileIndex, setCurrentProfileIndex] = useState(0);
@@ -161,7 +178,7 @@ export function useDiscoverProfiles(filters: AdvancedFilterOptions) {
     setIsLoading(true);
     try {
       // First try to fetch from the database
-      const fetchedProfiles = await fetchDiscoverProfiles(filters);
+      const fetchedProfiles = await fetchDiscoverProfiles(mapFiltersToDiscoverFilters(filters));
       
       // If no profiles are found, use sample data
       if (fetchedProfiles.length === 0) {
