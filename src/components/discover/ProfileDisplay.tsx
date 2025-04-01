@@ -6,10 +6,6 @@ import SwipeButtons from '@/components/SwipeButtons';
 import InlineChatOverlay from '@/components/messages/InlineChatOverlay';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { Sliders } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { AdvancedFilterOptions } from '@/components/discover/AdvancedFilters';
 
 interface ProfileDisplayProps {
   profile: Profile | null;
@@ -68,23 +64,6 @@ const ProfileDisplay: React.FC<ProfileDisplayProps> = ({
 
   return <>
       <ProfileCard profile={profileWithImages} onSwipe={onSwipe} />
-      
-      {/* Center the filter button */}
-      <div className="flex justify-center mt-4 mb-2">
-        <Button 
-          onClick={onOpenFilters} 
-          variant="secondary"
-          className="flex items-center gap-2"
-        >
-          <Sliders className="h-4 w-4" />
-          Filters
-          {filterCount > 0 && (
-            <Badge variant="default" className="ml-1 bg-love text-white">
-              {filterCount}
-            </Badge>
-          )}
-        </Button>
-      </div>
       
       <SwipeButtons onSwipe={onSwipe} onMessageClick={handleMessageClick} matchId={profile.verified ? profile.id : undefined} onSuperLike={() => {
       toast("Super Like!", {
