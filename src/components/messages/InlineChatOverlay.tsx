@@ -3,11 +3,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { sendMessage, getMessagesForMatch, Message as MessageType } from '@/services/messages';
+import { sendMessage, getMessagesForMatch, Message as MessageType, markMessagesAsRead } from '@/services/messages';
 import { supabase } from '@/integrations/supabase/client';
 import MessageInput from '@/components/messages/MessageInput';
 import MessageItem from '@/components/messages/MessageItem';
 import { AudioPlayerProvider } from '@/hooks/use-audio-player';
+import { useNavigate } from 'react-router-dom';
 
 interface InlineChatOverlayProps {
   matchId: string;
@@ -22,6 +23,7 @@ const InlineChatOverlay: React.FC<InlineChatOverlayProps> = ({ matchId, matchNam
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchCurrentUser = async () => {
@@ -32,6 +34,13 @@ const InlineChatOverlay: React.FC<InlineChatOverlayProps> = ({ matchId, matchNam
     fetchCurrentUser();
     loadMessages();
     setupRealtimeListener();
+    
+    // Mark messages as read when opening the chat
+    if (matchId) {
+      markMessagesAsRead(matchId).catch(error => {
+        console.error('Error marking messages as read:', error);
+      });
+    }
 
     return () => {
       const channel = supabase.channel(`messages:${matchId}`);
@@ -46,42 +55,15 @@ const InlineChatOverlay: React.FC<InlineChatOverlayProps> = ({ matchId, matchNam
   const loadMessages = async () => {
     setIsLoading(true);
     try {
-      // For dummy profiles, create a simulated chat experience
-      if (matchId.includes('sample-profile') || matchId.includes('profile-')) {
-        const dummyMessages = [
-          {
-            id: 'welcome-msg',
-            content: `Hi there! I'm ${matchName}. How are you doing today?`,
-            sender_id: matchId,
-            match_id: matchId,
-            sent_at: new Date(Date.now() - 3600000).toISOString(),
-            read: true,
-            content_type: 'text'
-          } as MessageType
-        ];
-        setMessages(dummyMessages);
-        setIsLoading(false);
-        return;
-      }
-      
-      // Fetch real messages from the database
       const fetchedMessages = await getMessagesForMatch(matchId);
       setMessages(fetchedMessages);
     } catch (error) {
       console.error('Failed to load messages:', error);
-      // If there's an error, use dummy messages for demo purposes
-      const dummyMessages = [
-        {
-          id: 'welcome-msg',
-          content: `Hi there! I'm ${matchName}. How are you doing today?`,
-          sender_id: matchId,
-          match_id: matchId,
-          sent_at: new Date(Date.now() - 3600000).toISOString(),
-          read: true,
-          content_type: 'text'
-        } as MessageType
-      ];
-      setMessages(dummyMessages);
+      toast({
+        title: "Error",
+        description: "Failed to load message history",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -109,63 +91,13 @@ const InlineChatOverlay: React.FC<InlineChatOverlayProps> = ({ matchId, matchNam
   const handleSendMessage = async (content: string, contentType: 'text' | 'image' | 'audio' = 'text', mediaUrl?: string) => {
     setIsSending(true);
     try {
-      // For demo/dummy profiles, simulate sending a message
-      if (matchId.includes('sample-profile') || matchId.includes('profile-')) {
-        const newMessage = {
-          id: `msg-${Date.now()}`,
-          content,
-          sender_id: currentUserId || 'current-user',
-          match_id: matchId,
-          sent_at: new Date().toISOString(),
-          read: false,
-          content_type: contentType,
-          media_url: mediaUrl
-        } as MessageType;
-        
-        // Add user message to chat
-        setMessages(prev => [...prev, newMessage]);
-        
-        // Simulate response after a short delay
-        setTimeout(() => {
-          const responseMessage = {
-            id: `resp-${Date.now()}`,
-            content: `Thanks for your message! This is an automated response from ${matchName}.`,
-            sender_id: matchId,
-            match_id: matchId,
-            sent_at: new Date().toISOString(),
-            read: true,
-            content_type: 'text'
-          } as MessageType;
-          
-          setMessages(prev => [...prev, responseMessage]);
-        }, 1500);
-        
-        return;
-      }
-      
-      // For real users, send to the database
       await sendMessage(matchId, content, contentType, mediaUrl);
-      // No need to manually add the message, it will come via the realtime subscription
     } catch (error) {
       console.error('Failed to send message:', error);
       
-      // Fallback: If there was an error sending to the database, still show the message in the UI
-      const errorFallbackMessage = {
-        id: `local-${Date.now()}`,
-        content,
-        sender_id: currentUserId || 'current-user',
-        match_id: matchId,
-        sent_at: new Date().toISOString(),
-        read: false,
-        content_type: contentType,
-        media_url: mediaUrl
-      } as MessageType;
-      
-      setMessages(prev => [...prev, errorFallbackMessage]);
-      
       toast({
         title: "Error",
-        description: "Failed to send message, but it's shown locally",
+        description: "Failed to send message",
         variant: "destructive",
       });
     } finally {
@@ -176,6 +108,11 @@ const InlineChatOverlay: React.FC<InlineChatOverlayProps> = ({ matchId, matchNam
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
+  
+  const handleViewFullChat = () => {
+    onClose();
+    navigate(`/messages/${matchId}`);
+  };
 
   return (
     <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
@@ -183,7 +120,17 @@ const InlineChatOverlay: React.FC<InlineChatOverlayProps> = ({ matchId, matchNam
         <div className="bg-island-dark border border-island-light/20 rounded-lg w-full max-w-md h-[80vh] flex flex-col overflow-hidden animate-fade-in chat-container">
           {/* Header */}
           <div className="bg-island p-4 border-b border-island-light/20 flex justify-between items-center">
-            <h3 className="font-semibold text-white">{matchName}</h3>
+            <div className="flex items-center space-x-2">
+              <h3 className="font-semibold text-white">{matchName}</h3>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={handleViewFullChat}
+                className="text-xs text-white/70 hover:text-white hover:bg-island-light/20 ml-2"
+              >
+                View full chat
+              </Button>
+            </div>
             <Button variant="ghost" size="icon" onClick={onClose} className="text-white hover:bg-island-light/20">
               <X size={18} />
             </Button>

@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import MessageList from './MessageList';
 import MessageInput from './MessageInput';
 import { useMatchMessages } from '@/hooks/use-match-messages';
+import { markMessagesAsRead } from '@/services/messages';
 
 interface MessageContainerProps {
   matchId: string | undefined;
@@ -16,6 +17,15 @@ const MessageContainer = ({ matchId, currentUserId, onSendMessage }: MessageCont
   const [isTyping, setIsTyping] = useState(false);
   const [channel, setChannel] = useState<any>(null);
   const { messages, isLoading } = useMatchMessages(matchId, currentUserId);
+  
+  // Mark messages as read when component mounts
+  useEffect(() => {
+    if (matchId) {
+      markMessagesAsRead(matchId).catch(error => {
+        console.error('Error marking messages as read:', error);
+      });
+    }
+  }, [matchId]);
   
   // Set up realtime presence for typing indicator
   useEffect(() => {
@@ -74,12 +84,18 @@ const MessageContainer = ({ matchId, currentUserId, onSendMessage }: MessageCont
     setIsTyping(someoneIsTyping);
   };
   
-  const handleSendMessage = async (content: string) => {
+  const handleSendMessage = async (content: string, contentType: 'text' | 'image' | 'audio' = 'text', mediaUrl?: string) => {
     if (!matchId) return;
     
     setIsSending(true);
     try {
-      await onSendMessage(content);
+      if (contentType === 'text') {
+        await onSendMessage(content);
+      } else {
+        // For non-text messages, we need to handle them specifically
+        const { sendMessage } = await import('@/services/messages');
+        await sendMessage(matchId, content, contentType, mediaUrl);
+      }
     } catch (error) {
       console.error('Failed to send message:', error);
     } finally {
@@ -104,6 +120,7 @@ const MessageContainer = ({ matchId, currentUserId, onSendMessage }: MessageCont
         isLoading={isLoading} 
         currentUserId={currentUserId} 
         isTyping={isTyping}
+        matchId={matchId}
       />
       
       <MessageInput 

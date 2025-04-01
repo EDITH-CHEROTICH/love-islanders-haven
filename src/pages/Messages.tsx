@@ -9,6 +9,7 @@ import MessageContainer from '@/components/messages/MessageContainer';
 import DatePlanDialog from '@/components/messages/DatePlanDialog';
 import { useMatchMessages } from '@/hooks/use-match-messages';
 import { useDatingSafety } from '@/hooks/use-dating-safety';
+import { AudioPlayerProvider } from '@/hooks/use-audio-player';
 
 const Messages = () => {
   const { matchId } = useParams<{ matchId: string }>();
@@ -69,19 +70,21 @@ const Messages = () => {
   
   return (
     <div className="min-h-screen bg-gradient-to-b from-island-dark via-island to-island-dark pb-20">
-      <div className="page-container hide-scrollbar">
-        <MessageHeader 
-          matchInfo={matchInfo} 
-          onBackClick={handleBackClick} 
-          actions={<DatePlanDialog onDatePlanCreated={handleSendMessage} />}
-        />
-        
-        <MessageContainer
-          matchId={matchId}
-          currentUserId={currentUserId}
-          onSendMessage={handleSendMessage}
-        />
-      </div>
+      <AudioPlayerProvider>
+        <div className="page-container hide-scrollbar">
+          <MessageHeader 
+            matchInfo={matchInfo} 
+            onBackClick={handleBackClick} 
+            actions={<DatePlanDialog onDatePlanCreated={handleSendMessage} />}
+          />
+          
+          <MessageContainer
+            matchId={matchId}
+            currentUserId={currentUserId}
+            onSendMessage={handleSendMessage}
+          />
+        </div>
+      </AudioPlayerProvider>
     </div>
   );
 };

@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
 export interface Message {
@@ -60,8 +61,37 @@ export const getMessagesForMatch = async (matchId: string) => {
   // Handle demo profiles
   if (matchId.includes('sample-profile') || matchId.includes('profile-')) {
     console.log('Demo profile detected, returning simulated messages');
-    // Return empty array - the component will handle adding initial messages
-    return [];
+    // Create a consistent set of demo messages so there's history
+    const demoMessages = [
+      {
+        id: `demo-1`,
+        content: `Hi there! I'm interested in getting to know you better.`,
+        sender_id: matchId,
+        match_id: matchId,
+        sent_at: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
+        read: true,
+        content_type: 'text'
+      },
+      {
+        id: `demo-2`,
+        content: `What are some of your favorite hobbies?`,
+        sender_id: 'current-user',
+        match_id: matchId,
+        sent_at: new Date(Date.now() - 82800000).toISOString(), // 23 hours ago
+        read: true,
+        content_type: 'text'
+      },
+      {
+        id: `demo-3`,
+        content: `I love hiking, reading, and trying new restaurants! What about you?`,
+        sender_id: matchId,
+        match_id: matchId,
+        sent_at: new Date(Date.now() - 79200000).toISOString(), // 22 hours ago
+        read: true,
+        content_type: 'text'
+      }
+    ];
+    return demoMessages as Message[];
   }
   
   const { data, error } = await supabase
