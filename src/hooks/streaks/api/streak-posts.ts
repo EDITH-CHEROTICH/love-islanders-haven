@@ -136,44 +136,5 @@ export const createStreakPost = async (
   }
 };
 
-// Like a streak post
-export const likeStreakPost = async (userId: string, streakId: string) => {
-  try {
-    // Check if the user has already liked this post
-    const { data: existingLike, error: checkError } = await supabase
-      .from('streak_likes')
-      .select('id')
-      .eq('user_id', userId)
-      .eq('streak_id', streakId)
-      .single();
-      
-    if (checkError && checkError.code !== 'PGSQL_NO_ROWS_RETURNED') {
-      console.error("Error checking for existing like:", checkError);
-      return false;
-    }
-    
-    // If user already liked this post, do nothing
-    if (existingLike) {
-      console.log("User already liked this post");
-      return false;
-    }
-    
-    // Add the like
-    const { data, error } = await supabase
-      .from('streak_likes')
-      .insert({
-        user_id: userId,
-        streak_id: streakId
-      });
-      
-    if (error) {
-      console.error("Error liking streak post:", error);
-      return false;
-    }
-    
-    return true;
-  } catch (error) {
-    console.error("Error in likeStreakPost:", error);
-    return false;
-  }
-};
+// We've removed the duplicate likeStreakPost function from here
+// since we're using the one from likes.ts
