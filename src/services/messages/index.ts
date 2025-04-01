@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 export interface Message {
@@ -13,6 +12,23 @@ export interface Message {
 }
 
 export const sendMessage = async (matchId: string, content: string, contentType: 'text' | 'image' | 'audio' = 'text', mediaUrl?: string) => {
+  // Handle demo profiles (ids that start with 'sample' or contain 'profile')
+  if (matchId.includes('sample-profile') || matchId.includes('profile-')) {
+    console.log('Demo profile detected, simulating message send');
+    // Return a simulated message for demo purposes
+    return {
+      id: `msg-${Date.now()}`,
+      content,
+      sender_id: 'current-user',
+      match_id: matchId,
+      sent_at: new Date().toISOString(),
+      read: false,
+      content_type: contentType,
+      media_url: mediaUrl
+    } as Message;
+  }
+  
+  // Real functionality for authenticated users
   const { data: { user } } = await supabase.auth.getUser();
   const userId = user?.id;
 
@@ -41,6 +57,13 @@ export const sendMessage = async (matchId: string, content: string, contentType:
 };
 
 export const getMessagesForMatch = async (matchId: string) => {
+  // Handle demo profiles
+  if (matchId.includes('sample-profile') || matchId.includes('profile-')) {
+    console.log('Demo profile detected, returning simulated messages');
+    // Return empty array - the component will handle adding initial messages
+    return [];
+  }
+  
   const { data, error } = await supabase
     .from('messages')
     .select('*')
@@ -56,6 +79,12 @@ export const getMessagesForMatch = async (matchId: string) => {
 };
 
 export const markMessagesAsRead = async (matchId: string) => {
+  // Handle demo profiles
+  if (matchId.includes('sample-profile') || matchId.includes('profile-')) {
+    console.log('Demo profile detected, simulating mark as read');
+    return true;
+  }
+  
   const { data: { user } } = await supabase.auth.getUser();
   const userId = user?.id;
 
@@ -78,6 +107,11 @@ export const markMessagesAsRead = async (matchId: string) => {
 };
 
 export const getUnreadMessageCount = async (matchId?: string) => {
+  // Handle demo profiles for specific match
+  if (matchId && (matchId.includes('sample-profile') || matchId.includes('profile-'))) {
+    return 0;
+  }
+  
   const { data: { user } } = await supabase.auth.getUser();
   const userId = user?.id;
 

@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef, ChangeEvent } from 'react';
 import { Send, Image, Mic, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -27,7 +26,6 @@ const MessageInput = ({ onSendMessage, isSending, onTypingStatus, matchId }: Mes
   const audioChunksRef = useRef<Blob[]>([]);
   const { toast } = useToast();
   
-  // Handle typing status
   const handleTyping = () => {
     if (onTypingStatus) {
       // User is typing
@@ -45,7 +43,6 @@ const MessageInput = ({ onSendMessage, isSending, onTypingStatus, matchId }: Mes
     }
   };
   
-  // Cleanup timeout on unmount
   useEffect(() => {
     return () => {
       if (typingTimeoutRef.current) {
@@ -115,6 +112,27 @@ const MessageInput = ({ onSendMessage, isSending, onTypingStatus, matchId }: Mes
     if (!selectedFile || !uploadType || !matchId) return;
     
     try {
+      // For demo profiles, simulate upload
+      if (matchId.includes('sample-profile') || matchId.includes('profile-')) {
+        let content = '';
+        if (uploadType === 'image') {
+          content = 'Sent an image';
+        } else if (uploadType === 'audio') {
+          content = 'Sent an audio message';
+        }
+        
+        // Create a local object URL for preview
+        const localUrl = URL.createObjectURL(selectedFile);
+        await onSendMessage(content, uploadType, localUrl);
+        
+        // Reset state
+        setSelectedFile(null);
+        setMediaPreview(null);
+        setUploadType(null);
+        return;
+      }
+      
+      // Real file upload to Supabase
       const fileExt = selectedFile.name.split('.').pop();
       const fileName = `${matchId}/${uuidv4()}.${fileExt}`;
       const filePath = `messages/${fileName}`;
@@ -307,6 +325,7 @@ const MessageInput = ({ onSendMessage, isSending, onTypingStatus, matchId }: Mes
           onClick={handleSendMessage} 
           disabled={((!newMessage.trim() && !selectedFile) || isSending)}
           className="bg-love hover:bg-love/90"
+          aria-label="Send message"
         >
           {isSending ? (
             <div className="animate-spin w-5 h-5 border-2 border-white border-t-transparent rounded-full" />
