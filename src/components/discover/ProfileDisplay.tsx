@@ -6,14 +6,26 @@ import SwipeButtons from '@/components/SwipeButtons';
 import InlineChatOverlay from '@/components/messages/InlineChatOverlay';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { Sliders } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { AdvancedFilterOptions } from '@/components/discover/AdvancedFilters';
 
 interface ProfileDisplayProps {
   profile: Profile | null;
   isLoading: boolean;
   onSwipe: (direction: string) => void;
+  onOpenFilters: () => void;
+  filterCount: number;
 }
 
-const ProfileDisplay: React.FC<ProfileDisplayProps> = ({ profile, isLoading, onSwipe }) => {
+const ProfileDisplay: React.FC<ProfileDisplayProps> = ({ 
+  profile, 
+  isLoading, 
+  onSwipe, 
+  onOpenFilters,
+  filterCount
+}) => {
   const [showChatOverlay, setShowChatOverlay] = useState(false);
   const navigate = useNavigate();
 
@@ -66,6 +78,22 @@ const ProfileDisplay: React.FC<ProfileDisplayProps> = ({ profile, isLoading, onS
   return (
     <>
       <ProfileCard profile={profileWithImages} onSwipe={onSwipe} />
+      <div className="flex items-center justify-center space-x-2 mt-4 mb-2">
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="flex items-center gap-2"
+          onClick={onOpenFilters}
+        >
+          <Sliders className="h-4 w-4" />
+          <span>Filters</span>
+          {filterCount > 0 && (
+            <Badge variant="secondary" className="ml-1 h-5 text-[10px]">
+              {filterCount}
+            </Badge>
+          )}
+        </Button>
+      </div>
       <SwipeButtons 
         onSwipe={onSwipe} 
         onMessageClick={handleMessageClick}
