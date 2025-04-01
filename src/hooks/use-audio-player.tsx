@@ -6,6 +6,8 @@ type AudioPlayerContextType = {
   pauseAudio: () => void;
   isPlaying: boolean;
   currentAudioId: string | null;
+  currentSrc: string | null;
+  togglePlayPause: (id: string, src: string) => void;
 };
 
 const AudioPlayerContext = createContext<AudioPlayerContextType>({
@@ -13,11 +15,14 @@ const AudioPlayerContext = createContext<AudioPlayerContextType>({
   pauseAudio: () => {},
   isPlaying: false,
   currentAudioId: null,
+  currentSrc: null,
+  togglePlayPause: () => {},
 });
 
 export const AudioPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [currentAudioId, setCurrentAudioId] = useState<string | null>(null);
+  const [currentSrc, setCurrentSrc] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
@@ -55,12 +60,6 @@ export const AudioPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const playAudio = (id: string, src: string) => {
     if (!audioRef.current) return;
     
-    // If the same audio is already playing, pause it
-    if (currentAudioId === id && isPlaying) {
-      pauseAudio();
-      return;
-    }
-    
     // If a different audio is playing, stop it first
     if (isPlaying) {
       audioRef.current.pause();
@@ -69,6 +68,7 @@ export const AudioPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
     // Play the new audio
     try {
       audioRef.current.src = src;
+      setCurrentSrc(src);
       audioRef.current.play()
         .then(() => {
           setIsPlaying(true);
@@ -78,6 +78,7 @@ export const AudioPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
           console.error('Failed to play audio:', error);
           setIsPlaying(false);
           setCurrentAudioId(null);
+          setCurrentSrc(null);
         });
     } catch (error) {
       console.error('Error setting up audio playback:', error);
@@ -91,8 +92,23 @@ export const AudioPlayerProvider: React.FC<{ children: React.ReactNode }> = ({ c
     setIsPlaying(false);
   };
 
+  const togglePlayPause = (id: string, src: string) => {
+    if (isPlaying && currentAudioId === id) {
+      pauseAudio();
+    } else {
+      playAudio(id, src);
+    }
+  };
+
   return (
-    <AudioPlayerContext.Provider value={{ playAudio, pauseAudio, isPlaying, currentAudioId }}>
+    <AudioPlayerContext.Provider value={{ 
+      playAudio, 
+      pauseAudio, 
+      isPlaying, 
+      currentAudioId,
+      currentSrc,
+      togglePlayPause 
+    }}>
       {children}
     </AudioPlayerContext.Provider>
   );
