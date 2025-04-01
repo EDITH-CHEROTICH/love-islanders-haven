@@ -794,6 +794,13 @@ export type Database = {
         }
         Returns: number
       }
+      check_for_match: {
+        Args: {
+          liker: string
+          liked: string
+        }
+        Returns: boolean
+      }
       find_similar_conversations: {
         Args: {
           query_embedding: string

@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { Profile } from '@/utils/dummyData';
 
@@ -143,13 +144,21 @@ export const recordSwipeAction = async (profileId: string, action: string): Prom
     if (isLike) {
       // Extremely simplified approach to avoid TypeScript issues
       try {
-        // Use raw SQL via RPC to avoid typing issues
-        const { data: matchExists } = await supabase.rpc('check_for_match', { 
-          liker: profileId, 
-          liked: userId 
-        });
+        // Use raw SQL query to check for match instead of RPC
+        const { data: matchData, error: matchError } = await supabase
+          .from('likes')
+          .select('id')
+          .eq('liker_id', profileId)
+          .eq('liked_id', userId)
+          .eq('is_like', true)
+          .limit(1);
         
-        return { success: true, isMatch: !!matchExists };
+        if (matchError) {
+          console.error("Error checking for match:", matchError);
+          return { success: true, isMatch: false };
+        }
+        
+        return { success: true, isMatch: matchData && matchData.length > 0 };
       } catch (error) {
         console.error("Error checking for match:", error);
         return { success: true, isMatch: false };
