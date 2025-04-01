@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Profile } from '@/utils/dummyData';
 import ProfileCard from '@/components/ProfileCard';
@@ -61,9 +62,24 @@ const ProfileDisplay: React.FC<ProfileDisplayProps> = ({
   };
   return <>
       <ProfileCard profile={profileWithImages} onSwipe={onSwipe} />
-      <div className="flex items-center justify-center space-x-2 mt-4 mb-2">
-        
+      
+      {/* Center the filter button */}
+      <div className="flex justify-center mt-4 mb-2">
+        <Button 
+          onClick={onOpenFilters} 
+          variant="secondary"
+          className="flex items-center gap-2"
+        >
+          <Sliders className="h-4 w-4" />
+          Filters
+          {filterCount > 0 && (
+            <Badge variant="default" className="ml-1 bg-love text-white">
+              {filterCount}
+            </Badge>
+          )}
+        </Button>
       </div>
+      
       <SwipeButtons onSwipe={onSwipe} onMessageClick={handleMessageClick} matchId={profile.verified ? profile.id : undefined} onSuperLike={() => {
       toast("Super Like!", {
         description: "You've used a Super Like on this profile!"
