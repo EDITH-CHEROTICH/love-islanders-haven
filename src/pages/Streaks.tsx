@@ -44,7 +44,7 @@ const Streaks = () => {
   };
 
   const onPostSubmit = async (postData: { 
-    content: string; 
+    content: string[]; 
     caption?: string; 
     song?: SongData;
     duration?: number 

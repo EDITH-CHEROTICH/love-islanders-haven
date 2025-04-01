@@ -12,6 +12,7 @@ import CaptionInput from "./CaptionInput";
 import DurationSelector from "./DurationSelector";
 import useSongSearch from "@/hooks/use-song-search";
 import MultiImagePreview from "./MultiImagePreview";
+import useImageUpload from "./hooks/useImageUpload";
 
 interface StreakPostFormContainerProps {
   onSubmit: (data: { content: string[]; caption?: string; song?: SongData; duration?: number }) => Promise<boolean>;
@@ -24,56 +25,29 @@ const StreakPostFormContainer = ({
   onCancel, 
   isSubmitting = false 
 }: StreakPostFormContainerProps) => {
-  const [content, setContent] = useState<string[]>([]);
   const [caption, setCaption] = useState<string>("");
-  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
-  const [isUploading, setIsUploading] = useState(false);
   const [showSongInput, setShowSongInput] = useState(false);
   const [song, setSong] = useState<SongData | null>(null);
   const [duration, setDuration] = useState<number>(24); // Default to 24 hours
   const { toast } = useToast();
   
-  // Use our custom hook for song search
-  const { songTitle, setSongTitle, isSearching, songOptions, clearSearch } = useSongSearch();
-
-  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
-    
-    // Check if adding new files would exceed the limit
-    if (previewUrls.length + files.length > 10) {
-      toast({
-        title: "Too many images",
-        description: "You can only upload up to 10 images for a streak post.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    setIsUploading(true);
-    
-    // Process each file
-    Array.from(files).forEach(file => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const imageUrl = reader.result as string;
-        
-        setPreviewUrls(prev => [...prev, imageUrl]);
-        setContent(prev => [...prev, imageUrl]);
-        
-        // When all files are processed
-        if (previewUrls.length + 1 >= files.length) {
-          setIsUploading(false);
-        }
-      };
-      reader.readAsDataURL(file);
-    });
-  };
-
-  const removeImage = (index: number) => {
-    setPreviewUrls(prev => prev.filter((_, i) => i !== index));
-    setContent(prev => prev.filter((_, i) => i !== index));
-  };
+  // Use our custom hooks
+  const { 
+    content, 
+    previewUrls, 
+    isUploading, 
+    handleImageSelect, 
+    removeImage, 
+    clearImages 
+  } = useImageUpload(toast);
+  
+  const { 
+    songTitle, 
+    setSongTitle, 
+    isSearching, 
+    songOptions, 
+    clearSearch 
+  } = useSongSearch();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -88,7 +62,6 @@ const StreakPostFormContainer = ({
     }
     
     try {
-      // Log the submission data for debugging
       console.log("Form submission started with content length:", content.length);
       
       // Call the onSubmit function passed from parent component
@@ -100,11 +73,9 @@ const StreakPostFormContainer = ({
       });
       
       if (success) {
-        // Reset form state on successful submission
         console.log("Form submitted successfully");
-        setContent([]);
+        clearImages();
         setCaption("");
-        setPreviewUrls([]);
         setSong(null);
         setDuration(24);
       } else {
@@ -165,10 +136,7 @@ const StreakPostFormContainer = ({
         previewUrls={previewUrls}
         isUploading={isUploading}
         onImageSelect={handleImageSelect}
-        onClearPreview={() => {
-          setPreviewUrls([]);
-          setContent([]);
-        }}
+        onClearPreview={clearImages}
         onRemoveImage={removeImage}
         imageCount={previewUrls.length}
       />
@@ -185,34 +153,19 @@ const StreakPostFormContainer = ({
         disabled={isSubmitting}
       />
       
-      {!song && !showSongInput && (
-        <Button 
-          type="button" 
-          variant="outline" 
-          onClick={handleSongAdd}
-          className="flex items-center gap-2 w-full"
-          disabled={isSubmitting}
-        >
-          <Music size={16} />
-          <span>Add a song</span>
-        </Button>
-      )}
-
-      <SongSearchSection
+      <SongSelectionArea 
+        song={song}
         showSongInput={showSongInput}
         songTitle={songTitle}
         setSongTitle={setSongTitle}
         isSearching={isSearching}
         songOptions={songOptions}
-        clearSearch={clearSearch}
-        onSongTitleChange={setSongTitle}
+        isSubmitting={isSubmitting}
+        onSongAdd={handleSongAdd}
         onSongSelect={handleSongSelect}
         onCancelSearch={() => setShowSongInput(false)}
-      />
-
-      <SelectedSongDisplay
-        song={song}
         onRemoveSong={removeSong}
+        clearSearch={clearSearch}
       />
       
       <FormControls

@@ -102,7 +102,7 @@ export const createStreakPost = async (
     // Insert the data into the streaks table
     const { data, error } = await supabase
       .from('streaks')
-      .insert([postData])
+      .insert(postData)
       .select();
       
     if (error) {

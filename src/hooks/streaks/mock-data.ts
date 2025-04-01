@@ -6,10 +6,15 @@ import { StreakPost } from "@/components/streaks/types";
  * Transform database streak data to the format needed for the UI
  */
 export const transformStreakData = (streakData: StreakData): StreakPost => {
+  // Handle case where content could be string or string[]
+  const contentArray = Array.isArray(streakData.content) 
+    ? streakData.content 
+    : [streakData.content as string];
+    
   return {
     id: streakData.id,
     user_id: streakData.user_id,
-    content: streakData.content, // This could be a string or array of strings
+    content: contentArray,
     caption: streakData.caption || undefined,
     created_at: streakData.created_at,
     streak_count: streakData.streak_count,
