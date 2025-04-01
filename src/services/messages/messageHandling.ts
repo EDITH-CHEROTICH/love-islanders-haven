@@ -8,17 +8,20 @@ export const handleSendMessage = async (
   mediaUrl?: string,
   setIsSending?: (isSending: boolean) => void
 ) => {
-  if (!matchId) return;
+  if (!matchId) return null;
   
   if (setIsSending) setIsSending(true);
   
   try {
+    let message;
     if (contentType === 'text') {
-      return await apiSendMessage(matchId, content);
+      message = await apiSendMessage(matchId, content);
     } else {
       // For non-text messages, handle them specifically
-      return await apiSendMessage(matchId, content, contentType, mediaUrl);
+      message = await apiSendMessage(matchId, content, contentType, mediaUrl);
     }
+    
+    return message;
   } catch (error) {
     console.error('Failed to send message:', error);
     throw error;
