@@ -125,7 +125,7 @@ export const useMatchMessages = (matchId: string | undefined, currentUserId: str
           user2:profiles!user2_id(id, name, verified)
         `)
         .eq('id', matchId)
-        .maybeSingle();
+        .single();
       
       if (error) {
         console.error('Error loading match details:', error);

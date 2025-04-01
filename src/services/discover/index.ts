@@ -59,6 +59,18 @@ export const fetchDiscoverProfiles = async (filters: DiscoverFilters): Promise<P
         ? profile.profile_interests.map((pi: any) => pi.interests?.name).filter(Boolean)
         : [];
 
+      // Convert gender to match Profile type
+      const typedGender = (profile.gender === 'male' || profile.gender === 'female' || profile.gender === 'other') 
+        ? profile.gender as 'male' | 'female' | 'other'
+        : 'other';
+      
+      // Convert relationship goal to match Profile type
+      const typedRelationshipGoal = (profile.relationship_goal === 'long-term' || 
+                               profile.relationship_goal === 'casual' || 
+                               profile.relationship_goal === 'both')
+        ? profile.relationship_goal as 'long-term' | 'casual' | 'both'
+        : 'both';
+
       // Create a profile object with required fields
       return {
         id: profile.id,
@@ -73,9 +85,9 @@ export const fetchDiscoverProfiles = async (filters: DiscoverFilters): Promise<P
           'https://images.unsplash.com/photo-1615109398623-88346a601842?q=80&w=1964&auto=format&fit=crop'
         ],
         interests: interests.length > 0 ? interests : ['Travel', 'Music'],
-        relationshipGoal: (profile.relationship_goal as "long-term" | "casual" | "both") || 'both',
+        relationshipGoal: typedRelationshipGoal,
         height: profile.height || 175,
-        gender: profile.gender || 'not-specified',
+        gender: typedGender,
         lastActive: new Date(),
         verified: Boolean(profile.verified),
         location: profile.location || 'Not specified',
