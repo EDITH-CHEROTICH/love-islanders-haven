@@ -142,19 +142,23 @@ export const recordSwipeAction = async (profileId: string, action: string): Prom
 
     // For right swipes, check if there's a match
     if (isLike) {
+      // Simplified match checking to avoid complex type issues
       const { data: matchData, error: matchError } = await supabase
         .from('likes')
-        .select('*')
+        .select('id')
         .eq('liker_id', profileId)
         .eq('liked_id', userId)
         .eq('is_like', true)
-        .maybeSingle();
+        .limit(1)
+        .single();
 
-      if (matchError) {
+      if (matchError && matchError.code !== 'PGRST116') {
+        // PGRST116 is the error code for "no rows returned" - that's expected if there's no match
         console.error("Error checking for match:", matchError);
       }
 
-      const hasMatch = matchData !== null;
+      // Check if a match exists
+      const hasMatch = matchData !== null && matchData.id !== undefined;
       return { success: true, isMatch: hasMatch };
     }
 
