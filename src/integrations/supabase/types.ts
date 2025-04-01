@@ -427,6 +427,7 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          is_visible: boolean | null
           position: number
           profile_id: string | null
           url: string
@@ -434,6 +435,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          is_visible?: boolean | null
           position: number
           profile_id?: string | null
           url: string
@@ -441,6 +443,7 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          is_visible?: boolean | null
           position?: number
           profile_id?: string | null
           url?: string
