@@ -41,14 +41,8 @@ const ProfileDisplay: React.FC<ProfileDisplayProps> = ({
     // In a real app, you would check if there's a match first
     // For now, we'll simulate by checking if the profile is verified
     if (profile.verified) {
-      // This is a placeholder - in a real app, you would use the actual match ID
-      const simulatedMatchId = profile.id;
-
-      // Option 1: Navigate to messages page
-      navigate(`/messages/${simulatedMatchId}`);
-
-      // Option 2: Show inline chat overlay
-      // setShowChatOverlay(true);
+      // Option 1: Show inline chat overlay
+      setShowChatOverlay(true);
     } else {
       toast("Can't message yet", {
         description: "You can only message users after you've matched with them."
@@ -65,22 +59,35 @@ const ProfileDisplay: React.FC<ProfileDisplayProps> = ({
   return <>
       <ProfileCard profile={profileWithImages} onSwipe={onSwipe} />
       
-      <SwipeButtons onSwipe={onSwipe} onMessageClick={handleMessageClick} matchId={profile.verified ? profile.id : undefined} onSuperLike={() => {
-      toast("Super Like!", {
-        description: "You've used a Super Like on this profile!"
-      });
-      onSwipe('right'); // Treat super like as a right swipe for now
-    }} onRewind={() => {
-      toast("Rewind feature", {
-        description: "Premium feature: Go back to previous profile"
-      });
-    }} onBoost={() => {
-      toast("Boost feature", {
-        description: "Premium feature: Get more visibility for 30 minutes"
-      });
-    }} />
+      <SwipeButtons 
+        onSwipe={onSwipe} 
+        onMessageClick={handleMessageClick} 
+        matchId={profile.verified ? profile.id : undefined} 
+        onSuperLike={() => {
+          toast("Super Like!", {
+            description: "You've used a Super Like on this profile!"
+          });
+          onSwipe('right'); // Treat super like as a right swipe for now
+        }} 
+        onRewind={() => {
+          toast("Rewind feature", {
+            description: "Premium feature: Go back to previous profile"
+          });
+        }} 
+        onBoost={() => {
+          toast("Boost feature", {
+            description: "Premium feature: Get more visibility for 30 minutes"
+          });
+        }} 
+      />
       
-      {showChatOverlay && <InlineChatOverlay matchId={profile.id} matchName={profile.name} onClose={() => setShowChatOverlay(false)} />}
+      {showChatOverlay && 
+        <InlineChatOverlay 
+          matchId={profile.id} 
+          matchName={profile.name} 
+          onClose={() => setShowChatOverlay(false)} 
+        />
+      }
     </>;
 };
 

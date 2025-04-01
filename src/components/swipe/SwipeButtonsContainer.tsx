@@ -2,6 +2,8 @@
 import React from 'react';
 import { Heart, X, Star, MessageCircle, RefreshCcw } from 'lucide-react';
 import SwipeButton from './SwipeButton';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 interface SwipeButtonsContainerProps {
   onSwipe?: (direction: 'left' | 'right') => void;
@@ -20,6 +22,23 @@ const SwipeButtonsContainer = ({
   matchId,
   onMessageClick
 }: SwipeButtonsContainerProps) => {
+  const navigate = useNavigate();
+
+  const handleMessageClick = () => {
+    if (matchId) {
+      // If there's a match, use the provided onMessageClick or navigate to chat
+      if (onMessageClick) {
+        onMessageClick();
+      } else {
+        navigate(`/messages/${matchId}`);
+      }
+    } else {
+      toast("Can't message yet", {
+        description: "You can only message profiles after you've matched with them."
+      });
+    }
+  };
+
   return (
     <div className="flex justify-center gap-3 mt-4 pb-16">
       <SwipeButton
@@ -55,7 +74,7 @@ const SwipeButtonsContainer = ({
       />
       
       <SwipeButton
-        onClick={onMessageClick}
+        onClick={handleMessageClick}
         icon={MessageCircle}
         color="purple-500"
         size="sm"
