@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Heart, X, Star, MessageCircle, RefreshCcw } from 'lucide-react';
+import SwipeButtonsContainer from './swipe/SwipeButtonsContainer';
 
 interface SwipeButtonsProps {
   onSwipe?: (direction: 'left' | 'right') => void;
@@ -11,57 +11,8 @@ interface SwipeButtonsProps {
   onMessageClick?: () => void;
 }
 
-const SwipeButtons = ({ 
-  onSwipe, 
-  onSuperLike = () => {}, 
-  onRewind = () => {}, 
-  onBoost = () => {},
-  matchId,
-  onMessageClick
-}: SwipeButtonsProps) => {
-  return (
-    <div className="flex justify-center gap-3 mt-4 pb-16">
-      <button 
-        onClick={onRewind} 
-        className="w-12 h-12 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center border border-yellow-500/20 shadow-lg transition-all"
-        aria-label="Rewind"
-      >
-        <RefreshCcw className="text-yellow-500 w-7 h-7" />
-      </button>
-      
-      <button 
-        onClick={() => onSwipe && onSwipe('left')}
-        className="w-14 h-14 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center border border-rose-500/20 shadow-lg transition-all"
-        aria-label="Dislike"
-      >
-        <X className="text-rose-500 w-7 h-7" />
-      </button>
-      
-      <button 
-        onClick={onSuperLike} 
-        className="w-12 h-12 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center border border-blue-500/20 shadow-lg transition-all"
-        aria-label="Super Like"
-      >
-        <Star className="text-blue-500 w-7 h-7" />
-      </button>
-      
-      <button 
-        onClick={() => onSwipe && onSwipe('right')}
-        className="w-14 h-14 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center border border-green-500/20 shadow-lg transition-all"
-        aria-label="Like"
-      >
-        <Heart className="text-green-500 w-7 h-7" />
-      </button>
-      
-      <button 
-        onClick={onMessageClick} 
-        className="w-12 h-12 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center border border-purple-500/20 shadow-lg transition-all"
-        aria-label="Messages"
-      >
-        <MessageCircle className="text-purple-500 w-7 h-7" />
-      </button>
-    </div>
-  );
+const SwipeButtons = (props: SwipeButtonsProps) => {
+  return <SwipeButtonsContainer {...props} />;
 };
 
 export default SwipeButtons;
