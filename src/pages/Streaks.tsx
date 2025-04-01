@@ -78,6 +78,12 @@ const Streaks = () => {
         return false;
       }
       
+      // Validate caption
+      if (postData.caption && typeof postData.caption !== 'string') {
+        console.error("Invalid caption format:", postData.caption);
+        postData.caption = undefined;
+      }
+      
       // Submit post
       const success = await handlePostSubmit(postData);
       

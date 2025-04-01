@@ -64,7 +64,7 @@ const StreakPostFormContainer = ({
       // Prepare submission data - only include caption if it's not empty
       const submissionData = { 
         content, 
-        caption: caption.trim() || undefined,
+        caption: caption.trim() || undefined, // Ensure we send a string or undefined, not an empty string
         duration: duration
       };
       
