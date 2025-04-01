@@ -10,6 +10,10 @@ export interface UseProfileImagesState {
   visibleImages: number[];
   imageVisibilities: ImageVisibility[];
   isSubmitting: boolean;
+  setImages: React.Dispatch<React.SetStateAction<string[]>>;
+  setVisibleImages: React.Dispatch<React.SetStateAction<number[]>>;
+  setImageVisibilities: React.Dispatch<React.SetStateAction<ImageVisibility[]>>;
+  setIsSubmitting: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export interface UseProfileImagesActions {
@@ -21,7 +25,9 @@ export interface UseProfileImagesActions {
   moveImageDown: (index: number) => Promise<void>;
 }
 
-export interface UseProfileImagesReturn extends UseProfileImagesState, UseProfileImagesActions {
+export interface UseProfileImagesReturn extends Omit<UseProfileImagesState, 
+  'setImages' | 'setVisibleImages' | 'setImageVisibilities' | 'setIsSubmitting'>, 
+  UseProfileImagesActions {
   minImages: number;
   maxImages: number;
 }
