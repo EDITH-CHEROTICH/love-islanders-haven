@@ -14,14 +14,13 @@ interface ProfileMediaSectionProps {
 }
 
 const ProfileMediaSection = ({ profile, visibleImagesIndices, isMyProfile = false }: ProfileMediaSectionProps) => {
-  const [activeTab, setActiveTab] = useState<'images' | 'videos'>('images');
+  const [activeTab, setActiveTab] = useState<'images'>('images');
   
   return (
     <div className="space-y-4">
-      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'images' | 'videos')}>
+      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'images')}>
         <TabsList className="w-full">
           <TabsTrigger value="images" className="flex-1">Images</TabsTrigger>
-          <TabsTrigger value="videos" className="flex-1">Videos</TabsTrigger>
         </TabsList>
         
         <TabsContent value="images">
@@ -33,22 +32,6 @@ const ProfileMediaSection = ({ profile, visibleImagesIndices, isMyProfile = fals
               isEditable={isMyProfile}
             />
           </div>
-        </TabsContent>
-        
-        <TabsContent value="videos">
-          {profile.videos && profile.videos.length > 0 ? (
-            <div className="aspect-video rounded-lg bg-island-dark/50 flex items-center justify-center">
-              <video 
-                src={profile.videos[0]} 
-                controls 
-                className="w-full h-full rounded-lg"
-              />
-            </div>
-          ) : (
-            <div className="aspect-video rounded-lg bg-island-dark/50 flex items-center justify-center text-muted-foreground">
-              No videos added
-            </div>
-          )}
         </TabsContent>
       </Tabs>
     </div>
