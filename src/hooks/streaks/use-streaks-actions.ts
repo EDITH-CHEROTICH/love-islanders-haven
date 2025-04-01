@@ -1,3 +1,4 @@
+
 import { SongData } from "@/components/streaks/types";
 import { createStreakPost, likeStreakPost } from "./api";
 import { useToast } from "@/hooks/use-toast";
@@ -98,8 +99,8 @@ export const useStreaksActions = (
         song: postData.song ? {
           title: postData.song.title,
           artist: postData.song.artist,
-          album_art: postData.song.album_art,
-          preview_url: postData.song.preview_url
+          albumArt: postData.song.albumArt,
+          previewUrl: postData.song.previewUrl
         } : undefined,
         expires_at: streakData.expires_at
       };

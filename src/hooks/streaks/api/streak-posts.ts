@@ -92,8 +92,8 @@ export const createStreakPost = async (
       streak_count: streakCount,
       song_title: song?.title || null,
       song_artist: song?.artist || null,
-      song_album_art: song?.album_art || null,
-      song_preview_url: song?.preview_url || null,
+      song_album_art: song?.albumArt || null,
+      song_preview_url: song?.previewUrl || null,
       expires_at: expiresAt
     };
     

@@ -31,8 +31,8 @@ const StreakPost = ({ post, onLike }: StreakPostProps) => {
   };
 
   const handlePlayPause = () => {
-    if (post.song?.preview_url) {
-      playAudio(`post-${post.id}`, post.song.preview_url);
+    if (post.song?.previewUrl) {
+      playAudio(`post-${post.id}`, post.song.previewUrl);
     }
   };
 
@@ -77,9 +77,9 @@ const StreakPost = ({ post, onLike }: StreakPostProps) => {
           {post.song && (
             <div className="mt-3 flex items-center justify-between border border-muted rounded-md p-2 bg-black/5">
               <div className="flex items-center gap-2">
-                {post.song.album_art ? (
+                {post.song.albumArt ? (
                   <img 
-                    src={post.song.album_art}
+                    src={post.song.albumArt}
                     alt={`Album art for ${post.song.title}`}
                     className="h-10 w-10 rounded-md object-cover"
                   />
@@ -100,7 +100,7 @@ const StreakPost = ({ post, onLike }: StreakPostProps) => {
                   </div>
                 </div>
               </div>
-              {post.song.preview_url && (
+              {post.song.previewUrl && (
                 <Button 
                   variant="ghost" 
                   size="icon" 

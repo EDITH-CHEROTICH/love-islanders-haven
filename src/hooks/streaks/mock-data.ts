@@ -20,8 +20,8 @@ export const transformStreakData = (streakData: StreakData): StreakPost => {
     song: streakData.song_title ? {
       title: streakData.song_title,
       artist: streakData.song_artist || '',
-      album_art: streakData.song_album_art || '',
-      preview_url: streakData.song_preview_url || ''
+      albumArt: streakData.song_album_art || '',
+      previewUrl: streakData.song_preview_url || ''
     } : undefined,
     expires_at: streakData.expires_at
   };
