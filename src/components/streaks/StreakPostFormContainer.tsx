@@ -54,8 +54,6 @@ const StreakPostFormContainer = ({
     
     try {
       console.log("Form submission started with content length:", content.length);
-      console.log("Content data type:", typeof content);
-      console.log("Content is array:", Array.isArray(content));
       
       // Prepare submission data
       const submissionData = { 

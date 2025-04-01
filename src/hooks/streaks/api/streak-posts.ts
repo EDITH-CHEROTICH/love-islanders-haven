@@ -1,3 +1,4 @@
+
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from "@/integrations/supabase/client";
 import { StreakData } from "../types";
@@ -105,7 +106,6 @@ export const createStreakPost = async (
     };
     
     console.log("Inserting streak post with ID:", postId);
-    console.log("Post data:", postData);
     
     // Insert the data into the streaks table
     const { data, error } = await supabase
