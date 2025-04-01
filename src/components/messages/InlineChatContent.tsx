@@ -10,7 +10,7 @@ interface InlineChatContentProps {
   messages: MessageType[];
   isLoading: boolean;
   currentUserId: string | null;
-  onSendMessage: (content: string, contentType: 'text' | 'image' | 'audio', mediaUrl?: string) => Promise<void>;
+  onSendMessage: (content: string, contentType: 'text' | 'image' | 'audio', mediaUrl?: string) => Promise<boolean>;
 }
 
 const InlineChatContent: React.FC<InlineChatContentProps> = ({ 
@@ -35,7 +35,10 @@ const InlineChatContent: React.FC<InlineChatContentProps> = ({
   const handleSendMessage = async (content: string, contentType: 'text' | 'image' | 'audio' = 'text', mediaUrl?: string) => {
     setIsSending(true);
     try {
-      await onSendMessage(content, contentType, mediaUrl);
+      const success = await onSendMessage(content, contentType, mediaUrl);
+      if (!success) {
+        throw new Error("Failed to send message");
+      }
     } catch (error) {
       console.error('Failed to send message:', error);
       

@@ -1,128 +1,114 @@
 
-import React from 'react';
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { SongOption } from "./types";
-import { Spinner } from "@/components/ui/spinner";
-import { Check, Music } from "lucide-react";
-import { useAudioPlayer } from '@/hooks/use-audio-player';
+import React, { useState } from 'react';
+import { Search } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { useSongSearch } from '@/hooks/use-song-search';
+import SelectedSongDisplay from './SelectedSongDisplay';
 
+// Update type definitions to match expected props
 interface SongSearchSectionProps {
-  showSongInput: boolean;
-  songTitle: string;
-  isSearching: boolean;
-  songOptions: SongOption[];
-  onSongTitleChange: (value: string) => void;
-  onSongSelect: (id: string) => void;
-  onCancelSearch: () => void;
+  onSelectSong: (song: {
+    title: string;
+    artist: string;
+    albumArt: string;
+    previewUrl: string;
+  }) => void;
+  selectedSong: {
+    title: string;
+    artist: string;
+    albumArt: string;
+    previewUrl: string;
+  } | null;
 }
 
-const SongSearchSection = ({
-  showSongInput,
-  songTitle,
-  isSearching,
-  songOptions,
-  onSongTitleChange,
-  onSongSelect,
-  onCancelSearch
-}: SongSearchSectionProps) => {
-  const { currentSrc, isPlaying, togglePlayPause } = useAudioPlayer();
+const SongSearchSection: React.FC<SongSearchSectionProps> = ({ onSelectSong, selectedSong }) => {
+  const [query, setQuery] = useState('');
+  const { searchResults, isSearching, searchError, performSearch } = useSongSearch();
   
-  if (!showSongInput) return null;
-  
-  const handlePlayToggle = (e: React.MouseEvent, previewUrl: string | undefined) => {
-    e.stopPropagation();
-    if (previewUrl) {
-      togglePlayPause(previewUrl);
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (query.trim()) {
+      performSearch(query);
     }
   };
   
+  const handleSelectSong = (song: any) => {
+    onSelectSong({
+      title: song.name,
+      artist: song.artists[0].name,
+      albumArt: song.album.images[0]?.url || '',
+      previewUrl: song.preview_url
+    });
+    setQuery('');
+  };
+  
+  const handleClearSong = () => {
+    onSelectSong({
+      title: '',
+      artist: '',
+      albumArt: '',
+      previewUrl: ''
+    });
+  };
+  
   return (
-    <div className="space-y-3">
-      <div className="flex gap-2">
-        <Input
-          value={songTitle}
-          onChange={(e) => onSongTitleChange(e.target.value)}
-          placeholder="Search for a song..."
-          className="flex-1"
-        />
-        <Button variant="outline" onClick={onCancelSearch}>
-          Cancel
-        </Button>
-      </div>
+    <div className="mb-4">
+      <h3 className="text-lg font-medium mb-2">Add Music (Optional)</h3>
       
-      {isSearching && (
-        <div className="flex justify-center py-2">
-          <Spinner />
-        </div>
+      {selectedSong && selectedSong.title ? (
+        <SelectedSongDisplay
+          selectedSong={selectedSong}
+          onClearSong={handleClearSong}
+        />
+      ) : (
+        <form onSubmit={handleSearch} className="flex space-x-2">
+          <Input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search for a song..."
+            className="flex-1"
+          />
+          <Button 
+            type="submit" 
+            disabled={!query.trim() || isSearching}
+            className="bg-love hover:bg-love/90"
+          >
+            <Search size={16} className="mr-1" />
+            {isSearching ? 'Searching...' : 'Search'}
+          </Button>
+        </form>
       )}
       
-      {songOptions.length > 0 && (
-        <ul className="space-y-2 max-h-60 overflow-y-auto rounded-md border">
-          {songOptions.map((song) => (
-            <li
-              key={song.id}
-              onClick={() => onSongSelect(song.id)}
-              className="flex items-center p-2 hover:bg-muted/50 cursor-pointer"
-            >
-              <div className="flex-shrink-0 mr-3">
-                {song.album_art ? (
-                  <img
-                    src={song.album_art}
-                    alt={`${song.title} album art`}
-                    className="w-10 h-10 object-cover rounded-md"
-                  />
-                ) : (
-                  <div className="w-10 h-10 flex items-center justify-center bg-muted rounded-md">
-                    <Music size={16} />
-                  </div>
-                )}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-medium truncate">{song.title}</p>
-                <p className="text-sm text-muted-foreground truncate">{song.artist}</p>
-              </div>
-              <div className="flex items-center gap-2 ml-2">
-                {song.preview_url && (
-                  <Button
-                    type="button"
-                    size="icon"
-                    variant="ghost"
-                    onClick={(e) => handlePlayToggle(e, song.preview_url)}
-                    className="h-8 w-8"
-                  >
-                    <span className="sr-only">
-                      {isPlaying && currentSrc === song.preview_url ? 'Pause' : 'Play'} preview
-                    </span>
-                    {isPlaying && currentSrc === song.preview_url ? (
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
-                        <rect x="6" y="4" width="4" height="16" />
-                        <rect x="14" y="4" width="4" height="16" />
-                      </svg>
-                    ) : (
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
-                        <polygon points="5 3 19 12 5 21 5 3" />
-                      </svg>
-                    )}
-                  </Button>
-                )}
-                <Button
-                  type="button"
-                  size="icon"
-                  variant="ghost"
-                  className="h-8 w-8 text-muted-foreground"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onSongSelect(song.id);
-                  }}
-                >
-                  <Check className="h-4 w-4" />
-                  <span className="sr-only">Select song</span>
-                </Button>
-              </div>
-            </li>
-          ))}
-        </ul>
+      {searchError && (
+        <p className="text-red-500 text-sm mt-2">{searchError}</p>
+      )}
+      
+      {searchResults && searchResults.length > 0 && !selectedSong?.title && (
+        <div className="mt-3 max-h-60 overflow-y-auto bg-black/20 rounded-lg p-2">
+          <h4 className="text-sm font-semibold mb-2 px-2">Results</h4>
+          <ul className="space-y-1">
+            {searchResults.map((song) => (
+              <li 
+                key={song.id}
+                onClick={() => handleSelectSong(song)}
+                className="flex items-center p-2 hover:bg-white/10 rounded-md cursor-pointer transition-colors"
+              >
+                <img 
+                  src={song.album.images[2]?.url || '/placeholder.svg'} 
+                  alt={song.name} 
+                  className="w-10 h-10 mr-3 rounded"
+                />
+                <div className="min-w-0 flex-1">
+                  <p className="font-medium truncate">{song.name}</p>
+                  <p className="text-xs opacity-70 truncate">
+                    {song.artists.map(a => a.name).join(', ')}
+                  </p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
     </div>
   );
