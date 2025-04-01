@@ -46,6 +46,12 @@ export const useStreaksActions = (
         duration: postData.duration
       });
       
+      // Validate caption
+      if (postData.caption && typeof postData.caption !== 'string') {
+        console.error('Invalid caption format:', postData.caption);
+        postData.caption = undefined; // Reset invalid caption
+      }
+      
       // Calculate the new streak count
       const newStreakCount = userStreakCount + 1;
       
