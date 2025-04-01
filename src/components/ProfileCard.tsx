@@ -112,15 +112,7 @@ const ProfileCard = ({ profile, onSwipe }: ProfileCardProps) => {
         </div>
         
         {/* Comment button */}
-        <div className="absolute top-4 left-4">
-          <button 
-            onClick={toggleCommentInput}
-            className="w-8 h-8 rounded-full flex items-center justify-center bg-black/20 backdrop-blur-sm"
-            aria-label="Add comment"
-          >
-            <MessageCircle size={18} className="text-white" />
-          </button>
-        </div>
+        {/* Removed the comment button here */}
         
         {/* Comment input overlay */}
         {showCommentInput && (

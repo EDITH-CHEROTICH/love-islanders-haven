@@ -114,8 +114,9 @@ export interface SwipeResult {
 
 export const recordSwipeAction = async (profileId: string, action: string): Promise<SwipeResult> => {
   try {
-    const { data: userData, error: userError } = await supabase.auth.getUser();
-    const userId = userData.user?.id;
+    // Simplify auth user retrieval
+    const { data } = await supabase.auth.getUser();
+    const userId = data.user?.id;
 
     // If user is not authenticated, simulate the action
     if (!userId) {
@@ -153,7 +154,8 @@ export const recordSwipeAction = async (profileId: string, action: string): Prom
         console.error("Error checking for match:", matchError);
       }
 
-      return { success: true, isMatch: !!matchData };
+      const hasMatch = matchData !== null;
+      return { success: true, isMatch: hasMatch };
     }
 
     return { success: true, isMatch: false };
