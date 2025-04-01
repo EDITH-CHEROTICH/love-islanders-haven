@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Sliders } from 'lucide-react';
@@ -65,19 +64,6 @@ const DiscoverFilters: React.FC<DiscoverFiltersProps> = ({ activeFilters, onFilt
 
   return (
     <div>
-      <Button
-        onClick={openFilterDialog}
-        className="mt-4 bg-love hover:bg-love-dark text-white w-full"
-      >
-        <Sliders className="mr-2" size={16} />
-        Advanced Filters
-        {countActiveFilters() > 0 && (
-          <Badge variant="secondary" className="ml-2">
-            {countActiveFilters()}
-          </Badge>
-        )}
-      </Button>
-
       <Dialog open={isFilterDialogOpen} onOpenChange={setIsFilterDialogOpen}>
         <AdvancedFilters
           onFilterChange={applyFilters}
