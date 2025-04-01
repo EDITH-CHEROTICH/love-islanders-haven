@@ -141,21 +141,19 @@ export const recordSwipeAction = async (profileId: string, action: string): Prom
 
     // For right swipes, check if there's a match
     if (isLike) {
-      // Use a simpler query approach that avoids deep type instantiation
-      const { count, error: countError } = await supabase
-        .from('likes')
-        .select('*', { count: 'exact', head: true })
-        .eq('liker_id', profileId)
-        .eq('liked_id', userId)
-        .eq('is_like', true);
+      // Skip the complex type inference by using a raw query
+      const { data: matchData, error: matchError } = await supabase
+        .rpc('check_for_match', { 
+          liker: profileId, 
+          liked: userId 
+        });
       
-      if (countError) {
-        console.error("Error checking for match:", countError);
+      if (matchError) {
+        console.error("Error checking for match:", matchError);
         return { success: true, isMatch: false };
       }
       
-      // If count is greater than 0, we have a match
-      return { success: true, isMatch: count !== null && count > 0 };
+      return { success: true, isMatch: !!matchData };
     }
 
     return { success: true, isMatch: false };
