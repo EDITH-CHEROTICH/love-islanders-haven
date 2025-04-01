@@ -22,7 +22,7 @@ const useImageUpload = (toast: ReturnType<typeof useToast>): UseImageUploadRetur
     
     // Check if adding new files would exceed the limit
     if (previewUrls.length + files.length > 10) {
-      toast({
+      toast.toast({
         title: "Too many images",
         description: "You can only upload up to 10 images for a streak post.",
         variant: "destructive",

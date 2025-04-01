@@ -13,6 +13,7 @@ import DurationSelector from "./DurationSelector";
 import useSongSearch from "@/hooks/use-song-search";
 import MultiImagePreview from "./MultiImagePreview";
 import useImageUpload from "./hooks/useImageUpload";
+import SongSelectionArea from "./SongSelectionArea";
 
 interface StreakPostFormContainerProps {
   onSubmit: (data: { content: string[]; caption?: string; song?: SongData; duration?: number }) => Promise<boolean>;
@@ -53,7 +54,7 @@ const StreakPostFormContainer = ({
     e.preventDefault();
     
     if (content.length === 0) {
-      toast({
+      toast.toast({
         title: "Missing content",
         description: "Please select at least one image for your streak post.",
         variant: "destructive",
@@ -80,7 +81,7 @@ const StreakPostFormContainer = ({
         setDuration(24);
       } else {
         console.error("Form submission failed");
-        toast({
+        toast.toast({
           title: "Error",
           description: "Failed to post your streak. Please try again.",
           variant: "destructive",
@@ -88,7 +89,7 @@ const StreakPostFormContainer = ({
       }
     } catch (error) {
       console.error("Error submitting post:", error);
-      toast({
+      toast.toast({
         title: "Error",
         description: "Failed to post your streak. Please try again.",
         variant: "destructive",
@@ -113,7 +114,7 @@ const StreakPostFormContainer = ({
       });
       setShowSongInput(false);
       clearSearch();
-      toast({
+      toast.toast({
         title: "Song added",
         description: `${selectedSong.title} by ${selectedSong.artist} added to your post`,
       });
