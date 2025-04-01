@@ -1,7 +1,27 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { Profile } from '../utils/dummyData';
-import { ChevronLeft, ChevronRight, Info, Check, MapPin, Briefcase, GraduationCap } from 'lucide-react';
+import { 
+  ChevronLeft, 
+  ChevronRight, 
+  Info, 
+  Check, 
+  MapPin, 
+  Briefcase, 
+  GraduationCap,
+  Heart,
+  MessageCircle,
+  X
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
+import { 
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselPrevious,
+  CarouselNext
+} from '@/components/ui/carousel';
 
 interface ProfileCardProps {
   profile: Profile;
@@ -14,11 +34,21 @@ const ProfileCard = ({ profile, onSwipe }: ProfileCardProps) => {
   const [offsetX, setOffsetX] = useState(0);
   const [isSwiping, setIsSwiping] = useState(false);
   const [showMoreInfo, setShowMoreInfo] = useState(false);
+  const [showCommentInput, setShowCommentInput] = useState(false);
+  const [comment, setComment] = useState('');
   const cardRef = useRef<HTMLDivElement>(null);
+
+  // If profile has no images, use placeholder images
+  const images = profile.images && profile.images.length > 0 
+    ? profile.images 
+    : [
+        'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?q=80&w=1964&auto=format&fit=crop',
+        'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=1964&auto=format&fit=crop'
+      ];
 
   const handleNextImage = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (currentImageIndex < profile.images.length - 1) {
+    if (currentImageIndex < images.length - 1) {
       setCurrentImageIndex(currentImageIndex + 1);
     }
   };
@@ -50,8 +80,16 @@ const ProfileCard = ({ profile, onSwipe }: ProfileCardProps) => {
     const threshold = 100;
     if (offsetX > threshold) {
       onSwipe('right');
+      toast("Liked!", { 
+        icon: <Heart className="h-5 w-5 text-green-500" />,
+        description: `You liked ${profile.name}'s profile!`
+      });
     } else if (offsetX < -threshold) {
       onSwipe('left');
+      toast("Passed", { 
+        icon: <X className="h-5 w-5 text-rose-500" />,
+        description: `You passed on ${profile.name}'s profile.`
+      });
     }
     
     setIsSwiping(false);
@@ -63,6 +101,19 @@ const ProfileCard = ({ profile, onSwipe }: ProfileCardProps) => {
     setShowMoreInfo(!showMoreInfo);
   };
 
+  const toggleCommentInput = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowCommentInput(!showCommentInput);
+  };
+
+  const handleSendComment = () => {
+    if (comment.trim()) {
+      toast.success("Comment sent!");
+      setComment('');
+      setShowCommentInput(false);
+    }
+  };
+
   const cardStyle = {
     transform: isSwiping ? `translateX(${offsetX}px) rotate(${offsetX * 0.03}deg)` : 'translateX(0) rotate(0)',
   };
@@ -70,7 +121,7 @@ const ProfileCard = ({ profile, onSwipe }: ProfileCardProps) => {
   return (
     <div 
       ref={cardRef}
-      className="absolute inset-0 overflow-hidden rounded-xl shadow-xl"
+      className="relative w-full max-w-md mx-auto h-[70vh] overflow-hidden rounded-xl shadow-xl bg-black/10"
       style={cardStyle}
       onMouseDown={handleTouchStart}
       onMouseMove={handleTouchMove}
@@ -81,55 +132,94 @@ const ProfileCard = ({ profile, onSwipe }: ProfileCardProps) => {
       onTouchEnd={handleTouchEnd}
     >
       <div className="h-full w-full">
-        <img 
-          src={profile.images[currentImageIndex]} 
-          alt={profile.name} 
-          className="w-full h-full object-cover"
-          loading="lazy"
-        />
+        {/* Show carousel for multiple images or single image */}
+        {images.length > 1 ? (
+          <Carousel className="w-full h-full">
+            <CarouselContent className="h-full">
+              {images.map((image, idx) => (
+                <CarouselItem key={idx} className="h-full">
+                  <div className="h-full w-full">
+                    <img 
+                      src={image} 
+                      alt={`${profile.name} photo ${idx+1}`} 
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                  </div>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            <CarouselPrevious className="left-2 h-8 w-8 bg-black/20 text-white absolute" />
+            <CarouselNext className="right-2 h-8 w-8 bg-black/20 text-white absolute" />
+          </Carousel>
+        ) : (
+          <img 
+            src={images[0]} 
+            alt={profile.name} 
+            className="w-full h-full object-cover"
+            loading="lazy"
+          />
+        )}
         
-        {/* Image pagination indicator */}
-        {profile.images.length > 1 && (
-          <div className="absolute top-2 left-0 right-0 flex justify-center gap-1 px-2">
-            {profile.images.map((_, index) => (
-              <div 
-                key={index} 
-                className={`h-1 rounded-full ${index === currentImageIndex ? 'bg-white w-6' : 'bg-white/30 w-4'}`}
-              />
-            ))}
+        {/* Direction indicators for swiping */}
+        {offsetX > 50 && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="bg-green-500/70 rounded-full p-4">
+              <Heart size={40} className="text-white" />
+            </div>
           </div>
         )}
         
-        {/* Navigation buttons */}
-        <div className="absolute inset-y-0 left-0 w-1/4" onClick={handlePrevImage}>
-          {currentImageIndex > 0 && (
-            <div className="h-full flex items-center justify-start pl-2">
-              <div className="w-8 h-8 rounded-full flex items-center justify-center bg-black/20">
-                <ChevronLeft size={24} className="text-white" />
-              </div>
+        {offsetX < -50 && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="bg-rose-500/70 rounded-full p-4">
+              <X size={40} className="text-white" />
             </div>
-          )}
-        </div>
-        
-        <div className="absolute inset-y-0 right-0 w-1/4" onClick={handleNextImage}>
-          {currentImageIndex < profile.images.length - 1 && (
-            <div className="h-full flex items-center justify-end pr-2">
-              <div className="w-8 h-8 rounded-full flex items-center justify-center bg-black/20">
-                <ChevronRight size={24} className="text-white" />
-              </div>
-            </div>
-          )}
-        </div>
+          </div>
+        )}
         
         {/* More info button */}
         <div className="absolute top-4 right-4">
           <button 
             onClick={toggleMoreInfo}
             className="w-8 h-8 rounded-full flex items-center justify-center bg-black/20 backdrop-blur-sm"
+            aria-label="More information"
           >
             <Info size={18} className="text-white" />
           </button>
         </div>
+        
+        {/* Comment button */}
+        <div className="absolute top-4 left-4">
+          <button 
+            onClick={toggleCommentInput}
+            className="w-8 h-8 rounded-full flex items-center justify-center bg-black/20 backdrop-blur-sm"
+            aria-label="Add comment"
+          >
+            <MessageCircle size={18} className="text-white" />
+          </button>
+        </div>
+        
+        {/* Comment input overlay */}
+        {showCommentInput && (
+          <div className="absolute bottom-0 left-0 right-0 p-4 bg-black/80 backdrop-blur-md">
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                placeholder="Write a comment..."
+                className="flex-1 px-3 py-2 rounded-full bg-white/20 text-white placeholder:text-white/50 focus:outline-none"
+              />
+              <button 
+                onClick={handleSendComment}
+                className="bg-love hover:bg-love-dark text-white px-4 py-2 rounded-full"
+              >
+                Send
+              </button>
+            </div>
+          </div>
+        )}
         
         {/* More info panel */}
         {showMoreInfo && (

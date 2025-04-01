@@ -4,6 +4,7 @@ import { fetchDiscoverProfiles, recordSwipeAction } from '@/services/discover';
 import { Profile } from '@/utils/dummyData';
 import { AdvancedFilterOptions } from '@/components/discover/AdvancedFilters';
 import { toast } from 'sonner';
+import { useBehaviorTracking } from '@/hooks/use-behavior-tracking';
 
 export interface SwipeResult {
   success: boolean;
@@ -14,6 +15,7 @@ export function useDiscoverProfiles(filters: AdvancedFilterOptions) {
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [currentProfileIndex, setCurrentProfileIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  const { trackAction } = useBehaviorTracking();
 
   // Load profiles based on filters
   const loadProfiles = async () => {
@@ -42,6 +44,7 @@ export function useDiscoverProfiles(filters: AdvancedFilterOptions) {
     }
 
     const profileId = profiles[currentProfileIndex]?.id;
+    const currentProfile = profiles[currentProfileIndex];
 
     if (!profileId) {
       toast("Error", {
@@ -51,9 +54,16 @@ export function useDiscoverProfiles(filters: AdvancedFilterOptions) {
     }
 
     try {
+      // Track user behavior
+      trackAction(
+        profileId, 
+        action === 'right' ? 'like' : 'dislike', 
+        currentProfile
+      );
+
       const result = await recordSwipeAction(profileId, action);
       if (result.success) {
-        if (result.isMatch) {
+        if (result.isMatch && action === 'right') {
           toast("It's a Match!", {
             description: "You and this person have liked each other!"
           });
