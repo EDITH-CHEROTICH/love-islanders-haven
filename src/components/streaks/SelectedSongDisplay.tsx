@@ -12,8 +12,8 @@ export interface SongData {
 
 export interface SelectedSongDisplayProps {
   selectedSong?: SongData | null;
-  onClearSong: () => void;
-  song?: SongData;
+  onClearSong?: () => void;
+  song?: SongData | null;
   onRemoveSong?: () => void;
 }
 
@@ -30,7 +30,7 @@ const SelectedSongDisplay: React.FC<SelectedSongDisplayProps> = ({
   const handleRemove = () => {
     if (onRemoveSong) {
       onRemoveSong();
-    } else {
+    } else if (onClearSong) {
       onClearSong();
     }
   };

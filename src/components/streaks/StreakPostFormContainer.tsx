@@ -115,8 +115,8 @@ const StreakPostFormContainer = ({
       setSong({
         title: selectedSong.title,
         artist: selectedSong.artist,
-        album_art: selectedSong.album_art,
-        preview_url: selectedSong.preview_url
+        albumArt: selectedSong.album_art || '',
+        previewUrl: selectedSong.preview_url || ''
       });
       setShowSongInput(false);
       clearSearch();
@@ -177,8 +177,10 @@ const StreakPostFormContainer = ({
       <SongSearchSection
         showSongInput={showSongInput}
         songTitle={songTitle}
+        setSongTitle={setSongTitle}
         isSearching={isSearching}
         songOptions={songOptions}
+        clearSearch={clearSearch}
         onSongTitleChange={setSongTitle}
         onSongSelect={handleSongSelect}
         onCancelSearch={() => setShowSongInput(false)}

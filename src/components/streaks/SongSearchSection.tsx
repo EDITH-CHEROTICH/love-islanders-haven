@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { Search, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { SongOption } from '@/hooks/use-song-search';
+import { SongOption } from '@/components/streaks/types';
 
 export interface SongSearchSectionProps {
   songTitle: string;
