@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Profile } from '@/utils/dummyData';
 
@@ -142,28 +141,24 @@ export const recordSwipeAction = async (profileId: string, action: string): Prom
 
     // For right swipes, check if there's a match
     if (isLike) {
-      // Use a completely different approach to check for matches
-      // that avoids complex typing issues
+      // Simplest possible approach to avoid typing issues
+      let isMatch = false;
+      
       try {
-        const { data: matchData, error: matchError } = await supabase
+        const { data: matchData } = await supabase
           .from('likes')
           .select('id')
           .eq('liker_id', profileId)
           .eq('liked_id', userId)
-          .eq('is_like', true)
-          .limit(1);
+          .eq('is_like', true);
           
-        if (matchError) {
-          console.error("Error checking for match:", matchError);
-          return { success: true, isMatch: false };
-        }
-        
-        // Return whether there was a match (array has items)
-        return { success: true, isMatch: matchData.length > 0 };
-      } catch (matchError) {
-        console.error("Error in match checking:", matchError);
-        return { success: true, isMatch: false };
+        // Check if array has any items
+        isMatch = Array.isArray(matchData) && matchData.length > 0;
+      } catch (error) {
+        console.error("Error checking for match:", error);
       }
+      
+      return { success: true, isMatch };
     }
 
     return { success: true, isMatch: false };
