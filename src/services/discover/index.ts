@@ -142,23 +142,24 @@ export const recordSwipeAction = async (profileId: string, action: string): Prom
 
     // For right swipes, check if there's a match
     if (isLike) {
-      // Use a simpler approach to check for matches
+      // Use a completely different approach to check for matches
+      // that avoids complex typing issues
       try {
-        // Just check if the other person liked the current user
-        const { count, error } = await supabase
+        const { data: matchData, error: matchError } = await supabase
           .from('likes')
-          .select('*', { count: 'exact', head: true })
+          .select('id')
           .eq('liker_id', profileId)
           .eq('liked_id', userId)
-          .eq('is_like', true);
+          .eq('is_like', true)
+          .limit(1);
           
-        if (error) {
-          console.error("Error checking for match:", error);
+        if (matchError) {
+          console.error("Error checking for match:", matchError);
           return { success: true, isMatch: false };
         }
         
-        // Return whether there was a match
-        return { success: true, isMatch: count > 0 };
+        // Return whether there was a match (array has items)
+        return { success: true, isMatch: matchData.length > 0 };
       } catch (matchError) {
         console.error("Error in match checking:", matchError);
         return { success: true, isMatch: false };
