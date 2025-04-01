@@ -70,6 +70,11 @@ export const fetchDiscoverProfiles = async (filters: DiscoverFilters): Promise<P
         ? profile.relationship_goal as 'long-term' | 'casual' | 'both'
         : 'both';
 
+      // Make sure heightUnit is one of the allowed values
+      const typedHeightUnit = (profile.height_unit === 'ft' || profile.height_unit === 'm' || profile.height_unit === 'cm')
+        ? profile.height_unit as 'ft' | 'm' | 'cm'
+        : 'cm';
+
       // Create a profile object with required fields
       return {
         id: profile.id,
@@ -99,8 +104,9 @@ export const fetchDiscoverProfiles = async (filters: DiscoverFilters): Promise<P
         hasChildren: Boolean(profile.has_children),
         hasPets: Boolean(profile.has_pets),
         petType: profile.pet_type,
-        heightUnit: profile.height_unit,
+        heightUnit: typedHeightUnit,
         activityStatus: 'Recently active', // Default activity status
+        showAge: true // Default to showing age
       };
     });
 

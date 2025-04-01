@@ -1,4 +1,3 @@
-
 // Define Profile type with all the properties being used in the app
 export interface Profile {
   id: string;
@@ -30,6 +29,7 @@ export interface Profile {
   petType?: string;
   videos?: string[];
   activityStatus?: string;
+  showAge?: boolean;
 }
 
 export interface Match {
@@ -69,7 +69,8 @@ export const userProfile: Profile = {
   hasChildren: false,
   hasPets: true,
   petType: 'dog',
-  activityStatus: 'Online'
+  activityStatus: 'Online',
+  showAge: true
 };
 
 // Sample profiles for discover page
@@ -103,7 +104,8 @@ export const profiles: Profile[] = [
     hasChildren: false,
     hasPets: true,
     petType: 'dog',
-    activityStatus: 'Recently active'
+    activityStatus: 'Recently active',
+    showAge: true
   },
   {
     id: 'profile-2',
@@ -134,7 +136,8 @@ export const profiles: Profile[] = [
     hasChildren: false,
     hasPets: true,
     petType: 'cat',
-    activityStatus: 'Active today'
+    activityStatus: 'Active today',
+    showAge: true
   },
   {
     id: 'profile-3',
@@ -164,7 +167,8 @@ export const profiles: Profile[] = [
     pets: 'No pets',
     hasChildren: false,
     hasPets: false,
-    activityStatus: 'Online'
+    activityStatus: 'Online',
+    showAge: true
   }
 ];
 
@@ -202,7 +206,8 @@ export const matches: Match[] = [
       hasChildren: false,
       hasPets: true,
       petType: 'dog',
-      activityStatus: 'Recently active'
+      activityStatus: 'Recently active',
+      showAge: true
     }
   },
   {
@@ -237,7 +242,15 @@ export const matches: Match[] = [
       hasChildren: false,
       hasPets: true,
       petType: 'cat',
-      activityStatus: 'Active today'
+      activityStatus: 'Active today',
+      showAge: true
     }
   }
 ];
+
+// Fix type for the heightUnit in the profile samples
+profiles.forEach(profile => {
+  if (profile.heightUnit && !['ft', 'm', 'cm'].includes(profile.heightUnit as string)) {
+    profile.heightUnit = 'cm';
+  }
+});

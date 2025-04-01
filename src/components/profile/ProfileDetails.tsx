@@ -8,7 +8,7 @@ interface ProfileDetailsProps {
 
 const ProfileDetails = ({ profile }: ProfileDetailsProps) => {
   const getAgeDisplay = () => {
-    if (!profile.showAge && profile.age) {
+    if (profile.showAge === false && profile.age) {
       return 'Age hidden';
     } else if (profile.age) {
       return `${profile.age}`;
