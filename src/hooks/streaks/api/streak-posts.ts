@@ -64,7 +64,7 @@ export const fetchStreakPosts = async () => {
 // Create a new streak post
 export const createStreakPost = async (
   userId: string, 
-  content: string, 
+  content: string[], 
   streakCount: number,
   expiresAt: string,
   caption?: string, 

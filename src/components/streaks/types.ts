@@ -2,7 +2,7 @@
 export interface StreakPost {
   id: string;
   user_id: string;
-  content: string;
+  content: string[];  // Changed from string to string[] to support multiple images
   caption?: string;
   created_at: string;
   streak_count: number;

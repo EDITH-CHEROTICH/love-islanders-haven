@@ -4,7 +4,7 @@ import { SongData } from "./types";
 import StreakPostFormContainer from "./StreakPostFormContainer";
 
 interface StreakPostFormProps {
-  onSubmit: (data: { content: string; caption?: string; song?: SongData; duration?: number }) => Promise<boolean>;
+  onSubmit: (data: { content: string[]; caption?: string; song?: SongData; duration?: number }) => Promise<boolean>;
   onCancel: () => void;
   isSubmitting?: boolean;
 }

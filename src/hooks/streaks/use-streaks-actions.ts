@@ -17,7 +17,7 @@ export const useStreaksActions = (
   const { toast } = useToast();
 
   const handlePostSubmit = async (postData: { 
-    content: string; 
+    content: string[]; 
     caption?: string; 
     song?: SongData;
     duration?: number 
@@ -31,10 +31,10 @@ export const useStreaksActions = (
       return false;
     }
     
-    if (!postData.content || postData.content.trim() === '') {
+    if (!postData.content || postData.content.length === 0) {
       toast({
         title: "Missing image",
-        description: "Please select an image for your streak post",
+        description: "Please select at least one image for your streak post",
         variant: "destructive",
       });
       return false;

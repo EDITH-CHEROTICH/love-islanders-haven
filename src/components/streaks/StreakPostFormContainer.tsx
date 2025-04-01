@@ -11,9 +11,10 @@ import FormControls from "./FormControls";
 import CaptionInput from "./CaptionInput";
 import DurationSelector from "./DurationSelector";
 import useSongSearch from "@/hooks/use-song-search";
+import MultiImagePreview from "./MultiImagePreview";
 
 interface StreakPostFormContainerProps {
-  onSubmit: (data: { content: string; caption?: string; song?: SongData; duration?: number }) => Promise<boolean>;
+  onSubmit: (data: { content: string[]; caption?: string; song?: SongData; duration?: number }) => Promise<boolean>;
   onCancel: () => void;
   isSubmitting?: boolean;
 }
@@ -23,9 +24,9 @@ const StreakPostFormContainer = ({
   onCancel, 
   isSubmitting = false 
 }: StreakPostFormContainerProps) => {
-  const [content, setContent] = useState<string>("");
+  const [content, setContent] = useState<string[]>([]);
   const [caption, setCaption] = useState<string>("");
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [showSongInput, setShowSongInput] = useState(false);
   const [song, setSong] = useState<SongData | null>(null);
@@ -36,30 +37,51 @@ const StreakPostFormContainer = ({
   const { songTitle, setSongTitle, isSearching, songOptions, clearSearch } = useSongSearch();
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setIsUploading(true);
-      
-      // Create a data URL for preview and storage
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    
+    // Check if adding new files would exceed the limit
+    if (previewUrls.length + files.length > 10) {
+      toast({
+        title: "Too many images",
+        description: "You can only upload up to 10 images for a streak post.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setIsUploading(true);
+    
+    // Process each file
+    Array.from(files).forEach(file => {
       const reader = new FileReader();
       reader.onload = () => {
         const imageUrl = reader.result as string;
-        setPreviewUrl(imageUrl);
-        // Set the content to the image data URL
-        setContent(imageUrl);
-        setIsUploading(false);
+        
+        setPreviewUrls(prev => [...prev, imageUrl]);
+        setContent(prev => [...prev, imageUrl]);
+        
+        // When all files are processed
+        if (previewUrls.length + 1 >= files.length) {
+          setIsUploading(false);
+        }
       };
       reader.readAsDataURL(file);
-    }
+    });
+  };
+
+  const removeImage = (index: number) => {
+    setPreviewUrls(prev => prev.filter((_, i) => i !== index));
+    setContent(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!content) {
+    if (content.length === 0) {
       toast({
         title: "Missing content",
-        description: "Please select an image for your streak post.",
+        description: "Please select at least one image for your streak post.",
         variant: "destructive",
       });
       return;
@@ -80,9 +102,9 @@ const StreakPostFormContainer = ({
       if (success) {
         // Reset form state on successful submission
         console.log("Form submitted successfully");
-        setContent("");
+        setContent([]);
         setCaption("");
-        setPreviewUrl(null);
+        setPreviewUrls([]);
         setSong(null);
         setDuration(24);
       } else {
@@ -140,13 +162,15 @@ const StreakPostFormContainer = ({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <ImageUploadSection
-        previewUrl={previewUrl}
+        previewUrls={previewUrls}
         isUploading={isUploading}
         onImageSelect={handleImageSelect}
         onClearPreview={() => {
-          setPreviewUrl(null);
-          setContent("");
+          setPreviewUrls([]);
+          setContent([]);
         }}
+        onRemoveImage={removeImage}
+        imageCount={previewUrls.length}
       />
       
       <CaptionInput 
@@ -193,7 +217,7 @@ const StreakPostFormContainer = ({
       
       <FormControls
         onCancel={onCancel}
-        isSubmitDisabled={!content || isUploading}
+        isSubmitDisabled={content.length === 0 || isUploading}
         isSubmitting={isSubmitting}
       />
     </form>

@@ -9,7 +9,7 @@ export const transformStreakData = (streakData: StreakData): StreakPost => {
   return {
     id: streakData.id,
     user_id: streakData.user_id,
-    content: streakData.content,
+    content: streakData.content, // This could be a string or array of strings
     caption: streakData.caption || undefined,
     created_at: streakData.created_at,
     streak_count: streakData.streak_count,
