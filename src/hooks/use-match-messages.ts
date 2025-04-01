@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -105,7 +104,7 @@ export const useMatchMessages = (matchId: string | undefined, currentUserId: str
           if (match) {
             setMatchInfo({
               id: match.id,
-              matched_at: match.matchDate,
+              matched_at: match.matchDate, // Use matchDate from updated interface
               profile: match.profile
             });
           }

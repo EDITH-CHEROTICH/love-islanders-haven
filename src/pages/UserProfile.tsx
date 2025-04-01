@@ -1,7 +1,8 @@
+
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import ProfileView from '../components/ProfileView';
-import { userProfile } from '../utils/dummyData';
+import { userProfile } from '../utils/dummyData'; // Import from dummyData
 import { LogOut, Settings } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';

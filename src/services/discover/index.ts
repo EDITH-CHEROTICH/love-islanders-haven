@@ -85,9 +85,10 @@ export const fetchDiscoverProfiles = async (filters: DiscoverFilters): Promise<P
         ],
         interests: interests.length > 0 ? interests : ['Travel', 'Music'],
         relationshipGoal: typedRelationshipGoal,
-        height: profile.height || 175,
+        height: profile.height ? profile.height.toString() : '175', // Convert to string
+        heightCm: profile.height_cm || 175,
         gender: typedGender,
-        lastActive: new Date(),
+        lastActive: new Date().toISOString(), // Convert Date to string
         verified: Boolean(profile.verified),
         location: profile.location || 'Not specified',
         children: profile.has_children ? 'Has children' : 'No children',
@@ -95,6 +96,11 @@ export const fetchDiscoverProfiles = async (filters: DiscoverFilters): Promise<P
         drinking: 'Not specified', // Default value
         exercise: 'Not specified', // Default value
         pets: profile.has_pets ? 'Has pets' : 'No pets',
+        hasChildren: Boolean(profile.has_children),
+        hasPets: Boolean(profile.has_pets),
+        petType: profile.pet_type,
+        heightUnit: profile.height_unit,
+        activityStatus: 'Recently active', // Default activity status
       };
     });
 

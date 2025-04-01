@@ -34,7 +34,7 @@ const SAMPLE_IMAGES = [
   ]
 ];
 
-// Sample profiles data
+// Fix the sample profiles to match the updated Profile interface
 const SAMPLE_PROFILES: Profile[] = [
   {
     id: 'sample-profile-1',
@@ -48,8 +48,8 @@ const SAMPLE_PROFILES: Profile[] = [
     images: SAMPLE_IMAGES[0],
     interests: ['Yoga', 'Beach', 'Meditation', 'Travel'],
     relationshipGoal: 'both',
-    height: 168,
-    lastActive: new Date(Date.now() - 1000 * 60 * 10), // 10 minutes ago
+    height: '168', // Change to string to match Profile type
+    lastActive: new Date(Date.now() - 1000 * 60 * 10).toISOString(), // Convert to string
     verified: true,
     location: 'Miami, FL',
     children: 'No children',
@@ -57,6 +57,11 @@ const SAMPLE_PROFILES: Profile[] = [
     drinking: 'Social drinker',
     exercise: 'Regular',
     pets: 'No pets',
+    heightCm: 168,
+    hasChildren: false,
+    hasPets: false,
+    activityStatus: 'Online',
+    heightUnit: 'm'
   },
   {
     id: 'sample-profile-2',
@@ -70,8 +75,8 @@ const SAMPLE_PROFILES: Profile[] = [
     images: SAMPLE_IMAGES[1],
     interests: ['Photography', 'Movies', 'Hiking', 'Travel'],
     relationshipGoal: 'both',
-    height: 183,
-    lastActive: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
+    height: '183', // Change to string
+    lastActive: new Date(Date.now() - 1000 * 60 * 30).toISOString(), // Convert to string
     verified: false,
     location: 'Los Angeles, CA',
     children: 'No children',
@@ -79,6 +84,12 @@ const SAMPLE_PROFILES: Profile[] = [
     drinking: 'Social drinker',
     exercise: 'Sometimes',
     pets: 'Has pets',
+    heightCm: 183,
+    hasChildren: false,
+    hasPets: true,
+    petType: 'dog',
+    activityStatus: 'Recently active',
+    heightUnit: 'm'
   },
   {
     id: 'sample-profile-3',
@@ -92,8 +103,8 @@ const SAMPLE_PROFILES: Profile[] = [
     images: SAMPLE_IMAGES[2],
     interests: ['Art', 'Music', 'Reading', 'Dancing'],
     relationshipGoal: 'long-term',
-    height: 163,
-    lastActive: new Date(Date.now() - 1000 * 60 * 60), // 1 hour ago
+    height: '163', // Change to string
+    lastActive: new Date(Date.now() - 1000 * 60 * 60).toISOString(), // Convert to string
     verified: true,
     location: 'New York, NY',
     children: 'No children',
@@ -101,6 +112,11 @@ const SAMPLE_PROFILES: Profile[] = [
     drinking: 'Rarely',
     exercise: 'Regular',
     pets: 'No pets',
+    heightCm: 163,
+    hasChildren: false,
+    hasPets: false,
+    activityStatus: 'Active today',
+    heightUnit: 'm'
   },
   {
     id: 'sample-profile-4',
@@ -114,8 +130,8 @@ const SAMPLE_PROFILES: Profile[] = [
     images: SAMPLE_IMAGES[3],
     interests: ['Technology', 'Cooking', 'Music', 'Fitness'],
     relationshipGoal: 'both',
-    height: 185,
-    lastActive: new Date(Date.now() - 1000 * 60 * 120), // 2 hours ago
+    height: '185', // Change to string
+    lastActive: new Date(Date.now() - 1000 * 60 * 120).toISOString(), // Convert to string
     verified: false,
     location: 'Chicago, IL',
     children: 'No children',
@@ -123,6 +139,11 @@ const SAMPLE_PROFILES: Profile[] = [
     drinking: 'Social drinker',
     exercise: 'Regular',
     pets: 'No pets',
+    heightCm: 185,
+    hasChildren: false,
+    hasPets: false,
+    activityStatus: 'Active yesterday',
+    heightUnit: 'm'
   },
   {
     id: 'sample-profile-5',
@@ -136,8 +157,8 @@ const SAMPLE_PROFILES: Profile[] = [
     images: SAMPLE_IMAGES[4],
     interests: ['Music', 'Dancing', 'Travel', 'Fitness'],
     relationshipGoal: 'casual',
-    height: 170,
-    lastActive: new Date(Date.now() - 1000 * 60 * 180), // 3 hours ago
+    height: '170', // Change to string
+    lastActive: new Date(Date.now() - 1000 * 60 * 180).toISOString(), // Convert to string
     verified: true,
     location: 'Austin, TX',
     children: 'No children',
@@ -145,6 +166,12 @@ const SAMPLE_PROFILES: Profile[] = [
     drinking: 'Social drinker',
     exercise: 'Regular',
     pets: 'Has pets',
+    heightCm: 170,
+    hasChildren: false,
+    hasPets: true,
+    petType: 'dog',
+    activityStatus: 'Online',
+    heightUnit: 'm'
   }
 ];
 
