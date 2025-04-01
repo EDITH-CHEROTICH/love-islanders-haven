@@ -7,9 +7,22 @@ import { StreakPost } from "@/components/streaks/types";
  */
 export const transformStreakData = (streakData: StreakData): StreakPost => {
   // Handle case where content could be string or string[]
-  const contentArray = Array.isArray(streakData.content) 
-    ? streakData.content 
-    : [streakData.content as string];
+  let contentArray: string[] = [];
+  
+  try {
+    if (typeof streakData.content === 'string') {
+      // Try to parse JSON string to array
+      const parsedContent = JSON.parse(streakData.content);
+      contentArray = Array.isArray(parsedContent) ? parsedContent : [streakData.content];
+    } else if (Array.isArray(streakData.content)) {
+      contentArray = streakData.content;
+    } else {
+      contentArray = [String(streakData.content)];
+    }
+  } catch (e) {
+    // If parsing fails, treat as single string
+    contentArray = [String(streakData.content)];
+  }
     
   return {
     id: streakData.id,

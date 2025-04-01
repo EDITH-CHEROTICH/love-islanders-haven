@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Toast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 interface UseImageUploadReturn {
   content: string[];
@@ -11,7 +11,7 @@ interface UseImageUploadReturn {
   clearImages: () => void;
 }
 
-const useImageUpload = (toast: Toast): UseImageUploadReturn => {
+const useImageUpload = (toast: ReturnType<typeof useToast>): UseImageUploadReturn => {
   const [content, setContent] = useState<string[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [isUploading, setIsUploading] = useState(false);

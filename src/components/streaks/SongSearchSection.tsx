@@ -1,9 +1,10 @@
 
 import { useState, useEffect } from 'react';
-import { Search, Loader2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { SongOption } from '@/components/streaks/types';
+import SongSearchBar from './SongSearchBar';
+import SongList from './SongList';
+import SearchError from './SearchError';
+import CancelButton from './CancelButton';
 
 export interface SongSearchSectionProps {
   songTitle: string;
@@ -13,7 +14,6 @@ export interface SongSearchSectionProps {
   clearSearch: () => void;
   performSearch?: () => void;
   searchError?: string;
-  searchResults?: SongOption[];
   showSongInput?: boolean;
   onSongSelect?: (id: string) => void;
   onSongTitleChange?: React.Dispatch<React.SetStateAction<string>>;
@@ -28,7 +28,6 @@ const SongSearchSection: React.FC<SongSearchSectionProps> = ({
   clearSearch,
   performSearch,
   searchError,
-  searchResults,
   showSongInput,
   onSongSelect,
   onSongTitleChange,
@@ -37,8 +36,7 @@ const SongSearchSection: React.FC<SongSearchSectionProps> = ({
   const [debouncedTitle, setDebouncedTitle] = useState(songTitle);
   
   // Handle controlled input
-  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
+  const handleTitleChange = (value: string) => {
     if (onSongTitleChange) {
       onSongTitleChange(value);
     } else {
@@ -79,6 +77,13 @@ const SongSearchSection: React.FC<SongSearchSectionProps> = ({
       clearSearch();
     }
   };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && performSearch) {
+      e.preventDefault();
+      performSearch();
+    }
+  };
   
   if (showSongInput === false) {
     return null;
@@ -86,74 +91,25 @@ const SongSearchSection: React.FC<SongSearchSectionProps> = ({
   
   return (
     <div className="space-y-4">
-      <div className="flex space-x-2">
-        <div className="relative flex-1">
-          <Input
-            placeholder="Search for a song..."
-            value={songTitle}
-            onChange={handleTitleChange}
-            className="w-full"
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && performSearch) {
-                e.preventDefault();
-                performSearch();
-              }
-            }}
-          />
-          {isSearching && (
-            <div className="absolute right-3 top-2.5">
-              <Loader2 size={16} className="animate-spin text-muted-foreground" />
-            </div>
-          )}
-        </div>
-        <Button 
-          type="button" 
-          variant="outline" 
-          onClick={handleSearch}
-          disabled={isSearching || !songTitle}
-        >
-          <Search size={16} />
-        </Button>
-      </div>
+      <SongSearchBar
+        songTitle={songTitle}
+        onSongTitleChange={handleTitleChange}
+        isSearching={isSearching}
+        onSearch={handleSearch}
+        onKeyDown={handleKeyDown}
+      />
       
-      {searchError && <p className="text-sm text-red-500">{searchError}</p>}
+      <SearchError error={searchError || ''} />
       
-      {songOptions.length > 0 && (
-        <div className="bg-black/20 rounded-md max-h-48 overflow-y-auto">
-          <ul>
-            {songOptions.map((song) => (
-              <li 
-                key={song.id}
-                className="p-2 hover:bg-black/30 cursor-pointer flex items-center space-x-2"
-                onClick={() => handleSelectSong(song.id)}
-              >
-                {song.album_art && (
-                  <img 
-                    src={song.album_art} 
-                    alt={song.title} 
-                    className="w-10 h-10 rounded object-cover"
-                  />
-                )}
-                <div>
-                  <p className="font-medium">{song.title}</p>
-                  <p className="text-sm opacity-80">{song.artist}</p>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+      <SongList
+        songs={songOptions}
+        onSelectSong={handleSelectSong}
+      />
       
-      {(songTitle || songOptions.length > 0) && (
-        <Button 
-          type="button" 
-          variant="ghost" 
-          onClick={handleCancelSearch}
-          size="sm"
-        >
-          Cancel
-        </Button>
-      )}
+      <CancelButton
+        visible={!!songTitle || songOptions.length > 0}
+        onClick={handleCancelSearch}
+      />
     </div>
   );
 };

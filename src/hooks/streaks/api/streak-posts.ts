@@ -83,11 +83,11 @@ export const createStreakPost = async (
     // Create a unique ID for the post
     const postId = uuidv4();
     
-    // Prepare the data for insertion
+    // Prepare the data for insertion - convert content to JSON string for DB storage
     const postData = {
       id: postId,
       user_id: userId,
-      content: content,
+      content: JSON.stringify(content), // Convert array to JSON string
       caption: caption || null,
       streak_count: streakCount,
       song_title: song?.title || null,
