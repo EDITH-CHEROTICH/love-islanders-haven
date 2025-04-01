@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context/auth";
 import { Button } from "@/components/ui/button";
@@ -34,6 +35,8 @@ const Streaks = () => {
     // Refresh posts when component mounts
     if (isAuthenticated) {
       fetchPosts();
+      // Check if user has posted today
+      checkUserStreak();
     }
   }, [isAuthenticated]);
 
@@ -59,10 +62,20 @@ const Streaks = () => {
       setIsSubmitting(true);
       console.log("Streak form submitted with data:", {
         contentLength: postData.content.length,
-        content: postData.content,
         caption: postData.caption,
         duration: postData.duration
       });
+      
+      // Validate content data
+      if (!postData.content || !Array.isArray(postData.content) || postData.content.length === 0) {
+        console.error("Invalid content data:", postData.content);
+        toast({
+          title: "Error",
+          description: "Invalid image data. Please select images again.",
+          variant: "destructive",
+        });
+        return false;
+      }
       
       // Submit post
       const success = await handlePostSubmit(postData);

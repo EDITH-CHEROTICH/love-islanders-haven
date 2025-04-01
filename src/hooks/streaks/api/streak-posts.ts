@@ -1,3 +1,4 @@
+
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from "@/integrations/supabase/client";
 import { StreakData } from "../types";
@@ -41,8 +42,22 @@ export const fetchStreakPosts = async () => {
           .eq('id', streak.user_id)
           .single();
         
+        // Parse the content if it's a JSON string
+        let parsedContent;
+        try {
+          if (typeof streak.content === 'string') {
+            parsedContent = JSON.parse(streak.content);
+          } else {
+            parsedContent = streak.content;
+          }
+        } catch (e) {
+          console.error("Error parsing streak content:", e);
+          parsedContent = streak.content; // Keep as is if parsing fails
+        }
+        
         return {
           ...streak,
+          content: parsedContent,
           profiles: profileData ? { name: profileData.name } : { name: 'Unknown User' }
         };
       })
@@ -72,6 +87,12 @@ export const createStreakPost = async (
   });
 
   try {
+    // Validate content
+    if (!Array.isArray(content) || content.length === 0) {
+      console.error("Invalid content format or empty content array");
+      throw new Error("Invalid content format");
+    }
+
     // Create a unique ID for the post
     const postId = uuidv4();
     

@@ -1,3 +1,4 @@
+
 import { useToast } from "@/hooks/use-toast";
 import { createStreakPost, likeStreakPost } from "./api";
 
@@ -40,6 +41,7 @@ export const useStreaksActions = (
     try {
       console.log("Submitting post with data:", {
         contentLength: postData.content.length,
+        content: postData.content.slice(0, 1), // Log just first item for debugging
         caption: postData.caption,
         duration: postData.duration
       });
@@ -80,10 +82,23 @@ export const useStreaksActions = (
       setUserStreakCount(newStreakCount);
       
       // Create a new post object with all the necessary fields
+      // Parse the content if it's a string (it might be stored as a JSON string in the DB)
+      let parsedContent;
+      try {
+        if (typeof streakData.content === 'string') {
+          parsedContent = JSON.parse(streakData.content);
+        } else {
+          parsedContent = streakData.content;
+        }
+      } catch (e) {
+        console.error("Error parsing streak content:", e);
+        parsedContent = streakData.content;
+      }
+      
       const newPost = {
         id: streakData.id,
         user_id: streakData.user_id,
-        content: streakData.content,
+        content: parsedContent,
         caption: streakData.caption || undefined,
         created_at: streakData.created_at,
         streak_count: streakData.streak_count,

@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 
 interface UseImageUploadProps {
@@ -20,9 +20,21 @@ const useImageUpload = ({ toast }: UseImageUploadProps): UseImageUploadReturn =>
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   
+  // Debug state changes
+  useEffect(() => {
+    console.log("Image upload state:", {
+      contentLength: content.length,
+      previewUrlsLength: previewUrls.length,
+      isUploading
+    });
+  }, [content, previewUrls, isUploading]);
+  
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
-    if (!files || files.length === 0) return;
+    if (!files || files.length === 0) {
+      console.log("No files selected");
+      return;
+    }
     
     // Check if adding new files would exceed the limit
     if (previewUrls.length + files.length > 10) {
@@ -46,36 +58,46 @@ const useImageUpload = ({ toast }: UseImageUploadProps): UseImageUploadReturn =>
       const reader = new FileReader();
       
       reader.onload = () => {
-        const imageUrl = reader.result as string;
-        newImages.push(imageUrl);
-        processed++;
-        
-        console.log(`Processed ${processed} of ${fileCount} images`);
-        
-        // When all files are processed, update state
-        if (processed === fileCount) {
-          console.log("All images processed, updating state with", newImages.length, "new images");
-          setPreviewUrls(prev => [...prev, ...newImages]);
-          setContent(prev => [...prev, ...newImages]);
-          setIsUploading(false);
+        if (reader.result) {
+          const imageUrl = reader.result.toString();
+          newImages.push(imageUrl);
+          processed++;
+          
+          console.log(`Processed ${processed} of ${fileCount} images`);
+          
+          // When all files are processed, update state
+          if (processed === fileCount) {
+            console.log("All images processed, updating state with", newImages.length, "new images");
+            setPreviewUrls(prev => [...prev, ...newImages]);
+            setContent(prev => [...prev, ...newImages]);
+            setIsUploading(false);
+          }
+        } else {
+          console.error("Error reading file: null result");
+          processed++;
+          checkAllProcessed();
         }
       };
       
       reader.onerror = () => {
         console.error("Error reading file:", file.name);
         processed++;
-        
-        if (processed === fileCount) {
-          setIsUploading(false);
-          if (newImages.length > 0) {
-            setPreviewUrls(prev => [...prev, ...newImages]);
-            setContent(prev => [...prev, ...newImages]);
-          }
-        }
+        checkAllProcessed();
       };
       
       reader.readAsDataURL(file);
     });
+    
+    // Helper function to check if all files have been processed
+    function checkAllProcessed() {
+      if (processed === fileCount) {
+        setIsUploading(false);
+        if (newImages.length > 0) {
+          setPreviewUrls(prev => [...prev, ...newImages]);
+          setContent(prev => [...prev, ...newImages]);
+        }
+      }
+    }
   };
 
   const removeImage = (index: number) => {

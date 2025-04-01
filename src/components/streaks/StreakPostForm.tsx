@@ -13,6 +13,7 @@ const StreakPostForm = ({
   onCancel, 
   isSubmitting = false 
 }: StreakPostFormProps) => {
+  // Pass the props directly to the container component
   return (
     <StreakPostFormContainer
       onSubmit={onSubmit}

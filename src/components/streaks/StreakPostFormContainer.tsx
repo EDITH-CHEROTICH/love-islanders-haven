@@ -1,12 +1,11 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import ImageUploadSection from "./ImageUploadSection";
 import FormControls from "./FormControls";
 import CaptionInput from "./CaptionInput";
 import DurationSelector from "./DurationSelector";
-import MultiImagePreview from "./MultiImagePreview";
 import useImageUpload from "./hooks/useImageUpload";
 
 interface StreakPostFormContainerProps {
@@ -34,6 +33,15 @@ const StreakPostFormContainer = ({
     clearImages 
   } = useImageUpload({ toast });
 
+  // Debug the form state
+  useEffect(() => {
+    console.log("Form state updated:", { 
+      contentLength: content.length, 
+      isUploading,
+      isSubmitting
+    });
+  }, [content, isUploading, isSubmitting]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -48,18 +56,8 @@ const StreakPostFormContainer = ({
     
     try {
       console.log("Form submission started with content length:", content.length);
-      console.log("Content data:", content);
-      
-      // Ensure we have the right data format before submission
-      if (!Array.isArray(content)) {
-        console.error("Content is not an array");
-        toast({
-          title: "Error",
-          description: "There was a problem with the image data. Please try again.",
-          variant: "destructive",
-        });
-        return;
-      }
+      console.log("Content data type:", typeof content);
+      console.log("Content is array:", Array.isArray(content));
       
       // Prepare submission data
       const submissionData = { 
@@ -103,13 +101,6 @@ const StreakPostFormContainer = ({
   const handleDurationChange = (value: number[]) => {
     setDuration(value[0]);
   };
-
-  // Log form state for debugging
-  console.log("Form state:", { 
-    contentLength: content.length, 
-    isUploading,
-    isSubmitDisabled: content.length === 0 || isUploading
-  });
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
