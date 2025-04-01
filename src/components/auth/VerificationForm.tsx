@@ -134,6 +134,9 @@ const VerificationForm = ({
         localStorage.setItem('authMethod', 'email');
         localStorage.setItem('authContact', email);
         
+        // Set verification status in localStorage
+        localStorage.setItem('emailVerificationCompleted', 'true');
+        
         toast.success("Verification successful!");
         
         // First call onClose to close the popup

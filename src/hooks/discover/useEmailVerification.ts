@@ -17,6 +17,15 @@ export function useEmailVerification() {
     // First check if user is authenticated
     if (isAuthenticated) {
       try {
+        // Check if verification has already been completed
+        const verificationCompleted = localStorage.getItem('emailVerificationCompleted');
+        
+        if (verificationCompleted === 'true') {
+          console.log("Email verification already completed, not showing popup");
+          setShowVerificationPopup(false);
+          return;
+        }
+        
         // Check if we have an email in localStorage
         const authContact = localStorage.getItem('authContact');
         
@@ -34,6 +43,10 @@ export function useEmailVerification() {
             // If no profile found or query returned empty array, show verification popup
             if (!data || data.length === 0 || error) {
               setShowVerificationPopup(true);
+            } else {
+              // Profile exists, mark verification as completed
+              localStorage.setItem('emailVerificationCompleted', 'true');
+              setShowVerificationPopup(false);
             }
           } else {
             // If no user ID is available, show verification popup
@@ -51,6 +64,8 @@ export function useEmailVerification() {
 
   const handleVerificationComplete = () => {
     console.log("Email verification completed, closing popup");
+    // Set verification completed in localStorage
+    localStorage.setItem('emailVerificationCompleted', 'true');
     setShowVerificationPopup(false);
   };
 
