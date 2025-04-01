@@ -1,11 +1,12 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Profile } from '@/utils/dummyData';
 import ProfileCard from '@/components/ProfileCard';
 import SwipeButtons from '@/components/SwipeButtons';
 import InlineChatOverlay from '@/components/messages/InlineChatOverlay';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { fetchVisibleProfileImages } from '@/services/profiles/media';
 
 interface ProfileDisplayProps {
   profile: Profile | null;
@@ -23,7 +24,31 @@ const ProfileDisplay: React.FC<ProfileDisplayProps> = ({
   filterCount
 }) => {
   const [showChatOverlay, setShowChatOverlay] = useState(false);
+  const [visibleImages, setVisibleImages] = useState<string[]>([]);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // Fetch visible images when profile changes
+    const loadVisibleImages = async () => {
+      if (profile?.id) {
+        try {
+          const images = await fetchVisibleProfileImages(profile.id);
+          if (images && images.length > 0) {
+            setVisibleImages(images);
+          } else {
+            // Fallback to all images if no visible ones found
+            setVisibleImages(profile.images);
+          }
+        } catch (error) {
+          console.error('Error loading visible images:', error);
+          // Fallback to all images on error
+          setVisibleImages(profile.images);
+        }
+      }
+    };
+    
+    loadVisibleImages();
+  }, [profile?.id, profile?.images]);
 
   if (isLoading) {
     return <div className="flex items-center justify-center h-48">
@@ -50,14 +75,18 @@ const ProfileDisplay: React.FC<ProfileDisplayProps> = ({
     }
   };
 
-  // Ensure we have images for the profile
-  const profileWithImages = {
+  // Create a new profile object with visible images
+  const profileWithVisibleImages = {
     ...profile,
-    images: profile.images && profile.images.length > 0 ? profile.images : ['https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?q=80&w=1964&auto=format&fit=crop', 'https://images.unsplash.com/photo-1604072366595-e75dc92d6bdc?q=80&w=1964&auto=format&fit=crop']
+    images: visibleImages && visibleImages.length > 0 
+      ? visibleImages 
+      : profile.images && profile.images.length > 0 
+        ? profile.images 
+        : ['https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?q=80&w=1964&auto=format&fit=crop', 'https://images.unsplash.com/photo-1604072366595-e75dc92d6bdc?q=80&w=1964&auto=format&fit=crop']
   };
 
   return <>
-      <ProfileCard profile={profileWithImages} onSwipe={onSwipe} />
+      <ProfileCard profile={profileWithVisibleImages} onSwipe={onSwipe} />
       
       <SwipeButtons 
         onSwipe={onSwipe} 

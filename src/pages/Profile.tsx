@@ -141,7 +141,10 @@ const Profile = () => {
             
             <TabsContent value="profile">
               <div className="space-y-6">
-                <ProfileMedia profile={profile} />
+                <ProfileMedia 
+                  profile={profile} 
+                  isMyProfile={true}
+                />
                 
                 <ProfileDetails profile={profile} />
                 

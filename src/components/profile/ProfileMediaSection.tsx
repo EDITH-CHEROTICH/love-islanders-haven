@@ -10,9 +10,10 @@ interface ProfileMediaSectionProps {
     videos?: string[];
   };
   visibleImagesIndices?: number[];
+  isMyProfile?: boolean;
 }
 
-const ProfileMediaSection = ({ profile, visibleImagesIndices }: ProfileMediaSectionProps) => {
+const ProfileMediaSection = ({ profile, visibleImagesIndices, isMyProfile = false }: ProfileMediaSectionProps) => {
   const [activeTab, setActiveTab] = useState<'images' | 'videos'>('images');
   
   return (
@@ -29,6 +30,7 @@ const ProfileMediaSection = ({ profile, visibleImagesIndices }: ProfileMediaSect
               images={profile.images}
               name={profile.name}
               visibleImagesIndices={visibleImagesIndices}
+              isEditable={isMyProfile}
             />
           </div>
         </TabsContent>

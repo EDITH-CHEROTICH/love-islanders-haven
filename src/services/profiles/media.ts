@@ -104,19 +104,25 @@ export const fetchVisibleProfileImages = async (profileId?: string) => {
     throw new Error('User not authenticated');
   }
 
-  const { data, error } = await supabase
-    .from('profile_images')
-    .select('*')
-    .eq('profile_id', userId)
-    .eq('is_visible', true)
-    .order('position', { ascending: true });
+  try {
+    const { data, error } = await supabase
+      .from('profile_images')
+      .select('*')
+      .eq('profile_id', userId)
+      .eq('is_visible', true)
+      .order('position', { ascending: true });
 
-  if (error) {
-    console.error('Error fetching visible images:', error);
-    throw error;
+    if (error) {
+      console.error('Error fetching visible images:', error);
+      throw error;
+    }
+
+    return data.map(image => image.url);
+  } catch (error) {
+    console.error('Error in fetchVisibleProfileImages:', error);
+    // Return empty array in case of error
+    return [];
   }
-
-  return data.map(image => image.url);
 };
 
 export const fetchProfileVideos = async (profileId?: string) => {
