@@ -15,19 +15,25 @@ const TopStreaksCard = ({ topStreaks }: TopStreaksCardProps) => {
       </CardHeader>
       <CardContent>
         <div className="space-y-3">
-          {topStreaks.map((streak, index) => (
-            <div key={index} className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                {index === 0 && <Award className="text-yellow-500 h-5 w-5" />}
-                <User className="h-8 w-8 p-1 bg-muted rounded-full" />
-                <span>{streak.name}</span>
+          {topStreaks.length > 0 ? (
+            topStreaks.map((streak, index) => (
+              <div key={index} className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  {index === 0 && <Award className="text-yellow-500 h-5 w-5" />}
+                  <User className="h-8 w-8 p-1 bg-muted rounded-full" />
+                  <span>{streak.name}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Flame className="text-love h-4 w-4" />
+                  <span className="font-semibold">{streak.count}</span>
+                </div>
               </div>
-              <div className="flex items-center gap-1">
-                <Flame className="text-love h-4 w-4" />
-                <span className="font-semibold">{streak.count}</span>
-              </div>
+            ))
+          ) : (
+            <div className="text-center py-2 text-muted-foreground">
+              No active streaks yet.
             </div>
-          ))}
+          )}
         </div>
       </CardContent>
     </Card>

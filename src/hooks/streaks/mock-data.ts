@@ -27,12 +27,16 @@ export const transformStreakData = (streakData: StreakData): StreakPost => {
   };
 };
 
-// Top streaks for empty state
-export const getDummyTopStreaks = () => [
-  { name: "SarahHiking", count: 14 },
-  { name: "JohnRunner", count: 12 },
-  { name: "EmilyCook", count: 8 }
-];
+// Transform Supabase top streak data for the UI
+export const transformTopStreaksData = (profileData: ProfileWithStreak[]) => {
+  return profileData.map(profile => ({
+    name: profile.name || 'Anonymous',
+    count: profile.streak_count?.[0]?.streak_count || 0
+  })).filter(streak => streak.count > 0);
+};
 
-// Posts for empty state
+// Empty state for posts (not using demo data anymore)
 export const getDummyPosts = (): StreakPost[] => [];
+
+// Empty tops streaks for fallback
+export const getDummyTopStreaks = () => [];

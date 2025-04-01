@@ -1,4 +1,3 @@
-
 import { useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { 
@@ -7,7 +6,7 @@ import {
   checkUserDailyPost, 
   getUserLatestStreakCount
 } from "./api";
-import { transformStreakData } from "./mock-data";
+import { transformStreakData, transformTopStreaksData } from "./mock-data";
 
 /**
  * Custom hook to fetch streaks data
@@ -40,26 +39,22 @@ export const useStreaksData = (
       if (!streaksData || streaksData.length === 0) {
         console.log("No data returned from streaks query");
         setPosts([]);
-        return;
+      } else {
+        // Transform the data to match our StreakPost type
+        const transformedPosts = streaksData.map(transformStreakData);
+        setPosts(transformedPosts);
       }
-
-      // Transform the data to match our StreakPost type
-      const transformedPosts = streaksData.map(transformStreakData);
       
-      setPosts(transformedPosts);
-      
-      // Also fetch top streaks - users with highest streak counts
+      // Fetch top streaks - users with highest streak counts
       const topStreaksData = await fetchTopStreaks();
       
-      // Transform the top streaks data
-      const transformedTopStreaks = topStreaksData
-        .map(profile => ({
-          name: profile.name,
-          count: profile.streak_count?.[0]?.streak_count || 0
-        }))
-        .filter(streak => streak.count > 0);
-      
-      setTopStreaks(transformedTopStreaks);
+      if (topStreaksData && topStreaksData.length > 0) {
+        // Transform the top streaks data
+        const transformedTopStreaks = transformTopStreaksData(topStreaksData);
+        setTopStreaks(transformedTopStreaks);
+      } else {
+        setTopStreaks([]);
+      }
 
     } catch (error) {
       console.error("Error fetching streak posts:", error);
