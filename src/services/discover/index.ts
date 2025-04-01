@@ -141,24 +141,19 @@ export const recordSwipeAction = async (profileId: string, action: string): Prom
 
     // For right swipes, check if there's a match
     if (isLike) {
-      // Simplest possible approach to avoid typing issues
-      let isMatch = false;
-      
+      // Extremely simplified approach to avoid TypeScript issues
       try {
-        const { data: matchData } = await supabase
-          .from('likes')
-          .select('id')
-          .eq('liker_id', profileId)
-          .eq('liked_id', userId)
-          .eq('is_like', true);
-          
-        // Check if array has any items
-        isMatch = Array.isArray(matchData) && matchData.length > 0;
+        // Use raw SQL via RPC to avoid typing issues
+        const { data: matchExists } = await supabase.rpc('check_for_match', { 
+          liker: profileId, 
+          liked: userId 
+        });
+        
+        return { success: true, isMatch: !!matchExists };
       } catch (error) {
         console.error("Error checking for match:", error);
+        return { success: true, isMatch: false };
       }
-      
-      return { success: true, isMatch };
     }
 
     return { success: true, isMatch: false };
