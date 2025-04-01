@@ -106,6 +106,7 @@ export const fetchDiscoverProfiles = async (filters: DiscoverFilters): Promise<P
   }
 };
 
+// Define a simpler type for the swipe result to avoid deep instantiation
 export interface SwipeResult {
   success: boolean;
   isMatch: boolean;
@@ -113,8 +114,8 @@ export interface SwipeResult {
 
 export const recordSwipeAction = async (profileId: string, action: string): Promise<SwipeResult> => {
   try {
-    const user = await supabase.auth.getUser();
-    const userId = user.data.user?.id;
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+    const userId = userData.user?.id;
 
     // If user is not authenticated, simulate the action
     if (!userId) {
@@ -130,8 +131,7 @@ export const recordSwipeAction = async (profileId: string, action: string): Prom
       .insert({
         liker_id: userId,
         liked_id: profileId,
-        is_like: isLike,
-        is_super: false // Assuming normal like, not super like
+        is_like: isLike
       });
 
     if (error) {
