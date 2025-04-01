@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Profile } from '@/utils/dummyData';
 
@@ -142,27 +141,21 @@ export const recordSwipeAction = async (profileId: string, action: string): Prom
 
     // For right swipes, check if there's a match
     if (isLike) {
-      // Extremely simplified approach to avoid TypeScript issues
-      try {
-        // Use raw SQL query to check for match instead of RPC
-        const { data: matchData, error: matchError } = await supabase
-          .from('likes')
-          .select('id')
-          .eq('liker_id', profileId)
-          .eq('liked_id', userId)
-          .eq('is_like', true)
-          .limit(1);
-        
-        if (matchError) {
-          console.error("Error checking for match:", matchError);
-          return { success: true, isMatch: false };
-        }
-        
-        return { success: true, isMatch: matchData && matchData.length > 0 };
-      } catch (error) {
-        console.error("Error checking for match:", error);
+      // Use a simpler query approach that avoids deep type instantiation
+      const { count, error: countError } = await supabase
+        .from('likes')
+        .select('*', { count: 'exact', head: true })
+        .eq('liker_id', profileId)
+        .eq('liked_id', userId)
+        .eq('is_like', true);
+      
+      if (countError) {
+        console.error("Error checking for match:", countError);
         return { success: true, isMatch: false };
       }
+      
+      // If count is greater than 0, we have a match
+      return { success: true, isMatch: count !== null && count > 0 };
     }
 
     return { success: true, isMatch: false };
