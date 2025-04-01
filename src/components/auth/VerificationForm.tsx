@@ -136,12 +136,13 @@ const VerificationForm = ({
         
         toast.success("Verification successful!");
         
-        // Close the popup if onClose is provided
+        // First call onClose to close the popup
         if (onClose) {
+          console.log("Calling onClose callback to close the verification popup");
           onClose();
         }
         
-        // Navigate to discover page with a small delay to ensure state updates
+        // Then navigate to discover page with a small delay to ensure state updates
         setTimeout(() => {
           console.log("Navigating to discover page");
           navigate('/discover', { replace: true });

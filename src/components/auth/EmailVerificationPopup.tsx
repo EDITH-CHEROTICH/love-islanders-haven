@@ -69,6 +69,11 @@ const EmailVerificationPopup = ({ isOpen, onClose }: EmailVerificationPopupProps
     onClose();
   };
 
+  const handleVerificationSuccess = () => {
+    console.log("Verification successful, closing popup");
+    handleDialogClose();
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleDialogClose()}>
       <DialogContent className="bg-island-dark border-island-light text-white max-w-md">
@@ -96,7 +101,7 @@ const EmailVerificationPopup = ({ isOpen, onClose }: EmailVerificationPopupProps
             generatedCode={generatedCode}
             onResendCode={handleResendCode}
             isSendingCode={isSendingCode}
-            onClose={handleDialogClose}
+            onClose={handleVerificationSuccess}
           />
         ) : (
           <EmailAuthForm onEmailSubmit={handleEmailSubmit} />

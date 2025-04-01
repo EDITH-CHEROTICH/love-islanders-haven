@@ -50,9 +50,8 @@ export function useEmailVerification() {
   };
 
   const handleVerificationComplete = () => {
+    console.log("Email verification completed, closing popup");
     setShowVerificationPopup(false);
-    // Reload the page to refresh the authentication state
-    window.location.reload();
   };
 
   useEffect(() => {
