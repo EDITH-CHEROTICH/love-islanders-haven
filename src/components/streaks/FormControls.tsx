@@ -28,6 +28,7 @@ const FormControls = ({
       <Button 
         type="submit" 
         disabled={isSubmitDisabled || isSubmitting}
+        className="bg-primary hover:bg-primary/90 focus:ring-2 focus:ring-primary/20"
       >
         {isSubmitting ? (
           <>

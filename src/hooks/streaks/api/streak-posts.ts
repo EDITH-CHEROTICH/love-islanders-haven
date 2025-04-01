@@ -26,7 +26,7 @@ export const fetchStreakPosts = async () => {
         expires_at
       `)
       .order('created_at', { ascending: false })
-      .limit(10);
+      .limit(20); // Increased limit to show more posts
 
     if (error) {
       console.error("Error fetching streak posts:", error);
@@ -94,7 +94,9 @@ export const createStreakPost = async (
       song_artist: song?.artist || null,
       song_album_art: song?.albumArt || null,
       song_preview_url: song?.previewUrl || null,
-      expires_at: expiresAt
+      expires_at: expiresAt,
+      likes_count: 0, // Initialize likes count
+      comments_count: 0 // Initialize comments count
     };
     
     console.log("Inserting streak post with ID:", postId);
@@ -116,15 +118,62 @@ export const createStreakPost = async (
     }
     
     // Update user's streak count in profiles table
-    await supabase
+    const { error: profileError } = await supabase
       .from('profiles')
       .update({ streak_count: streakCount })
       .eq('id', userId);
+      
+    if (profileError) {
+      console.error("Error updating user profile streak count:", profileError);
+      // Continue anyway since the post was created
+    }
     
     console.log("Streak post created successfully:", data[0]);
     return data[0];
   } catch (error) {
     console.error("Error in createStreakPost:", error);
     throw error;
+  }
+};
+
+// Like a streak post
+export const likeStreakPost = async (userId: string, streakId: string) => {
+  try {
+    // Check if the user has already liked this post
+    const { data: existingLike, error: checkError } = await supabase
+      .from('streak_likes')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('streak_id', streakId)
+      .single();
+      
+    if (checkError && checkError.code !== 'PGSQL_NO_ROWS_RETURNED') {
+      console.error("Error checking for existing like:", checkError);
+      return false;
+    }
+    
+    // If user already liked this post, do nothing
+    if (existingLike) {
+      console.log("User already liked this post");
+      return false;
+    }
+    
+    // Add the like
+    const { data, error } = await supabase
+      .from('streak_likes')
+      .insert({
+        user_id: userId,
+        streak_id: streakId
+      });
+      
+    if (error) {
+      console.error("Error liking streak post:", error);
+      return false;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error("Error in likeStreakPost:", error);
+    return false;
   }
 };
