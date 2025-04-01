@@ -127,9 +127,9 @@ const SongSearchSection: React.FC<SongSearchSectionProps> = ({
                 className="p-2 hover:bg-black/30 cursor-pointer flex items-center space-x-2"
                 onClick={() => handleSelectSong(song.id)}
               >
-                {song.albumArt && (
+                {song.album_art && (
                   <img 
-                    src={song.albumArt} 
+                    src={song.album_art} 
                     alt={song.title} 
                     className="w-10 h-10 rounded object-cover"
                   />

@@ -22,8 +22,8 @@ export interface TopStreak {
 export interface SongData {
   title: string;
   artist: string;
-  album_art?: string;
-  preview_url?: string;
+  albumArt: string;
+  previewUrl: string;
 }
 
 export interface SongOption {
