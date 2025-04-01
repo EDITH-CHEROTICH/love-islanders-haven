@@ -18,11 +18,14 @@ export const fetchDiscoverProfiles = async (filters: DiscoverFilters): Promise<P
     // Simulate fetching profiles based on filters
     const { data, error } = await supabase
       .from('profiles')
-      .select('*')
+      .select(`
+        *,
+        profile_images (url, position),
+        profile_interests (interests(name))
+      `)
       .gte('age', filters.ageRange[0])
       .lte('age', filters.ageRange[1])
-      .gte('height_cm', heightMin)
-      .lte('height_cm', heightMax)
+      .order('created_at', { ascending: false })
       .limit(10);
 
     if (error) {
@@ -32,8 +35,19 @@ export const fetchDiscoverProfiles = async (filters: DiscoverFilters): Promise<P
 
     // Convert database records to Profile type
     const profiles: Profile[] = (data || []).map(profile => {
+      // Sort images by position
+      const images = profile.profile_images 
+        ? profile.profile_images
+            .sort((a: any, b: any) => a.position - b.position)
+            .map((img: any) => img.url)
+        : [];
+
+      // Extract interests
+      const interests = profile.profile_interests
+        ? profile.profile_interests.map((pi: any) => pi.interests?.name).filter(Boolean)
+        : [];
+
       // Create a profile object with required fields
-      // Use type assertion to ensure compatibility with Profile type
       return {
         id: profile.id,
         name: profile.name || 'Anonymous',
@@ -42,18 +56,21 @@ export const fetchDiscoverProfiles = async (filters: DiscoverFilters): Promise<P
         distance: Math.floor(Math.random() * filters.distance), // Simulate distance
         occupation: profile.occupation || 'Not specified',
         education: profile.education || 'Not specified',
-        images: [], // Initialize with empty array as profile.images doesn't exist
-        interests: [], // Initialize with empty array as profile.interests doesn't exist
+        images: images.length > 0 ? images : [
+          'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=1964&auto=format&fit=crop',
+          'https://images.unsplash.com/photo-1615109398623-88346a601842?q=80&w=1964&auto=format&fit=crop'
+        ],
+        interests: interests.length > 0 ? interests : ['Travel', 'Music'],
         relationshipGoal: profile.relationship_goal || 'Not specified',
         height: profile.height || 175,
         gender: profile.gender || 'Not specified',
         lastActive: new Date(),
         verified: Boolean(profile.verified),
-        location: profile.location || 'Not specified', // Add location field
+        location: profile.location || 'Not specified',
         children: profile.has_children ? 'Has children' : 'No children',
-        smoking: 'Not specified', // Default value as profile.smoking doesn't exist
-        drinking: 'Not specified', // Default value as profile.drinking doesn't exist
-        exercise: 'Not specified', // Default value as profile.exercise doesn't exist
+        smoking: 'Not specified', // Default value
+        drinking: 'Not specified', // Default value
+        exercise: 'Not specified', // Default value
         pets: profile.has_pets ? 'Has pets' : 'No pets',
       } as Profile;
     });
@@ -72,14 +89,50 @@ interface SwipeResult {
 
 export const recordSwipeAction = async (profileId: string, action: string): Promise<SwipeResult> => {
   try {
-    // Simulate recording a swipe action
-    // In a real application, this would involve updating a database
-    console.log(`Recording ${action} for profile ${profileId}`);
+    const user = await supabase.auth.getUser();
+    const userId = user.data.user?.id;
 
-    // Simulate a match
-    const isMatch = Math.random() < 0.1; // 10% chance of a match
+    // If user is not authenticated, simulate the action
+    if (!userId) {
+      console.log(`Simulating ${action} for profile ${profileId} without authentication`);
+      return { success: true, isMatch: action === 'right' && Math.random() < 0.2 };
+    }
 
-    return { success: true, isMatch };
+    // Record the swipe in the database
+    const isLike = action === 'right';
+    
+    const { error } = await supabase
+      .from('likes')
+      .insert({
+        liker_id: userId,
+        liked_id: profileId,
+        is_like: isLike,
+        is_super: false // Assuming normal like, not super like
+      });
+
+    if (error) {
+      console.error("Error recording swipe action:", error);
+      return { success: false, isMatch: false };
+    }
+
+    // For right swipes, check if there's a match
+    if (isLike) {
+      const { data: matchData, error: matchError } = await supabase
+        .from('likes')
+        .select('*')
+        .eq('liker_id', profileId)
+        .eq('liked_id', userId)
+        .eq('is_like', true)
+        .maybeSingle();
+
+      if (matchError) {
+        console.error("Error checking for match:", matchError);
+      }
+
+      return { success: true, isMatch: !!matchData };
+    }
+
+    return { success: true, isMatch: false };
   } catch (error) {
     console.error("Error recording swipe action:", error);
     return { success: false, isMatch: false };

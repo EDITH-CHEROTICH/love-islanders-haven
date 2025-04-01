@@ -24,13 +24,29 @@ const SwipeButton = ({
     lg: 'w-16 h-16'
   };
 
+  // Map color string to actual Tailwind classes
+  const getColorClass = (colorName: string) => {
+    const colorMap: Record<string, string> = {
+      'rose-500': 'text-rose-500 border-rose-500/20',
+      'green-500': 'text-green-500 border-green-500/20',
+      'blue-500': 'text-blue-500 border-blue-500/20',
+      'yellow-500': 'text-yellow-500 border-yellow-500/20',
+      'purple-500': 'text-purple-500 border-purple-500/20'
+    };
+    
+    return colorMap[colorName] || `text-${colorName} border-${color}/20`;
+  };
+
+  const colorClass = getColorClass(color);
+  const [textColorClass, borderColorClass] = colorClass.split(' ');
+
   return (
     <button 
       onClick={onClick} 
-      className={`${sizeClasses[size]} bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center border border-${color}/20 shadow-lg transition-all`}
+      className={`${sizeClasses[size]} bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center ${borderColorClass} shadow-lg transition-all`}
       aria-label={ariaLabel}
     >
-      <Icon className={`text-${color} w-7 h-7`} />
+      <Icon className={`${textColorClass} w-7 h-7`} />
     </button>
   );
 };
