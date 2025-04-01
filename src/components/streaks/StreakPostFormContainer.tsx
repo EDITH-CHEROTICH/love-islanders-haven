@@ -1,22 +1,16 @@
 
 import { useState } from "react";
-import { Music } from "lucide-react";
-import { SongData } from "./types";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import ImageUploadSection from "./ImageUploadSection";
-import SongSearchSection from "./SongSearchSection";
-import SelectedSongDisplay from "./SelectedSongDisplay";
 import FormControls from "./FormControls";
 import CaptionInput from "./CaptionInput";
 import DurationSelector from "./DurationSelector";
-import useSongSearch from "@/hooks/use-song-search";
 import MultiImagePreview from "./MultiImagePreview";
 import useImageUpload from "./hooks/useImageUpload";
-import SongSelectionArea from "./SongSelectionArea";
 
 interface StreakPostFormContainerProps {
-  onSubmit: (data: { content: string[]; caption?: string; song?: SongData; duration?: number }) => Promise<boolean>;
+  onSubmit: (data: { content: string[]; caption?: string; duration?: number }) => Promise<boolean>;
   onCancel: () => void;
   isSubmitting?: boolean;
 }
@@ -27,8 +21,6 @@ const StreakPostFormContainer = ({
   isSubmitting = false 
 }: StreakPostFormContainerProps) => {
   const [caption, setCaption] = useState<string>("");
-  const [showSongInput, setShowSongInput] = useState(false);
-  const [song, setSong] = useState<SongData | null>(null);
   const [duration, setDuration] = useState<number>(24); // Default to 24 hours
   const { toast } = useToast();
   
@@ -41,14 +33,6 @@ const StreakPostFormContainer = ({
     removeImage, 
     clearImages 
   } = useImageUpload({ toast });
-  
-  const { 
-    songTitle, 
-    setSongTitle, 
-    isSearching, 
-    songOptions, 
-    clearSearch 
-  } = useSongSearch();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,7 +65,6 @@ const StreakPostFormContainer = ({
       const submissionData = { 
         content, 
         caption: caption || undefined,
-        song: song || undefined,
         duration: duration
       };
       
@@ -94,7 +77,6 @@ const StreakPostFormContainer = ({
         console.log("Form submitted successfully");
         clearImages();
         setCaption("");
-        setSong(null);
         setDuration(24);
         toast({
           title: "Success",
@@ -116,36 +98,6 @@ const StreakPostFormContainer = ({
         variant: "destructive",
       });
     }
-  };
-
-  const handleSongAdd = () => {
-    if (!showSongInput) {
-      setShowSongInput(true);
-    }
-  };
-
-  const handleSongSelect = (id: string) => {
-    const selectedSong = songOptions.find(song => song.id === id);
-    if (selectedSong) {
-      setSong({
-        title: selectedSong.title,
-        artist: selectedSong.artist,
-        albumArt: selectedSong.album_art || '',
-        previewUrl: selectedSong.preview_url || ''
-      });
-      setShowSongInput(false);
-      clearSearch();
-      toast({
-        title: "Song added",
-        description: `${selectedSong.title} by ${selectedSong.artist} added to your post`,
-      });
-    }
-  };
-
-  const removeSong = () => {
-    setSong(null);
-    clearSearch();
-    setShowSongInput(false);
   };
 
   const handleDurationChange = (value: number[]) => {
@@ -180,21 +132,6 @@ const StreakPostFormContainer = ({
         duration={duration}
         onDurationChange={handleDurationChange}
         disabled={isSubmitting}
-      />
-      
-      <SongSelectionArea 
-        song={song}
-        showSongInput={showSongInput}
-        songTitle={songTitle}
-        setSongTitle={setSongTitle}
-        isSearching={isSearching}
-        songOptions={songOptions}
-        isSubmitting={isSubmitting}
-        onSongAdd={handleSongAdd}
-        onSongSelect={handleSongSelect}
-        onCancelSearch={() => setShowSongInput(false)}
-        onRemoveSong={removeSong}
-        clearSearch={clearSearch}
       />
       
       <FormControls

@@ -1,7 +1,5 @@
-
-import { SongData } from "@/components/streaks/types";
-import { createStreakPost, likeStreakPost } from "./api";
 import { useToast } from "@/hooks/use-toast";
+import { createStreakPost, likeStreakPost } from "./api";
 
 /**
  * Custom hook for streak post actions (create, like)
@@ -19,7 +17,6 @@ export const useStreaksActions = (
   const handlePostSubmit = async (postData: { 
     content: string[]; 
     caption?: string; 
-    song?: SongData;
     duration?: number 
   }) => {
     if (!user?.id) {
@@ -44,7 +41,6 @@ export const useStreaksActions = (
       console.log("Submitting post with data:", {
         contentLength: postData.content.length,
         caption: postData.caption,
-        song: postData.song?.title,
         duration: postData.duration
       });
       
@@ -67,8 +63,7 @@ export const useStreaksActions = (
         postData.content,
         newStreakCount,
         expiresAt.toISOString(),
-        postData.caption,
-        postData.song
+        postData.caption
       );
       
       if (!streakData) {
@@ -96,12 +91,6 @@ export const useStreaksActions = (
         comments_count: 0,
         user_name: user.user_metadata?.name || user.email?.split('@')[0] || "You",
         user_profile_image: user.user_metadata?.avatar_url || null,
-        song: postData.song ? {
-          title: postData.song.title,
-          artist: postData.song.artist,
-          albumArt: postData.song.albumArt,
-          previewUrl: postData.song.previewUrl
-        } : undefined,
         expires_at: streakData.expires_at
       };
       

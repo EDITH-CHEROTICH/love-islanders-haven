@@ -1,8 +1,6 @@
-
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from "@/integrations/supabase/client";
 import { StreakData } from "../types";
-import { SongData } from "@/components/streaks/types";
 
 // Fetch streak posts from Supabase
 export const fetchStreakPosts = async () => {
@@ -19,10 +17,6 @@ export const fetchStreakPosts = async () => {
         streak_count,
         likes_count,
         comments_count,
-        song_title,
-        song_artist,
-        song_album_art,
-        song_preview_url,
         expires_at
       `)
       .order('created_at', { ascending: false })
@@ -67,16 +61,14 @@ export const createStreakPost = async (
   content: string[], 
   streakCount: number,
   expiresAt: string,
-  caption?: string, 
-  song?: SongData
+  caption?: string
 ) => {
   console.log("Creating streak post with data:", {
     userId,
     contentLength: content.length,
     streakCount,
     expiresAt,
-    caption,
-    songTitle: song?.title
+    caption
   });
 
   try {
@@ -90,10 +82,6 @@ export const createStreakPost = async (
       content: JSON.stringify(content), // Convert array to JSON string
       caption: caption || null,
       streak_count: streakCount,
-      song_title: song?.title || null,
-      song_artist: song?.artist || null,
-      song_album_art: song?.albumArt || null,
-      song_preview_url: song?.previewUrl || null,
       expires_at: expiresAt,
       likes_count: 0, // Initialize likes count
       comments_count: 0 // Initialize comments count
@@ -136,6 +124,3 @@ export const createStreakPost = async (
     throw error;
   }
 };
-
-// We've removed the duplicate likeStreakPost function from here
-// since we're using the one from likes.ts

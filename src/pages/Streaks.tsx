@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context/auth";
 import { Button } from "@/components/ui/button";
@@ -11,7 +10,6 @@ import TopStreaksCard from "@/components/streaks/TopStreaksCard";
 import StreaksList from "@/components/streaks/StreaksList";
 import LoginRequired from "@/components/streaks/LoginRequired";
 import Navbar from "@/components/Navbar";
-import { SongData } from "@/components/streaks/types";
 import { AudioPlayerProvider } from "@/hooks/use-audio-player";
 import { useToast } from "@/hooks/use-toast";
 
@@ -46,7 +44,6 @@ const Streaks = () => {
   const onPostSubmit = async (postData: { 
     content: string[]; 
     caption?: string; 
-    song?: SongData;
     duration?: number 
   }) => {
     if (!user) {
@@ -64,7 +61,6 @@ const Streaks = () => {
         contentLength: postData.content.length,
         content: postData.content,
         caption: postData.caption,
-        songTitle: postData.song?.title,
         duration: postData.duration
       });
       
