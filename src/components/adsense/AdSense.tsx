@@ -1,6 +1,13 @@
 
 import React, { useEffect } from 'react';
 
+// Add a declaration for the adsbygoogle property on the Window interface
+declare global {
+  interface Window {
+    adsbygoogle: any[];
+  }
+}
+
 const AdSense: React.FC = () => {
   useEffect(() => {
     try {
