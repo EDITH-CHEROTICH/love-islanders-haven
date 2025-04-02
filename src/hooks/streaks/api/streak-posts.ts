@@ -42,22 +42,8 @@ export const fetchStreakPosts = async () => {
           .eq('id', streak.user_id)
           .single();
         
-        // Parse the content if it's a JSON string
-        let parsedContent;
-        try {
-          if (typeof streak.content === 'string') {
-            parsedContent = JSON.parse(streak.content);
-          } else {
-            parsedContent = streak.content;
-          }
-        } catch (e) {
-          console.error("Error parsing streak content:", e);
-          parsedContent = streak.content; // Keep as is if parsing fails
-        }
-        
         return {
           ...streak,
-          content: parsedContent,
           profiles: profileData ? { name: profileData.name } : { name: 'Unknown User' }
         };
       })
@@ -94,15 +80,15 @@ export const createStreakPost = async (
     // Create a unique ID for the post
     const postId = uuidv4();
     
-    // Prepare the data for insertion - convert content to JSON string for DB storage
+    // Prepare the data for insertion - no need to stringify since the column is now JSONB
     const postData = {
       id: postId,
       user_id: userId,
-      content: JSON.stringify(content), // Convert array to JSON string
+      content: content, // Send array directly, Supabase will handle the conversion to JSONB
       streak_count: streakCount,
       expires_at: expiresAt,
-      likes_count: 0, // Initialize likes count
-      comments_count: 0 // Initialize comments count
+      likes_count: 0, 
+      comments_count: 0 
     };
     
     console.log("Inserting streak post with ID:", postId);

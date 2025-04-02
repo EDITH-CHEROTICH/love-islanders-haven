@@ -16,6 +16,11 @@ export const transformStreakData = (streakData: StreakData): StreakPost => {
       contentArray = Array.isArray(parsedContent) ? parsedContent : [streakData.content];
     } else if (Array.isArray(streakData.content)) {
       contentArray = streakData.content;
+    } else if (typeof streakData.content === 'object') {
+      // Handle JSONB object from database
+      contentArray = Array.isArray(Object.values(streakData.content)) 
+        ? Object.values(streakData.content) 
+        : [String(streakData.content)];
     } else {
       contentArray = [String(streakData.content)];
     }

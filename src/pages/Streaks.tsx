@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context/auth";
 import { Button } from "@/components/ui/button";
@@ -61,7 +60,6 @@ const Streaks = () => {
       setIsSubmitting(true);
       console.log("Streak form submitted with data:", {
         contentLength: postData.content.length,
-        content: postData.content.slice(0, 1), // Log just first item for debugging
         duration: postData.duration
       });
       
@@ -112,7 +110,7 @@ const Streaks = () => {
   if (!isAuthenticated) {
     return <LoginRequired />;
   }
-
+  
   return (
     <AudioPlayerProvider>
       <div className="min-h-screen bg-gradient-to-b from-island-dark via-island to-island-dark">

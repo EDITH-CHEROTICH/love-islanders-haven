@@ -2,7 +2,7 @@
 export interface StreakData {
   id: string;
   user_id: string;
-  content: string[] | string; // Can be string for legacy support or string[] for multiple images
+  content: string[] | string | any; // Updated to handle JSONB format from database
   caption?: string | null;
   created_at: string;
   streak_count: number;
