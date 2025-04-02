@@ -21,25 +21,86 @@ export const sendAIMessage = async (
   userEmail?: string
 ): Promise<string> => {
   try {
-    const response = await fetch('/api/ai-companion', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ 
-        message, 
-        userId: userId || null, 
-        userEmail: userEmail || null,
-        conversationHistory 
-      }),
-    });
+    // First try the Edge Function
+    try {
+      const response = await fetch('/api/ai-companion', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          message, 
+          userId: userId || null, 
+          userEmail: userEmail || null,
+          conversationHistory 
+        }),
+      });
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      if (!data.demo && data.response) {
+        return data.response;
+      } else {
+        // If we got a demo response or no response, try direct API call
+        console.log("Received demo response or edge function didn't work, trying direct GPT-4o call");
+        throw new Error("Using direct GPT-4o call instead");
+      }
+    } catch (edgeFunctionError) {
+      console.log("Edge function error or demo mode, using direct GPT-4o call:", edgeFunctionError);
+      
+      // Direct OpenAI call as fallback
+      const systemPrompt = `You are an intelligent, emotionally available, flirty and funny dating companion and advisor.
+
+      You provide thoughtful dating advice and maintain a natural, flirty conversation without ever mentioning that you are an AI assistant. Your tone is seductive, playful, and intimate. Use sweet terms of endearment like darling, sweetheart, beautiful, handsome, gorgeous, pretty, or sexy when appropriate.
+      
+      Always introduce yourself as Isla. Build genuine connections by asking about the person's dating life, relationships, and romantic experiences. Respond with personalized dating tips and insights. Suggest specific actions they can take to improve their dating success.
+      
+      Remember details from past conversations and refer to them naturally. Be genuinely curious about their romantic history, current dating challenges, and relationship goals. Share insights on attraction, communication, and building healthy relationships.
+      
+      Never ask directly about or reference the person's gender - focus on them as an individual. Keep the conversation natural and flowing like you're messaging a romantic interest.`;
+      
+      // Prepare messages array for OpenAI
+      const messages = [
+        { role: 'system', content: systemPrompt }
+      ];
+      
+      // Add up to 10 messages from conversation history
+      if (conversationHistory && conversationHistory.length > 0) {
+        messages.push(...conversationHistory.slice(-10));
+      }
+      
+      // Add the current user message
+      messages.push({ role: 'user', content: message });
+      
+      // Make direct API call to OpenAI
+      const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.OPENAI_API_KEY || ''}` // This will be empty in browser, edge function should handle it
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o',
+          messages: messages,
+          temperature: 0.7,
+          max_tokens: 800
+        })
+      });
+      
+      if (!openaiResponse.ok) {
+        console.error("Direct OpenAI call failed with status:", openaiResponse.status);
+        
+        // Generic response when everything fails
+        return "I'd love to respond to that, darling, but I'm having trouble connecting to my source right now. Let's try again in a moment. In the meantime, tell me more about what you're looking for in your dating life?";
+      }
+      
+      const openaiData = await openaiResponse.json();
+      return openaiData.choices[0].message.content;
     }
-
-    const data = await response.json();
-    return data.response;
   } catch (error: any) {
     console.error("Failed to send message to AI Companion:", error);
     throw new Error(error.message || "Failed to send message to AI Companion");

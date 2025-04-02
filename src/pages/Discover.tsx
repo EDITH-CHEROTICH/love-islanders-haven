@@ -59,32 +59,34 @@ const Discover: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-gradient-to-b from-island-dark via-island to-island-dark">
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold text-center text-white mb-6">Discover People</h1>
+    <div className="min-h-screen bg-gradient-to-b from-island-dark via-island to-island-dark">
+      <div className="page-container pt-4 pb-20">
+        <div className="container mx-auto px-4">
+          <h1 className="text-3xl font-bold text-center text-white mb-6">Discover People</h1>
 
-        {/* Profile display component */}
-        <ProfileDisplay 
-          profile={currentProfile} 
-          isLoading={isLoading} 
-          onSwipe={handleSwipe}
-          onOpenFilters={openFilterDialog}
-          filterCount={countActiveFilters()}
-        />
+          {/* Profile display component */}
+          <ProfileDisplay 
+            profile={currentProfile} 
+            isLoading={isLoading} 
+            onSwipe={handleSwipe}
+            onOpenFilters={openFilterDialog}
+            filterCount={countActiveFilters()}
+          />
 
-        {/* Filters component */}
-        <DiscoverFilters 
-          activeFilters={filters} 
-          onFilterChange={setFilters}
-          isOpen={isFilterDialogOpen}
-          onOpenChange={setIsFilterDialogOpen}
-        />
-        
-        {/* Email Verification Popup */}
-        <EmailVerificationPopup 
-          isOpen={showVerificationPopup}
-          onClose={handleVerificationComplete}
-        />
+          {/* Filters component */}
+          <DiscoverFilters 
+            activeFilters={filters} 
+            onFilterChange={setFilters}
+            isOpen={isFilterDialogOpen}
+            onOpenChange={setIsFilterDialogOpen}
+          />
+          
+          {/* Email Verification Popup */}
+          <EmailVerificationPopup 
+            isOpen={showVerificationPopup}
+            onClose={handleVerificationComplete}
+          />
+        </div>
       </div>
     </div>
   );
