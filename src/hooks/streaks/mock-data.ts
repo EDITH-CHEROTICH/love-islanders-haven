@@ -12,8 +12,13 @@ export const transformStreakData = (streakData: StreakData): StreakPost => {
   try {
     if (typeof streakData.content === 'string') {
       // Try to parse JSON string to array
-      const parsedContent = JSON.parse(streakData.content);
-      contentArray = Array.isArray(parsedContent) ? parsedContent : [streakData.content];
+      try {
+        const parsedContent = JSON.parse(streakData.content);
+        contentArray = Array.isArray(parsedContent) ? parsedContent : [streakData.content];
+      } catch (e) {
+        // If parsing fails, treat as single string
+        contentArray = [String(streakData.content)];
+      }
     } else if (Array.isArray(streakData.content)) {
       contentArray = streakData.content;
     } else if (typeof streakData.content === 'object') {
@@ -25,7 +30,8 @@ export const transformStreakData = (streakData: StreakData): StreakPost => {
       contentArray = [String(streakData.content)];
     }
   } catch (e) {
-    // If parsing fails, treat as single string
+    console.error("Error parsing streak content:", e);
+    // If all parsing fails, treat as single string
     contentArray = [String(streakData.content)];
   }
     

@@ -80,8 +80,9 @@ export const createStreakPost = async (
     // Create a unique ID for the post
     const postId = uuidv4();
     
-    // Prepare the data for insertion - we need to stringify the array since the DB expects a string
-    // even though the column is JSONB
+    // Convert the content array to a JSON string for storage
+    // This is required because even though the DB column is JSONB, 
+    // the Supabase client expects a string for this field
     const postData = {
       id: postId,
       user_id: userId,
