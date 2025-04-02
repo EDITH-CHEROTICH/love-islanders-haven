@@ -7,7 +7,6 @@ import { useDiscoverProfiles } from '@/hooks/discover/useDiscoverProfiles';
 import { useEmailVerification } from '@/hooks/discover/useEmailVerification';
 import DiscoverFilters from '@/components/discover/DiscoverFilters';
 import ProfileDisplay from '@/components/discover/ProfileDisplay';
-import AdSense from '@/components/adsense/AdSense';
 
 // Default filter state
 const DEFAULT_FILTERS: AdvancedFilterOptions = {
@@ -62,9 +61,6 @@ const Discover: React.FC = () => {
   return (
     <div className="flex flex-col h-screen bg-gradient-to-b from-island-dark via-island to-island-dark">
       <div className="container mx-auto px-4 py-8">
-        {/* AdSense Component */}
-        <AdSense />
-        
         <h1 className="text-3xl font-bold text-center text-white mb-6">Discover People</h1>
 
         {/* Profile display component */}
