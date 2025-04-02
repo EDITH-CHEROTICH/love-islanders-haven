@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import AICompanion from '@/components/companion/AICompanion';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -46,8 +47,8 @@ const AICompanionChat: React.FC = () => {
             <User className="h-5 w-5" />
             <AlertTitle>Not logged in</AlertTitle>
             <AlertDescription>
-              You're currently using the AI Companion in guest mode. Sign in to save your chat history 
-              and get personalized experiences.
+              You're currently using the Dating Companion in guest mode. Sign in to save your chat history 
+              and get personalized dating advice.
             </AlertDescription>
           </Alert>
         )}
@@ -113,7 +114,7 @@ const AICompanionChat: React.FC = () => {
         <div className="bg-island rounded-lg overflow-hidden shadow-xl h-full">
           <div className="bg-island p-3 border-b border-island-light flex items-center justify-center">
             <div className="flex items-center space-x-2">
-              <h2 className="text-lg font-semibold text-white">Chat with Isla (powered by n8n)</h2>
+              <h2 className="text-lg font-semibold text-white">Chat with Isla - Your Dating Companion</h2>
               <Sparkles className="h-4 w-4 text-love" />
             </div>
           </div>

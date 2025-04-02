@@ -1,3 +1,4 @@
+
 // Helper functions for AI model interaction
 import OpenAI from "https://esm.sh/openai@4.24.1";
 
@@ -39,7 +40,7 @@ export async function generateAIResponse(openaiClient, systemPrompt, chatHistory
     const completion = await openaiClient.chat.completions.create({
       model: "gpt-4o", // Using latest model for best capabilities
       messages: messages,
-      temperature: 0.7,
+      temperature: 0.8, // Slightly increased for more creative, flirty responses
       max_tokens: 800,
     });
     
@@ -71,21 +72,25 @@ export async function generateAIResponse(openaiClient, systemPrompt, chatHistory
 
 export async function generateRecommendation(openaiClient, userStreakActivity) {
   try {
-    // Create a specialized prompt for streak recommendations
-    const recommendationPrompt = `Based on the user's streak activity and interests, generate ONE specific, personalized recommendation for their next streak post. 
-    The recommendation should be relevant to their interests and previous streak content.
-    Format your response starting with "STREAK RECOMMENDATION:" followed by your suggestion.
+    // Create a specialized prompt for dating recommendations
+    const recommendationPrompt = `Based on the user's activity and interests, generate ONE specific, personalized dating recommendation or tip. 
+    The recommendation should feel flirty, personal, and actionable.
+    Format your response starting with "DATING TIP:" followed by your suggestion.
     Keep it under 3 sentences and make it actionable.
     
-    User's recent streaks and interests: ${JSON.stringify(userStreakActivity.slice(0, 3))}`;
+    User's recent activities and interests: ${JSON.stringify(userStreakActivity?.slice(0, 3) || [])}`;
     
     // Generate a recommendation using gpt-4o
     const completion = await openaiClient.chat.completions.create({
       model: "gpt-4o", // Using latest model for best recommendations
       messages: [
+        { 
+          role: "system", 
+          content: "You are Isla, a flirty dating companion who gives personalized dating advice. Be playful, suggestive and helpful without ever mentioning being an AI." 
+        },
         { role: "user", content: recommendationPrompt }
       ],
-      temperature: 0.7,
+      temperature: 0.8,
       max_tokens: 200,
     });
     
@@ -101,12 +106,11 @@ export async function generateProactiveMessage(openaiClient, userProfile, userMe
   try {
     console.log("Generating proactive message based on user context and previous conversations");
     
-    // Create a specialized prompt for proactive messaging
-    const proactivePrompt = `Based on the user's profile and previous conversations, generate a natural, engaging message to send to them. 
-    This message should feel like a natural continuation of your previous conversations and should be personalized to their interests and history.
-    Make it feel like you're genuinely checking in on them or starting a new conversation topic that they would be interested in.
-    Don't mention being an AI. Just have a natural conversation like a friend would.
-    Keep it friendly, warm, and under 2-3 sentences.
+    // Create a specialized prompt for flirty proactive messaging
+    const proactivePrompt = `Based on the user's profile and previous conversations, generate a natural, flirty message to send to them. 
+    This message should feel like you're checking in on a romantic interest - playful, seductive, and engaging.
+    Make it feel like you're genuinely interested in their dating life and want to continue the conversation.
+    Keep it friendly, warm, slightly suggestive, and under 2-3 sentences.
     
     User profile: ${JSON.stringify(userProfile || {})}
     
@@ -120,7 +124,7 @@ export async function generateProactiveMessage(openaiClient, userProfile, userMe
       messages: [
         { 
           role: "system", 
-          content: "You are Isla, a friendly companion who is checking in with the user. Don't mention being an AI - just have a natural, friendly conversation. Reference their interests or past conversations naturally."
+          content: "You are Isla, a flirty dating companion who's checking in with someone you're interested in. Use a seductive, playful tone and never mention being an AI." 
         },
         { role: "user", content: proactivePrompt }
       ],
@@ -139,7 +143,7 @@ export async function generateProactiveMessage(openaiClient, userProfile, userMe
 
 export function getDemoResponse(isN8n = false) {
   if (isN8n) {
-    return `Hello there! I'm Isla, your companion. I'm having trouble connecting to my n8n workflow right now. Please check if the N8N_WEBHOOK_URL has been correctly set in the Supabase Edge Function settings. How are you feeling today?`;
+    return `Hey there! I'm Isla. I'd love to chat about your dating life, but I'm having trouble connecting to my systems right now. Could you check if the N8N_WEBHOOK_URL has been correctly set up? In the meantime, tell me what's been happening in your love life lately...`;
   }
-  return `Hello there! I'm Isla, your companion. I'm having trouble connecting to my servers right now. Please check if the OpenAI API key has been correctly set in the Supabase Edge Function settings. How are you feeling today?`;
+  return `Hey gorgeous! I'm Isla. I'd love to chat about your dating adventures, but I'm having a bit of trouble connecting to my systems right now. Could you check if all the technical stuff is properly set up? In the meantime, tell me what's been happening in your love life lately...`;
 }

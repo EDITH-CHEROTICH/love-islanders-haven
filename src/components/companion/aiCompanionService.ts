@@ -7,7 +7,7 @@ export const getWelcomeMessage = (): ChatMessage => {
   return {
     id: 'welcome',
     role: 'assistant',
-    content: 'Hello! 👋 I\'m Isla, your AI dating companion. How can I help with your dating journey today?',
+    content: 'Hey there! 💋 I\'m Isla, your personal dating companion. I\'d love to help spice up your love life or just chat about what\'s going on in your dating world. What\'s been happening with you lately, darling?',
     timestamp: new Date(),
     type: 'chat'
   };
