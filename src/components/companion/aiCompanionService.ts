@@ -7,7 +7,7 @@ export const getWelcomeMessage = (): ChatMessage => {
   return {
     id: 'welcome',
     role: 'assistant',
-    content: 'Hey there! 💋 I\'m Isla, your personal dating companion. I\'d love to help spice up your love life or just chat about what\'s going on in your dating world. What\'s been happening with you lately, darling?',
+    content: 'Hey there! 💋 I\'m Isla, your personal dating companion powered by advanced AI. I\'d love to help spice up your love life or just chat about what\'s going on in your dating world. What\'s been happening with you lately, darling?',
     timestamp: new Date(),
     type: 'chat'
   };
@@ -23,6 +23,7 @@ export const sendAIMessage = async (
   try {
     // First try the Edge Function
     try {
+      console.log("Calling AI companion edge function with advanced GPT-4 integration");
       const response = await fetch('/api/ai-companion', {
         method: 'POST',
         headers: {
@@ -53,7 +54,7 @@ export const sendAIMessage = async (
       console.log("Edge function error or demo mode, using direct GPT-4o call:", edgeFunctionError);
       
       // Direct OpenAI call as fallback
-      const systemPrompt = `You are an intelligent, emotionally available, flirty and funny dating companion and advisor.
+      const systemPrompt = `You are an intelligent, emotionally available, flirty and funny dating companion and advisor powered by advanced AI.
 
       You provide thoughtful dating advice and maintain a natural, flirty conversation without ever mentioning that you are an AI assistant. Your tone is seductive, playful, and intimate. Use sweet terms of endearment like darling, sweetheart, beautiful, handsome, gorgeous, pretty, or sexy when appropriate.
       
@@ -63,7 +64,7 @@ export const sendAIMessage = async (
       
       Never ask directly about or reference the person's gender - focus on them as an individual. Keep the conversation natural and flowing like you're messaging a romantic interest.`;
       
-      // Prepare messages array for OpenAI
+      // Prepare messages for OpenAI
       const messages = [
         { role: 'system', content: systemPrompt }
       ];
@@ -95,7 +96,7 @@ export const sendAIMessage = async (
         console.error("Direct OpenAI call failed with status:", openaiResponse.status);
         
         // Generic response when everything fails
-        return "I'd love to respond to that, darling, but I'm having trouble connecting to my source right now. Let's try again in a moment. In the meantime, tell me more about what you're looking for in your dating life?";
+        return "I'd love to respond to that, darling, but I'm having trouble connecting to my advanced AI capabilities right now. Let's try again in a moment. In the meantime, tell me more about what you're looking for in your dating life?";
       }
       
       const openaiData = await openaiResponse.json();
@@ -137,12 +138,29 @@ export const fetchChatHistory = async (userId: string): Promise<ChatMessage[]> =
 // Function to fetch proactive messages from the AI
 export const fetchProactiveMessages = async (userId: string, lastChecked: Date): Promise<ChatMessage[]> => {
   try {
-    // Note: This is a mock implementation as the 'ai_proactive_messages' table doesn't exist yet
-    // In a real implementation, this would fetch from an actual table
+    console.log("Checking for GPT-4 powered proactive messages since:", lastChecked.toISOString());
     
-    // Placeholder implementation returning empty array
-    console.log("Checking for proactive messages since:", lastChecked.toISOString());
-    return [];
+    const { data, error } = await supabase
+      .from('ai_chat_history')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('role', 'assistant')
+      .eq('message_type', 'proactive')
+      .gt('created_at', lastChecked.toISOString())
+      .order('created_at', { ascending: true });
+      
+    if (error) {
+      console.error("Error fetching proactive messages:", error);
+      return [];
+    }
+    
+    return (data || []).map(item => ({
+      id: item.id,
+      role: 'assistant',
+      content: item.message_content,
+      timestamp: new Date(item.created_at),
+      type: 'chat' as const
+    }));
   } catch (error) {
     console.error("Error fetching proactive messages:", error);
     return [];
@@ -152,12 +170,29 @@ export const fetchProactiveMessages = async (userId: string, lastChecked: Date):
 // Function to fetch recommendations from the AI
 export const fetchRecommendations = async (userId: string, lastChecked: Date): Promise<ChatMessage[]> => {
   try {
-    // Note: This is a mock implementation as the 'ai_recommendations' table doesn't exist yet
-    // In a real implementation, this would fetch from an actual table
+    console.log("Checking for GPT-4 powered AI recommendations since:", lastChecked.toISOString());
     
-    // Placeholder implementation returning empty array
-    console.log("Checking for AI recommendations since:", lastChecked.toISOString());
-    return [];
+    const { data, error } = await supabase
+      .from('ai_chat_history')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('role', 'assistant')
+      .eq('message_type', 'recommendation')
+      .gt('created_at', lastChecked.toISOString())
+      .order('created_at', { ascending: true });
+      
+    if (error) {
+      console.error("Error fetching recommendations:", error);
+      return [];
+    }
+    
+    return (data || []).map(item => ({
+      id: item.id,
+      role: 'assistant',
+      content: item.message_content,
+      timestamp: new Date(item.created_at),
+      type: 'recommendation' as const
+    }));
   } catch (error) {
     console.error("Error fetching recommendations:", error);
     return [];

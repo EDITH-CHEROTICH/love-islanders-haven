@@ -4,7 +4,7 @@ import AICompanion from '@/components/companion/AICompanion';
 import { useIsMobile } from '@/hooks/use-mobile';
 import Navbar from '@/components/Navbar';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { InfoIcon, Sparkles, Link2, Webhook, User } from "lucide-react";
+import { InfoIcon, Sparkles, Link2, Webhook, User, BrainCircuit } from "lucide-react";
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/auth';
 
@@ -65,6 +65,14 @@ const AICompanionChat: React.FC = () => {
               </AlertDescription>
             </Alert>
           )}
+
+          <Alert className="mb-4 bg-green-100 border-green-200 text-green-800">
+            <BrainCircuit className="h-5 w-5" />
+            <AlertTitle>Advanced AI Powered by GPT-4</AlertTitle>
+            <AlertDescription>
+              Isla is now powered by OpenAI's GPT-4o, offering more sophisticated, personalized conversations and dating advice.
+            </AlertDescription>
+          </Alert>
 
           {showSetupGuide && (
             <Alert className="mb-4 bg-blue-100 border-blue-200 text-blue-800">
