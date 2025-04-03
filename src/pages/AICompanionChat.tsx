@@ -4,17 +4,17 @@ import AICompanion from '@/components/companion/AICompanion';
 import { useIsMobile } from '@/hooks/use-mobile';
 import Navbar from '@/components/Navbar';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { InfoIcon, Sparkles, Link2, Webhook, User, BrainCircuit } from "lucide-react";
+import { InfoIcon, Sparkles, BrainCircuit, User } from "lucide-react";
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/auth';
+import AdSense from '@/components/AdSense';
 
 const AICompanionChat: React.FC = () => {
   const isMobile = useIsMobile();
   const [showApiKeyInfo, setShowApiKeyInfo] = useState(false);
-  const [showSetupGuide, setShowSetupGuide] = useState(false);
   const { user, isAuthenticated } = useAuth();
 
-  // Check if a demo message has been shown, suggesting the n8n webhook isn't set
+  // Check if a demo message has been shown, suggesting the API integration isn't working
   useEffect(() => {
     const checkForDemoMode = (e: MessageEvent) => {
       try {
@@ -31,14 +31,6 @@ const AICompanionChat: React.FC = () => {
     return () => window.removeEventListener('message', checkForDemoMode);
   }, []);
 
-  const handleSupabaseDashboardClick = () => {
-    window.open('https://supabase.com/dashboard', '_blank');
-  };
-
-  const toggleSetupGuide = () => {
-    setShowSetupGuide(!showSetupGuide);
-  };
-
   return (
     <div className="flex flex-col h-screen bg-island-dark">
       <div className="page-container pt-4 pb-20">
@@ -48,7 +40,7 @@ const AICompanionChat: React.FC = () => {
               <User className="h-5 w-5" />
               <AlertTitle>Not logged in</AlertTitle>
               <AlertDescription>
-                You're currently using the Dating Companion in guest mode. Sign in to save your chat history 
+                You're currently using Isla in guest mode. Sign in to save your chat history 
                 and get personalized dating advice.
               </AlertDescription>
             </Alert>
@@ -57,46 +49,20 @@ const AICompanionChat: React.FC = () => {
           {showApiKeyInfo && (
             <Alert className="mb-4 bg-amber-100 border-amber-200 text-amber-800">
               <InfoIcon className="h-5 w-5" />
-              <AlertTitle>AI Companion is running in direct mode</AlertTitle>
-              <AlertDescription className="flex flex-col gap-2">
-                <p>
-                  The AI Companion is now using GPT-4o directly instead of n8n webhook.
-                </p>
+              <AlertTitle>AI Companion connection issue</AlertTitle>
+              <AlertDescription>
+                Isla is currently having trouble connecting to the OpenAI API. Please check that the OPENAI_API_KEY has been correctly set up in Supabase Edge Functions.
               </AlertDescription>
             </Alert>
           )}
 
           <Alert className="mb-4 bg-green-100 border-green-200 text-green-800">
             <BrainCircuit className="h-5 w-5" />
-            <AlertTitle>Advanced AI Powered by GPT-4</AlertTitle>
+            <AlertTitle>Advanced AI Powered by GPT-4o</AlertTitle>
             <AlertDescription>
               Isla is now powered by OpenAI's GPT-4o, offering more sophisticated, personalized conversations and dating advice.
             </AlertDescription>
           </Alert>
-
-          {showSetupGuide && (
-            <Alert className="mb-4 bg-blue-100 border-blue-200 text-blue-800">
-              <InfoIcon className="h-5 w-5" />
-              <AlertTitle>n8n Webhook Setup Guide</AlertTitle>
-              <AlertDescription className="flex flex-col gap-2">
-                <ol className="list-decimal pl-5 space-y-2">
-                  <li>Create a new workflow in n8n</li>
-                  <li>Add a "Webhook" trigger node as the starting point</li>
-                  <li>Configure it to receive POST requests</li>
-                  <li>Add a "Function" node to process the incoming data (including the user ID)</li>
-                  <li>Use the "Supabase" node to query user-specific data using the user ID</li>
-                  <li>Add processing nodes (like "HTTP Request" for AI APIs, etc.)</li>
-                  <li>Make sure your final node returns a JSON object with a <code className="bg-blue-200 px-1 rounded">response</code> field</li>
-                  <li>Deploy your workflow and copy the webhook URL</li>
-                  <li>Add the webhook URL as <code className="bg-blue-200 px-1 rounded">N8N_WEBHOOK_URL</code> in Supabase Edge Function secrets</li>
-                </ol>
-                <p className="mt-2 text-sm italic">
-                  The Edge Function will send the user ID (if available), message, and conversation history to your n8n workflow,
-                  which should process it and return the AI response.
-                </p>
-              </AlertDescription>
-            </Alert>
-          )}
 
           <div className="bg-island rounded-lg overflow-hidden shadow-xl h-[calc(100vh-160px)]">
             <div className="bg-island p-3 border-b border-island-light flex items-center justify-center">
@@ -106,6 +72,11 @@ const AICompanionChat: React.FC = () => {
               </div>
             </div>
             <AICompanion />
+          </div>
+          
+          {/* Add AdSense component at the bottom */}
+          <div className="mt-4">
+            <AdSense slot="7259370550" format="auto" responsive={true} />
           </div>
         </div>
       </div>
