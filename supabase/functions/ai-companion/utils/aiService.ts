@@ -1,5 +1,5 @@
 
-// Helper functions for AI model integration
+// Helper functions for AI model interaction
 import OpenAI from "https://esm.sh/openai@4.24.1";
 
 export async function generateAIResponse(openaiClient, systemPrompt, chatHistory, userMessage) {
@@ -36,9 +36,9 @@ export async function generateAIResponse(openaiClient, systemPrompt, chatHistory
     
     console.log("Sending", messages.length, "messages to OpenAI");
 
-    // Call OpenAI API - Using gpt-4o for advanced capabilities
+    // Call OpenAI API - Using gpt-4o
     const completion = await openaiClient.chat.completions.create({
-      model: "gpt-4o", // Using powerful GPT-4o model
+      model: "gpt-4o", // Using latest model for best capabilities
       messages: messages,
       temperature: 0.8, // Slightly increased for more creative, flirty responses
       max_tokens: 800,
@@ -70,7 +70,6 @@ export async function generateAIResponse(openaiClient, systemPrompt, chatHistory
   }
 }
 
-// Update recommendation function to also use gpt-4o
 export async function generateRecommendation(openaiClient, userStreakActivity) {
   try {
     // Create a specialized prompt for dating recommendations
@@ -83,7 +82,7 @@ export async function generateRecommendation(openaiClient, userStreakActivity) {
     
     // Generate a recommendation using gpt-4o
     const completion = await openaiClient.chat.completions.create({
-      model: "gpt-4o", // Using GPT-4o for best recommendations
+      model: "gpt-4o", // Using latest model for best recommendations
       messages: [
         { 
           role: "system", 
@@ -103,7 +102,6 @@ export async function generateRecommendation(openaiClient, userStreakActivity) {
   }
 }
 
-// Update proactive message function to use gpt-4o
 export async function generateProactiveMessage(openaiClient, userProfile, userMemoryContext, lastConversation) {
   try {
     console.log("Generating proactive message based on user context and previous conversations");

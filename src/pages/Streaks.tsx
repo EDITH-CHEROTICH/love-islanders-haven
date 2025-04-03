@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context/auth";
 import { Button } from "@/components/ui/button";
@@ -13,7 +12,6 @@ import LoginRequired from "@/components/streaks/LoginRequired";
 import Navbar from "@/components/Navbar";
 import { AudioPlayerProvider } from "@/hooks/use-audio-player";
 import { useToast } from "@/hooks/use-toast";
-import AdSense from "@/components/adsense/AdSense";
 
 const Streaks = () => {
   const { isAuthenticated, user } = useAuth();
@@ -118,9 +116,6 @@ const Streaks = () => {
       <div className="min-h-screen bg-gradient-to-b from-island-dark via-island to-island-dark">
         <div className="page-container hide-scrollbar">
           <div className="container max-w-md mx-auto px-4 pt-4 pb-20">
-            {/* AdSense Component */}
-            <AdSense />
-            
             <div className="flex justify-between items-center mb-6">
               <h1 className="text-2xl font-bold">Streaks</h1>
               {!showPostForm && !hasPostedToday && (
