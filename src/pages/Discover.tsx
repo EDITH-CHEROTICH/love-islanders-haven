@@ -7,6 +7,7 @@ import { useDiscoverProfiles } from '@/hooks/discover/useDiscoverProfiles';
 import { useEmailVerification } from '@/hooks/discover/useEmailVerification';
 import DiscoverFilters from '@/components/discover/DiscoverFilters';
 import ProfileDisplay from '@/components/discover/ProfileDisplay';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 // Default filter state
 const DEFAULT_FILTERS: AdvancedFilterOptions = {
@@ -60,32 +61,34 @@ const Discover: React.FC = () => {
 
   return (
     <div className="flex flex-col h-screen bg-gradient-to-b from-island-dark via-island to-island-dark">
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold text-center text-white mb-6">Discover People</h1>
+      <ScrollArea className="h-full w-full overflow-auto">
+        <div className="container mx-auto px-4 py-8 pb-24">
+          <h1 className="text-3xl font-bold text-center text-white mb-6">Discover People</h1>
 
-        {/* Profile display component */}
-        <ProfileDisplay 
-          profile={currentProfile} 
-          isLoading={isLoading} 
-          onSwipe={handleSwipe}
-          onOpenFilters={openFilterDialog}
-          filterCount={countActiveFilters()}
-        />
+          {/* Profile display component */}
+          <ProfileDisplay 
+            profile={currentProfile} 
+            isLoading={isLoading} 
+            onSwipe={handleSwipe}
+            onOpenFilters={openFilterDialog}
+            filterCount={countActiveFilters()}
+          />
 
-        {/* Filters component */}
-        <DiscoverFilters 
-          activeFilters={filters} 
-          onFilterChange={setFilters}
-          isOpen={isFilterDialogOpen}
-          onOpenChange={setIsFilterDialogOpen}
-        />
-        
-        {/* Email Verification Popup */}
-        <EmailVerificationPopup 
-          isOpen={showVerificationPopup}
-          onClose={handleVerificationComplete}
-        />
-      </div>
+          {/* Filters component */}
+          <DiscoverFilters 
+            activeFilters={filters} 
+            onFilterChange={setFilters}
+            isOpen={isFilterDialogOpen}
+            onOpenChange={setIsFilterDialogOpen}
+          />
+          
+          {/* Email Verification Popup */}
+          <EmailVerificationPopup 
+            isOpen={showVerificationPopup}
+            onClose={handleVerificationComplete}
+          />
+        </div>
+      </ScrollArea>
     </div>
   );
 };
