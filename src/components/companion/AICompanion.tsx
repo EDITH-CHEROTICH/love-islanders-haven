@@ -11,7 +11,7 @@ import { useAuth } from '@/context/auth';
 import { useToast } from '@/hooks/use-toast';
 
 // Optional logging for debugging
-const DEBUG = false;
+const DEBUG = true;
 
 const AICompanion: React.FC = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -19,6 +19,7 @@ const AICompanion: React.FC = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [lastChecked, setLastChecked] = useState<Date>(new Date());
+  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
   const { user, isAuthenticated } = useAuth();
 
@@ -107,6 +108,9 @@ const AICompanion: React.FC = () => {
     try {
       if (!message.trim()) return;
       
+      // Clear any previous errors
+      setError(null);
+      
       // Add user message to the UI
       const userMessage: ChatMessage = {
         id: Date.now().toString(),
@@ -134,6 +138,7 @@ const AICompanion: React.FC = () => {
         const userEmail = isAuthenticated && user ? user.email : undefined;
         
         log('Sending message with user context:', { userId, userEmail });
+        log('Message content:', message);
         
         // Send to AI service with user context
         const response = await sendAIMessage(message, conversationHistory, userId, userEmail);
@@ -152,6 +157,7 @@ const AICompanion: React.FC = () => {
         
       } catch (error) {
         console.error('Error sending message:', error);
+        setError(error instanceof Error ? error.message : 'Could not get a response from the AI companion');
         toast({
           title: 'Message sending failed',
           description: error instanceof Error ? error.message : 'Could not get a response from the AI companion',
@@ -164,6 +170,15 @@ const AICompanion: React.FC = () => {
       console.error('Error in handleSendMessage:', e);
       setIsLoading(false);
     }
+  };
+
+  const handleTryAgain = () => {
+    setError(null);
+    // Display a helpful message about checking the connection
+    toast({
+      title: 'Checking connection...',
+      description: 'Trying to reconnect to the AI companion service.',
+    });
   };
 
   return (
@@ -179,6 +194,18 @@ const AICompanion: React.FC = () => {
           </React.Fragment>
         ))}
         {isLoading && <AILoadingIndicator />}
+        {error && (
+          <div className="bg-red-100 border border-red-200 text-red-800 p-4 rounded-lg my-4">
+            <h4 className="font-bold">Connection Error</h4>
+            <p className="text-sm mb-2">{error}</p>
+            <button 
+              onClick={handleTryAgain}
+              className="bg-red-200 hover:bg-red-300 text-red-800 px-4 py-2 rounded text-sm"
+            >
+              Try Again
+            </button>
+          </div>
+        )}
         <div ref={messagesEndRef} />
       </div>
       <ChatInput onSendMessage={handleSendMessage} isLoading={isLoading} />

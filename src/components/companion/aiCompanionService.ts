@@ -21,7 +21,18 @@ export const sendAIMessage = async (
   userEmail?: string
 ): Promise<string> => {
   try {
-    const response = await fetch('/api/ai-companion', {
+    console.log('Sending message to AI companion:', { 
+      messageLength: message.length,
+      historyItems: conversationHistory.length,
+      hasUserId: !!userId,
+      hasUserEmail: !!userEmail
+    });
+
+    // Determine if we're using the edge function directly or via API route
+    const endpoint = '/api/ai-companion';
+    console.log(`Using endpoint: ${endpoint}`);
+
+    const response = await fetch(endpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -35,10 +46,24 @@ export const sendAIMessage = async (
     });
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      const errorText = await response.text();
+      console.error(`HTTP error! status: ${response.status}`, errorText);
+      throw new Error(`HTTP error! status: ${response.status}. Details: ${errorText}`);
     }
 
+    console.log('Response received from AI companion');
     const data = await response.json();
+    
+    if (data.demo === true) {
+      console.log('AI companion is running in demo mode');
+      // Signal to the UI that we're in demo mode
+      window.postMessage(JSON.stringify({ type: 'ai-companion-demo-mode' }), '*');
+    }
+    
+    if (data.error) {
+      console.error('Error from AI companion:', data.error);
+    }
+    
     return data.response;
   } catch (error: any) {
     console.error("Failed to send message to AI Companion:", error);
@@ -49,6 +74,7 @@ export const sendAIMessage = async (
 // Function to fetch chat history from Supabase
 export const fetchChatHistory = async (userId: string): Promise<ChatMessage[]> => {
   try {
+    console.log('Fetching chat history for user:', userId);
     const { data, error } = await supabase
       .from('ai_chat_history')
       .select('*')
@@ -60,6 +86,7 @@ export const fetchChatHistory = async (userId: string): Promise<ChatMessage[]> =
       return [];
     }
 
+    console.log(`Retrieved ${data?.length || 0} chat history items`);
     return (data || []).map(item => ({
       id: item.id,
       role: item.role as 'assistant' | 'user', // Type assertion to match ChatMessage type
