@@ -7,6 +7,7 @@ import { useDiscoverProfiles } from '@/hooks/discover/useDiscoverProfiles';
 import { useEmailVerification } from '@/hooks/discover/useEmailVerification';
 import DiscoverFilters from '@/components/discover/DiscoverFilters';
 import ProfileDisplay from '@/components/discover/ProfileDisplay';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 // Default filter state
 const DEFAULT_FILTERS: AdvancedFilterOptions = {
@@ -59,9 +60,9 @@ const Discover: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-island-dark via-island to-island-dark">
-      <div className="page-container pt-4 pb-20">
-        <div className="container mx-auto px-4">
+    <div className="min-h-screen bg-gradient-to-b from-island-dark via-island to-island-dark overflow-auto">
+      <ScrollArea className="h-[calc(100vh-80px)]">
+        <div className="container mx-auto px-4 py-4 pb-20">
           <h1 className="text-3xl font-bold text-center text-white mb-6">Discover People</h1>
 
           {/* Profile display component */}
@@ -87,7 +88,7 @@ const Discover: React.FC = () => {
             onClose={handleVerificationComplete}
           />
         </div>
-      </div>
+      </ScrollArea>
     </div>
   );
 };
