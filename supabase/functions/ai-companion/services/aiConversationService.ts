@@ -16,7 +16,7 @@ import {
 
 import OpenAI from "https://esm.sh/openai@4.24.1";
 
-// Process chat messages with n8n or fallback to direct OpenAI
+// Process chat messages with OpenAI
 export async function processConversationWithN8n(
   message: string, 
   conversationHistory: any[], 
@@ -28,9 +28,6 @@ export async function processConversationWithN8n(
   userEmail: string | null = null
 ) {
   try {
-    // Get the n8n webhook URL from environment variables
-    const N8N_WEBHOOK_URL = Deno.env.get('N8N_WEBHOOK_URL');
-    
     // If userId is provided, store message and fetch conversation
     let recentConversation = [];
     let chatMessages = [];
@@ -69,73 +66,8 @@ export async function processConversationWithN8n(
       ? recentConversation 
       : conversationHistory;
     
-    // First, try to use n8n webhook if available
-    if (N8N_WEBHOOK_URL && N8N_WEBHOOK_URL.trim() !== '') {
-      try {
-        console.log("Using n8n webhook URL:", N8N_WEBHOOK_URL.substring(0, 15) + "...");
-        
-        // Prepare payload for n8n webhook
-        const payload = {
-          message,
-          conversationHistory: chatHistory,
-          userProfile,
-          userMemoryContext,
-          userStreakActivity,
-          userId,
-          userEmail,
-          timestamp: new Date().toISOString()
-        };
-        
-        // Call n8n webhook with message and context
-        const response = await fetch(N8N_WEBHOOK_URL, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(payload)
-        });
-        
-        // Check for non-200 responses
-        if (!response.ok) {
-          const errorText = await response.text().catch(() => 'No error text available');
-          console.error(`n8n webhook returned status: ${response.status}`, errorText);
-          throw new Error(`n8n webhook returned status: ${response.status}`);
-        }
-        
-        // Parse the result
-        const result = await response.json();
-        
-        // Process the response
-        const aiResponse = result.response || 
-                          (typeof result === 'string' ? result : 
-                          "Sorry, I couldn't generate a response at this time.");
-        
-        // If userId is provided, save the assistant's response
-        if (userId) {
-          await saveAssistantResponse(supabase, userId, aiResponse, 'chat');
-          
-          // Update chat messages with the new response for memory storage
-          chatMessages.push({ role: 'assistant', content: aiResponse });
-          
-          // Store conversation memory
-          if (chatMessages.length >= 3) {
-            try {
-              await storeConversationMemory(supabase, userId, null, chatMessages);
-            } catch (memoryError) {
-              console.error("Error storing conversation memory:", memoryError);
-            }
-          }
-        }
-        
-        return { response: aiResponse };
-      } catch (n8nError) {
-        // Log the error and fall back to direct OpenAI
-        console.error("Error with n8n webhook, falling back to direct OpenAI:", n8nError);
-      }
-    }
-    
-    // If n8n webhook is not available or failed, use OpenAI directly
-    console.log("No n8n webhook available or it failed, using OpenAI directly");
+    // Use OpenAI directly
+    console.log("Using OpenAI directly for AI companion");
     
     // Get OpenAI API key
     const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
