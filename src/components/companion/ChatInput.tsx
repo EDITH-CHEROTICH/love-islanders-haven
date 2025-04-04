@@ -58,12 +58,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
   return (
     <form 
       onSubmit={handleSubmit} 
-      style={{
-        position: 'sticky',
-        bottom: 0,
-        zIndex: 10
-      }} 
-      className="flex items-center gap-2 p-3 bg-island border-t border-island-light w-full mx-[4px] my-[54px]"
+      className="flex items-center gap-2 p-3 bg-island border-t border-island-light w-full sticky bottom-0 z-10"
     >
       <Input 
         value={message} 
