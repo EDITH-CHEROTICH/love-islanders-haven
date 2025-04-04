@@ -14,8 +14,8 @@ const AdSense: React.FC<AdSenseProps> = ({
   style = {},
   className = ''
 }) => {
-  // We need to use the correct type for the ref, and avoid direct typing that causes incompatibility
-  const adRef = useRef<HTMLElement>(null);
+  // Use a more generic ref type to avoid type issues
+  const adRef = useRef<HTMLDivElement>(null);
   
   useEffect(() => {
     try {
@@ -41,10 +41,8 @@ const AdSense: React.FC<AdSenseProps> = ({
     ...style
   };
 
-  // Using the forwardRef pattern with the 'as' keyword to tell TypeScript 
-  // that this element should be treated as a regular HTML element
   return (
-    <div className={`adsense-container ${className}`}>
+    <div className={`adsense-container ${className}`} ref={adRef}>
       <ins
         className="adsbygoogle"
         style={defaultStyle}
@@ -52,7 +50,6 @@ const AdSense: React.FC<AdSenseProps> = ({
         data-ad-slot={adSlot}
         data-ad-format={adFormat}
         data-full-width-responsive="true"
-        ref={adRef as React.LegacyRef<HTMLElement>}
       />
     </div>
   );
