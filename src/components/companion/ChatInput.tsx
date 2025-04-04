@@ -30,7 +30,9 @@ const ChatInput: React.FC<ChatInputProps> = ({
   const replaceEmojiShortcuts = (text: string): string => {
     let result = text;
     Object.entries(emojiShortcuts).forEach(([shortcut, emoji]) => {
-      result = result.replace(new RegExp(shortcut, 'g'), emoji);
+      // Escape special characters in the shortcut for regex
+      const escapedShortcut = shortcut.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, "\\$1");
+      result = result.replace(new RegExp(escapedShortcut, 'g'), emoji);
     });
     return result;
   };

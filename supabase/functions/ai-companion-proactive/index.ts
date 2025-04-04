@@ -4,14 +4,84 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.33.1";
 import OpenAI from "https://esm.sh/openai@4.24.1";
 
-// Import necessary services and utilities
-import { generateProactiveMessage } from "../ai-companion/utils/aiService.ts";
-import { retrieveRelevantMemories } from "../ai-companion/utils/userContext.ts";
+// Instead of importing from another edge function, we'll duplicate the needed functions here
+// This is necessary because edge functions can't directly import from each other
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Define the necessary functions from aiService.ts directly in this file
+async function generateProactiveMessage(openaiClient, userProfile, userMemoryContext, lastConversation) {
+  try {
+    console.log("Generating proactive message based on user context and previous conversations");
+    
+    // Create a specialized prompt for flirty proactive messaging
+    const proactivePrompt = `Based on the user's profile and previous conversations, generate a natural, flirty message to send to them. 
+    This message should feel like you're checking in on a romantic interest - playful, seductive, and engaging.
+    Make it feel like you're genuinely interested in their dating life and want to continue the conversation.
+    Keep it friendly, warm, slightly suggestive, and under 2-3 sentences.
+    
+    User profile: ${JSON.stringify(userProfile || {})}
+    
+    Memory context from previous conversations: ${userMemoryContext || "No previous conversation context"}
+    
+    Last conversation: ${JSON.stringify(lastConversation || [])}`;
+    
+    // Generate a proactive message using gpt-4o
+    const completion = await openaiClient.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        { 
+          role: "system", 
+          content: "You are Isla, a flirty dating companion who's checking in with someone you're interested in. Use a seductive, playful tone and never mention being an AI." 
+        },
+        { role: "user", content: proactivePrompt }
+      ],
+      temperature: 0.8,
+      max_tokens: 250,
+    });
+    
+    const proactiveText = completion.choices[0].message.content;
+    console.log("Proactive message generated:", proactiveText);
+    return proactiveText;
+  } catch (error) {
+    console.error("Error generating proactive message:", error);
+    throw new Error(`Failed to generate proactive message: ${error.message}`);
+  }
+}
+
+// Helper function for retrieving relevant memories - previously imported from userContext.ts
+async function retrieveRelevantMemories(supabase, userId, openaiClient, conversationHistory) {
+  try {
+    // Get user's stored memory embeddings
+    const { data: memories, error: memoriesError } = await supabase
+      .from('user_memory')
+      .select('content')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(10);
+      
+    if (memoriesError) {
+      console.error("Error fetching memory embeddings:", memoriesError);
+      return ""; // Return empty string if we can't fetch memories
+    }
+    
+    if (!memories || memories.length === 0) {
+      return ""; // No memories available yet
+    }
+    
+    // Extract the memory contents
+    const memoryContents = memories.map(memory => memory.content).join("\n\n");
+    
+    // Return memory contents directly
+    return memoryContents;
+  } catch (error) {
+    console.error("Error retrieving relevant memories:", error);
+    return ""; // Return empty string on error
+  }
+}
 
 serve(async (req) => {
   // Handle CORS preflight request
