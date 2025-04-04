@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Send, Smile } from 'lucide-react';
@@ -79,6 +79,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
         size="icon" 
         disabled={isLoading || !message.trim()} 
         className="bg-love hover:bg-love-dark text-white"
+        onClick={handleSubmit}
       >
         <Send size={18} />
       </Button>
