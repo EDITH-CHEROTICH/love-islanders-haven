@@ -14,8 +14,8 @@ const AdSense: React.FC<AdSenseProps> = ({
   style = {},
   className = ''
 }) => {
-  // Change the ref type to HTMLElement which is more generic and compatible with <ins>
-  const adRef = useRef<HTMLElement>(null);
+  // Use HTMLInsElement which is the correct type for <ins> elements
+  const adRef = useRef<HTMLInsElement>(null);
   
   useEffect(() => {
     try {
