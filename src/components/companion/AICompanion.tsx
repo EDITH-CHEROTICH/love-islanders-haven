@@ -1,215 +1,176 @@
 
-import React, { useState, useEffect, useRef } from 'react';
-import { Sparkles } from 'lucide-react';
-import { ChatMessage } from './types';
-import Message from './Message';
-import ChatInput from './ChatInput';
-import AILoadingIndicator from './AILoadingIndicator';
-import RecommendationMessage from './RecommendationMessage';
-import { sendAIMessage, getWelcomeMessage, fetchChatHistory, fetchProactiveMessages, fetchRecommendations } from './aiCompanionService';
+import React, { useState, useEffect } from 'react';
+import InlineChatContainer from './InlineChatContainer';
+import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/auth';
-import { useToast } from '@/hooks/use-toast';
-
-// Optional logging for debugging
-const DEBUG = true;
+import { MessageType } from './types';
+import { toast } from 'sonner';
 
 const AICompanion: React.FC = () => {
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [messages, setMessages] = useState<MessageType[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
-  const [lastChecked, setLastChecked] = useState<Date>(new Date());
-  const [error, setError] = useState<string | null>(null);
-  const { toast } = useToast();
   const { user, isAuthenticated } = useAuth();
-
-  // Debug logging helper
-  const log = (...args: any[]) => {
-    if (DEBUG) console.log('[AICompanion]', ...args);
-  };
-
-  useEffect(() => {
-    // Initialize with welcome message if no history
-    if (messages.length === 0) {
-      setMessages([getWelcomeMessage()]);
-    }
-    
-    // Load chat history for authenticated users
-    const loadChatHistory = async () => {
-      if (isAuthenticated && user?.id) {
-        try {
-          log('Loading chat history for user:', user.id);
-          const history = await fetchChatHistory(user.id);
-          if (history && history.length > 0) {
-            log('Loaded chat history:', history.length, 'messages');
-            setMessages(history);
-            setChatHistory(history);
-          }
-        } catch (error) {
-          console.error('Error loading chat history:', error);
-          toast({
-            title: 'Could not load chat history',
-            description: 'There was a problem loading your previous conversations.',
-            variant: 'destructive',
-          });
-        }
-      }
-    };
-    
-    loadChatHistory();
-  }, [isAuthenticated, user, toast]);
   
-  // Function to scroll to the bottom of the chat
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  // Effect to scroll to the bottom on new messages
+  // Load chat history on component mount
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  // Proactive message check
-  useEffect(() => {
-    const checkNewMessages = async () => {
-      if (isAuthenticated && user?.id) {
-        try {
-          log('Checking for new proactive messages since:', lastChecked);
-          const newProactiveMessages = await fetchProactiveMessages(user.id, lastChecked);
-          const newRecommendationMessages = await fetchRecommendations(user.id, lastChecked);
-          
-          if (newProactiveMessages && newProactiveMessages.length > 0) {
-            log('New proactive messages found:', newProactiveMessages.length);
-            setMessages(prevMessages => [...prevMessages, ...newProactiveMessages]);
-          }
-          
-          if (newRecommendationMessages && newRecommendationMessages.length > 0) {
-            log('New recommendation messages found:', newRecommendationMessages.length);
-            setMessages(prevMessages => [...prevMessages, ...newRecommendationMessages]);
-          }
-          
-          setLastChecked(new Date());
-        } catch (error) {
-          console.error('Error checking for new messages:', error);
-        }
-      }
-    };
-
-    // Check every 30 seconds for new messages
-    const intervalId = setInterval(checkNewMessages, 30000);
-    
-    // Initial check when component mounts
-    checkNewMessages();
-
-    return () => clearInterval(intervalId);
-  }, [isAuthenticated, user, lastChecked]);
-
-  const handleSendMessage = async (message: string) => {
-    try {
-      if (!message.trim()) return;
-      
-      // Clear any previous errors
-      setError(null);
-      
-      // Add user message to the UI
-      const userMessage: ChatMessage = {
-        id: Date.now().toString(),
-        role: 'user',
-        content: message,
-        timestamp: new Date(),
-        type: 'chat'
-      };
-      
-      setMessages(prevMessages => [...prevMessages, userMessage]);
-      setIsLoading(true);
-      
-      // Scroll to bottom
-      setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
-      
-      // Get the conversation history in the format expected by the AI service
-      const conversationHistory = messages.map(msg => ({
-        role: msg.role,
-        content: msg.content
-      }));
-      
-      try {
-        // Get the user ID and email if authenticated
-        const userId = isAuthenticated && user ? user.id : undefined;
-        const userEmail = isAuthenticated && user ? user.email : undefined;
-        
-        log('Sending message with user context:', { userId, userEmail });
-        log('Message content:', message);
-        
-        // Send to AI service with user context
-        const response = await sendAIMessage(message, conversationHistory, userId, userEmail);
-        
-        // Add AI response to the UI
-        const aiMessage: ChatMessage = {
-          id: Date.now().toString(),
+    if (isAuthenticated && user?.id) {
+      loadChatHistory();
+    } else {
+      // If not authenticated, show welcome message
+      setMessages([
+        {
+          id: 'welcome',
           role: 'assistant',
-          content: response,
+          content: 'Welcome to Isla, your dating companion! I can help you with dating advice, profile feedback, and conversation starters. How can I assist you today?',
           timestamp: new Date(),
           type: 'chat'
-        };
+        }
+      ]);
+    }
+  }, [isAuthenticated, user]);
+  
+  const loadChatHistory = async () => {
+    try {
+      setIsLoading(true);
+      
+      if (!user?.id) return;
+      
+      const { data, error } = await supabase
+        .from('ai_chat_history')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: true })
+        .limit(50);
+      
+      if (error) throw error;
+      
+      if (data && data.length > 0) {
+        // Transform database records to MessageType format
+        const formattedMessages: MessageType[] = data.map(msg => ({
+          id: msg.id,
+          role: msg.role as 'user' | 'assistant',
+          content: msg.message_content,
+          timestamp: new Date(msg.created_at),
+          type: msg.message_type as 'chat' | 'recommendation' | 'proactive' | undefined
+        }));
         
-        setMessages(prevMessages => [...prevMessages, aiMessage]);
-        setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
-        
-      } catch (error) {
-        console.error('Error sending message:', error);
-        setError(error instanceof Error ? error.message : 'Could not get a response from the AI companion');
-        toast({
-          title: 'Message sending failed',
-          description: error instanceof Error ? error.message : 'Could not get a response from the AI companion',
-          variant: 'destructive',
-        });
-      } finally {
-        setIsLoading(false);
+        setMessages(formattedMessages);
+      } else {
+        // If no history, set welcome message
+        setMessages([
+          {
+            id: 'welcome',
+            role: 'assistant',
+            content: 'Welcome to Isla, your dating companion! I can help you with dating advice, profile feedback, and conversation starters. How can I assist you today?',
+            timestamp: new Date(),
+            type: 'chat'
+          }
+        ]);
       }
-    } catch (e) {
-      console.error('Error in handleSendMessage:', e);
+    } catch (error) {
+      console.error('Error loading chat history:', error);
+      toast.error('Failed to load chat history');
+    } finally {
       setIsLoading(false);
     }
   };
 
-  const handleTryAgain = () => {
-    setError(null);
-    // Display a helpful message about checking the connection
-    toast({
-      title: 'Checking connection...',
-      description: 'Trying to reconnect to the AI companion service.',
-    });
+  const handleSendMessage = async (messageContent: string) => {
+    if (!messageContent.trim()) return;
+    
+    // Create new user message
+    const userMessage: MessageType = {
+      id: crypto.randomUUID(),
+      role: 'user',
+      content: messageContent,
+      timestamp: new Date(),
+      type: 'chat'
+    };
+    
+    // Optimistically update UI with user message
+    setMessages(prevMessages => [...prevMessages, userMessage]);
+    
+    // Start loading state for AI response
+    setIsLoading(true);
+    
+    try {
+      // Save user message to database if authenticated
+      if (isAuthenticated && user?.id) {
+        await supabase.from('ai_chat_history').insert({
+          id: userMessage.id,
+          user_id: user.id,
+          role: userMessage.role,
+          message_content: userMessage.content,
+          message_type: userMessage.type || 'chat'
+        });
+      }
+      
+      // Call AI assistant API
+      const response = await fetch('/api/ai-companion', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: messageContent,
+          userId: user?.id || 'guest'
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to get response from AI companion');
+      }
+      
+      const data = await response.json();
+      
+      // Create assistant message
+      const assistantMessage: MessageType = {
+        id: crypto.randomUUID(),
+        role: 'assistant',
+        content: data.message || "I'm sorry, I couldn't process your request right now.",
+        timestamp: new Date(),
+        type: data.type || 'chat'
+      };
+      
+      // Update UI with assistant response
+      setMessages(prevMessages => [...prevMessages, assistantMessage]);
+      
+      // Save assistant message to database if authenticated
+      if (isAuthenticated && user?.id) {
+        await supabase.from('ai_chat_history').insert({
+          id: assistantMessage.id,
+          user_id: user.id,
+          role: assistantMessage.role,
+          message_content: assistantMessage.content,
+          message_type: assistantMessage.type || 'chat'
+        });
+      }
+    } catch (error) {
+      console.error('Error sending message to AI companion:', error);
+      toast.error('Failed to get a response. Please try again.');
+      
+      // Add error message
+      setMessages(prevMessages => [
+        ...prevMessages,
+        {
+          id: crypto.randomUUID(),
+          role: 'assistant',
+          content: 'Sorry, I encountered a problem. Please try again later.',
+          timestamp: new Date(),
+          type: 'chat'
+        }
+      ]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex-grow overflow-y-auto p-4">
-        {messages.map((message, index) => (
-          <React.Fragment key={message.id}>
-            {message.type === 'recommendation' ? (
-              <RecommendationMessage content={message.content} />
-            ) : (
-              <Message message={message} isLast={index === messages.length - 1} />
-            )}
-          </React.Fragment>
-        ))}
-        {isLoading && <AILoadingIndicator />}
-        {error && (
-          <div className="bg-red-100 border border-red-200 text-red-800 p-4 rounded-lg my-4">
-            <h4 className="font-bold">Connection Error</h4>
-            <p className="text-sm mb-2">{error}</p>
-            <button 
-              onClick={handleTryAgain}
-              className="bg-red-200 hover:bg-red-300 text-red-800 px-4 py-2 rounded text-sm"
-            >
-              Try Again
-            </button>
-          </div>
-        )}
-        <div ref={messagesEndRef} />
-      </div>
-      <ChatInput onSendMessage={handleSendMessage} isLoading={isLoading} />
-    </div>
+    <InlineChatContainer 
+      messages={messages} 
+      isLoading={isLoading} 
+      onSendMessage={handleSendMessage} 
+    />
   );
 };
 

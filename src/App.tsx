@@ -16,6 +16,7 @@ import Profile from './pages/Profile';
 import Matches from './pages/Matches';
 import Discover from './pages/Discover';
 import Messages from './pages/Messages';
+import Login from './pages/Login';
 
 const App: React.FC = () => {
   return (
@@ -25,8 +26,9 @@ const App: React.FC = () => {
           <Routes>
             <Route path="/" element={<Navigate to="/discover" replace />} />
             <Route path="/verify" element={<Verify />} />
+            <Route path="/login" element={<Login />} />
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-            <Route path="/ai-companion" element={<ProtectedRoute><AICompanionChat /></ProtectedRoute>} />
+            <Route path="/ai-companion" element={<AICompanionChat />} />
             <Route path="/streaks" element={<ProtectedRoute><Streaks /></ProtectedRoute>} />
             <Route path="/feedback" element={<Feedback />} />
             <Route path="/matches" element={<ProtectedRoute><Matches /></ProtectedRoute>} />

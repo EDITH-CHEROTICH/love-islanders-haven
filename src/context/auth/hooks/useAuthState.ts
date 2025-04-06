@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -11,15 +12,7 @@ export const useAuthState = () => {
   useEffect(() => {
     console.log("AuthProvider initialization");
     
-    // Check for localStorage authentication first
-    const localAuth = localStorage.getItem('isAuthenticated');
-    
-    if (localAuth === 'true') {
-      console.log("Local authentication found");
-      setIsLocalAuth(true);
-    }
-
-    // Set up auth state listener FIRST
+    // Set up auth state listener FIRST to ensure we don't miss any auth events
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, currentSession) => {
         console.log("Auth state changed:", event);
@@ -35,7 +28,6 @@ export const useAuthState = () => {
             localStorage.setItem('authMethod', 'supabase');
             localStorage.setItem('authContact', currentSession.user.email || '');
             setIsLocalAuth(true);
-            console.log("User signed in - setting localStorage backup");
           }
         }
         
@@ -59,7 +51,7 @@ export const useAuthState = () => {
       console.log("Existing session check:", existingSession ? "Found" : "Not found");
       
       if (existingSession) {
-        console.log("Valid session found - updating state and localStorage backup");
+        console.log("Valid session found - updating state");
         setSession(existingSession);
         setUser(existingSession.user);
         
@@ -70,29 +62,21 @@ export const useAuthState = () => {
         setIsLocalAuth(true);
         setLoading(false);
       } else {
-        // Try to refresh the session if we have local auth but no session
-        if (localAuth === 'true') {
-          console.log("Local auth found but no session - attempting to refresh");
-          setTimeout(async () => {
-            try {
-              const { data, error } = await supabase.auth.refreshSession();
-              if (data.session) {
-                console.log("Session refreshed successfully");
-                setSession(data.session);
-                setUser(data.session.user);
-              } else if (error) {
-                console.error("Error refreshing session:", error);
-                // Keep local auth for now - this allows immediate access to app
-              }
-            } catch (err) {
-              console.error("Error during session refresh:", err);
-            } finally {
-              setLoading(false);
-            }
-          }, 0);
-        } else {
+        // No valid session, check for token refresh
+        supabase.auth.refreshSession().then(({ data, error }) => {
+          if (data?.session) {
+            console.log("Session refreshed successfully");
+            setSession(data.session);
+            setUser(data.session.user);
+            setIsLocalAuth(true);
+          } else if (error) {
+            console.error("Error refreshing session:", error);
+            // Check for local auth as fallback
+            const localAuth = localStorage.getItem('isAuthenticated');
+            setIsLocalAuth(localAuth === 'true');
+          }
           setLoading(false);
-        }
+        });
       }
     });
 

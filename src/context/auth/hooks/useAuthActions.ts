@@ -4,50 +4,26 @@ import { supabase } from '@/integrations/supabase/client';
 import { createOrUpdateProfile } from '../utils';
 import { toast } from 'sonner';
 
-// Define a simple interface for the query result to avoid deep type instantiation
-interface ProfileQueryResult {
-  data: { id: string } | null;
-  error: any;
-}
-
 export const useAuthActions = () => {
   const [loading, setLoading] = useState(false);
 
-  const signIn = async (email: string) => {
+  const signIn = async (email: string, password: string) => {
     console.log(`Attempting to sign in with email: ${email}`);
     setLoading(true);
     
     try {
-      // Create a simple check that avoids deep type instantiation
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('email_verified', true)
-        .filter('name', 'ilike', `%${email.split('@')[0]}%`)
-        .maybeSingle();
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
       
-      // Create a simple result object
-      const result: ProfileQueryResult = { 
-        data: profileData,
-        error: profileError
-      };
-      
-      if (result.error) {
-        console.error("Error checking user:", result.error);
-        throw new Error("No account found with this email. Please sign up instead.");
+      if (error) {
+        throw error;
       }
       
-      if (!result.data) {
-        throw new Error("No account found with this email. Please sign up instead.");
-      }
-      
-      // Store local authentication
-      localStorage.setItem('isAuthenticated', 'true');
-      localStorage.setItem('authMethod', 'email');
-      localStorage.setItem('authContact', email);
-      
-      return { user: { id: result.data.id } };
-    } catch (error) {
+      console.log("Signed in successfully:", data);
+      return data;
+    } catch (error: any) {
       console.error("Error during sign in:", error);
       throw error;
     } finally {
@@ -56,64 +32,54 @@ export const useAuthActions = () => {
   };
 
   const signInWithGoogle = async () => {
-    // This function is kept for compatibility but will not be used
-    console.log("Google sign-in is disabled");
-    throw new Error("Google sign-in is disabled");
+    console.log("Starting Google sign-in");
+    setLoading(true);
+    
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`
+        }
+      });
+      
+      if (error) {
+        throw error;
+      }
+      
+      return data;
+    } catch (error) {
+      console.error("Error during Google sign in:", error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const signUp = async (email: string) => {
+  const signUp = async (email: string, password: string) => {
     console.log(`Attempting to sign up with email: ${email}`);
     setLoading(true);
     
     try {
-      // Check if user already exists by id pattern
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('id')
-        .filter('name', 'ilike', `%${email.split('@')[0]}%`)
-        .maybeSingle();
-      
-      // Simple result object
-      const result: ProfileQueryResult = { 
-        data: profileData, 
-        error: profileError 
-      };
-      
-      if (result.error) {
-        console.error("Error checking user:", result.error);
-      } else if (result.data) {
-        // User already exists, just set local auth
-        localStorage.setItem('isAuthenticated', 'true');
-        localStorage.setItem('authMethod', 'email');
-        localStorage.setItem('authContact', email);
-        return { user: { id: result.data.id } };
-      }
-      
-      // Create a new user without sending email
-      const { data: authData, error: signUpError } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
-        password: crypto.randomUUID(), // Generate a random password
+        password,
         options: {
-          emailRedirectTo: window.location.origin + '/discover',
-          data: {
-            email_verified: false
-          }
+          emailRedirectTo: `${window.location.origin}/auth/callback`
         }
       });
       
-      if (signUpError) {
-        console.error("Sign up error:", signUpError);
-        throw signUpError;
+      if (error) {
+        throw error;
       }
       
-      console.log("User signup initiated:", authData);
+      if (data.user) {
+        // Create or update profile after successful signup
+        await createOrUpdateProfile(data.user.id, email);
+        toast.success("Account created successfully! Please check your email for verification.");
+      }
       
-      // Set local authentication for immediate access
-      localStorage.setItem('isAuthenticated', 'true');
-      localStorage.setItem('authMethod', 'email');
-      localStorage.setItem('authContact', email);
-      
-      return authData;
+      return data;
     } catch (error) {
       console.error("Error during sign up:", error);
       throw error;
@@ -122,10 +88,26 @@ export const useAuthActions = () => {
     }
   };
 
-  // This is a placeholder for compatibility
   const resetPassword = async (email: string) => {
     console.log(`Sending reset link to: ${email}`);
-    return Promise.resolve();
+    setLoading(true);
+    
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      
+      if (error) {
+        throw error;
+      }
+      
+      toast.success("Password reset link sent to your email");
+    } catch (error) {
+      console.error("Error sending reset password email:", error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
   };
 
   const signOut = async () => {
@@ -142,11 +124,11 @@ export const useAuthActions = () => {
       // Then sign out from Supabase
       const { error } = await supabase.auth.signOut();
       if (error) {
-        console.error("Error signing out from Supabase:", error);
         throw error;
       }
       
       console.log("User signed out successfully");
+      toast.success("Signed out successfully");
     } catch (error) {
       console.error("Error during sign out:", error);
       throw error;
@@ -156,11 +138,27 @@ export const useAuthActions = () => {
   };
 
   const updatePassword = async (newPassword: string) => {
-    console.log("Password updates not supported in passwordless auth");
-    toast("Not available with passwordless authentication", {
-      description: "Password updates are not available with passwordless authentication.",
-    });
-    return false;
+    console.log("Updating password");
+    setLoading(true);
+    
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+      
+      if (error) {
+        throw error;
+      }
+      
+      toast.success("Password updated successfully");
+      return true;
+    } catch (error) {
+      console.error("Error updating password:", error);
+      toast.error("Failed to update password");
+      return false;
+    } finally {
+      setLoading(false);
+    }
   };
 
   return {
