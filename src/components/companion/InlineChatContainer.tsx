@@ -30,7 +30,11 @@ const InlineChatContainer: React.FC<InlineChatContainerProps> = ({
     <div className="flex flex-col h-full">
       <div className="flex-1 overflow-y-auto p-4 space-y-4 hide-scrollbar">
         {messages.map((message, index) => (
-          <Message key={index} message={message} />
+          <Message 
+            key={index} 
+            message={message} 
+            isLast={index === messages.length - 1} 
+          />
         ))}
         <div ref={messagesEndRef} />
       </div>
