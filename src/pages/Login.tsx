@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/auth';
@@ -34,7 +33,7 @@ const Login = () => {
   const location = useLocation();
   const [authMode, setAuthMode] = useState<'login' | 'signup' | 'forgot'>('login');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { signIn, signUp, resetPassword, isAuthenticated, loading } = useAuth();
+  const { signIn, signUp, resetPassword, isAuthenticated, loading, signInWithGoogle } = useAuth();
   
   const from = location.state?.from?.pathname || '/discover';
 
@@ -115,6 +114,17 @@ const Login = () => {
       toast.error(error.message || 'Failed to send reset link');
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  // Handle Google sign-in
+  const handleGoogleSignIn = async () => {
+    try {
+      await signInWithGoogle();
+      // Note: No need to navigate here as the auth state change will handle it
+    } catch (error: any) {
+      console.error('Google login error:', error);
+      toast.error(error.message || 'Failed to sign in with Google');
     }
   };
 
@@ -358,7 +368,12 @@ const Login = () => {
                 </div>
               </div>
               
-              <SocialLoginButton provider="google" className="w-full" />
+              <SocialLoginButton 
+                provider="google" 
+                onLogin={handleGoogleSignIn}
+                isLoginMode={authMode === 'login'} 
+                className="w-full"
+              />
             </CardContent>
           </Card>
         )}

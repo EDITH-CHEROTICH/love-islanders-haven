@@ -6,9 +6,10 @@ interface SocialLoginButtonProps {
   provider: "google";
   onLogin: () => Promise<void>;
   isLoginMode: boolean;
+  className?: string; // Added className prop
 }
 
-const SocialLoginButton = ({ provider, onLogin, isLoginMode }: SocialLoginButtonProps) => {
+const SocialLoginButton = ({ provider, onLogin, isLoginMode, className }: SocialLoginButtonProps) => {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleLogin = async () => {
@@ -24,7 +25,7 @@ const SocialLoginButton = ({ provider, onLogin, isLoginMode }: SocialLoginButton
     <Button
       type="button"
       variant="outline"
-      className="w-full"
+      className={className || "w-full"} // Use passed className or default to w-full
       onClick={handleLogin}
       disabled={isLoading}
     >

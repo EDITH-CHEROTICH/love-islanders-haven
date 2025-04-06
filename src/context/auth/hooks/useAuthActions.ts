@@ -47,7 +47,7 @@ export const useAuthActions = () => {
         throw error;
       }
       
-      return data;
+      return data; // Return data instead of void to match our updated type
     } catch (error) {
       console.error("Error during Google sign in:", error);
       throw error;
