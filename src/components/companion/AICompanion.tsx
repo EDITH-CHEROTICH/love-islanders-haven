@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/auth';
 import { MessageType } from './types';
 import { toast } from 'sonner';
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const AICompanion: React.FC = () => {
   const [messages, setMessages] = useState<MessageType[]>([]);
@@ -166,11 +167,13 @@ const AICompanion: React.FC = () => {
   };
 
   return (
-    <InlineChatContainer 
-      messages={messages} 
-      isLoading={isLoading} 
-      onSendMessage={handleSendMessage} 
-    />
+    <ScrollArea className="h-full w-full">
+      <InlineChatContainer 
+        messages={messages} 
+        isLoading={isLoading} 
+        onSendMessage={handleSendMessage} 
+      />
+    </ScrollArea>
   );
 };
 

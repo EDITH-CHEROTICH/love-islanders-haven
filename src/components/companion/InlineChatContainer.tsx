@@ -27,7 +27,7 @@ const InlineChatContainer: React.FC<InlineChatContainerProps> = ({
   };
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-[calc(100vh-4rem)]">
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.map((message, index) => (
           <Message 
@@ -38,7 +38,9 @@ const InlineChatContainer: React.FC<InlineChatContainerProps> = ({
         ))}
         <div ref={messagesEndRef} />
       </div>
-      <ChatInput onSendMessage={onSendMessage} isLoading={isLoading} />
+      <div className="p-4 border-t border-gray-200 dark:border-gray-800">
+        <ChatInput onSendMessage={onSendMessage} isLoading={isLoading} />
+      </div>
     </div>
   );
 };
