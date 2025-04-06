@@ -24,13 +24,15 @@ const AICompanionChat: React.FC = () => {
           </Alert>
         )}
       
-        <div className="bg-island rounded-lg overflow-hidden shadow-xl h-full">
+        <div className="bg-island rounded-lg overflow-hidden shadow-xl h-full flex flex-col">
           <div className="bg-island p-3 border-b border-island-light flex items-center justify-center">
             <div className="flex items-center space-x-2">
               <h2 className="text-lg font-semibold text-white">Chat with Isla - Your Dating Companion</h2>
             </div>
           </div>
-          <AICompanion />
+          <div className="flex-1 overflow-hidden flex flex-col">
+            <AICompanion />
+          </div>
         </div>
       </div>
     </div>
