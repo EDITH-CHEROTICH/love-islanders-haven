@@ -7,6 +7,7 @@ import { User, LogIn } from "lucide-react";
 import { useAuth } from '@/context/auth';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const AICompanionChat: React.FC = () => {
   const isMobile = useIsMobile();
@@ -15,7 +16,7 @@ const AICompanionChat: React.FC = () => {
 
   return (
     <div className="flex flex-col h-screen bg-island-dark">
-      <div className={`flex-1 container mx-auto ${isMobile ? 'max-w-full p-0' : 'p-4'}`}>
+      <div className={`flex-1 container mx-auto ${isMobile ? 'max-w-full p-0' : 'p-4'} overflow-hidden`}>
         {!isAuthenticated && (
           <Alert className="mb-4 bg-amber-100 border-amber-200 text-amber-800">
             <User className="h-5 w-5" />
@@ -44,9 +45,9 @@ const AICompanionChat: React.FC = () => {
               <h2 className="text-lg font-semibold text-white">Chat with Isla - Your Dating Companion</h2>
             </div>
           </div>
-          <div className="flex-1 overflow-hidden flex flex-col">
+          <ScrollArea className="flex-1">
             <AICompanion />
-          </div>
+          </ScrollArea>
         </div>
       </div>
     </div>

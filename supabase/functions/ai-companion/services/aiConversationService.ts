@@ -67,7 +67,7 @@ export async function processConversationWithN8n(
       : conversationHistory;
     
     // Use OpenAI directly
-    console.log("Using OpenAI directly for AI companion");
+    console.log("Using OpenAI directly with GPT-4o for AI companion");
     
     // Get OpenAI API key
     const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
@@ -105,9 +105,9 @@ export async function processConversationWithN8n(
       content: message
     });
     
-    // Call OpenAI API
+    // Call OpenAI API with GPT-4o model
     const completion = await openai.chat.completions.create({
-      model: "gpt-4o",
+      model: "gpt-4o", // Using GPT-4o for superior capabilities
       messages: messages,
       temperature: 0.8,
       max_tokens: 800,
