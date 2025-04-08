@@ -60,6 +60,7 @@ export const createOrUpdateProfile = async (preferences: ProfilePreferences, nam
 
 export const fetchUserProfile = async () => {
   try {
+    console.log('fetchUserProfile: Starting to fetch user profile');
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     
     if (authError) {
@@ -72,6 +73,7 @@ export const fetchUserProfile = async () => {
       return null;
     }
     
+    console.log('fetchUserProfile: User authenticated, id:', user.id);
     const userId = user.id;
 
     // Fetch the user's profile data
@@ -100,6 +102,8 @@ export const fetchUserProfile = async () => {
       };
     }
     
+    console.log('fetchUserProfile: Found profile data');
+    
     // Fetch the user's profile images separately
     const { data: imageData, error: imageError } = await supabase
       .from('profile_images')
@@ -109,6 +113,8 @@ export const fetchUserProfile = async () => {
       
     if (imageError) {
       console.error('Error fetching profile images:', imageError);
+    } else {
+      console.log('fetchUserProfile: Found image data:', imageData?.length || 0, 'images');
     }
 
     // Cast relationship_goal to the allowed type values or use a default
@@ -146,6 +152,7 @@ export const fetchUserProfile = async () => {
         : []
     };
 
+    console.log('fetchUserProfile: Returning complete profile data');
     return profile;
   } catch (error) {
     console.error("Error in fetchUserProfile:", error);

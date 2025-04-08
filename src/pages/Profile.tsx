@@ -16,14 +16,20 @@ const Profile = () => {
   const [profile, setProfile] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, loading } = useAuth();
   
+  // Wait for auth to finish loading before trying to load profile
   useEffect(() => {
+    if (loading) {
+      return; // Don't do anything while auth is still loading
+    }
+    
     if (isAuthenticated && user) {
       loadUserProfile();
-    } else {
-      // Show a message if not authenticated
+    } else if (!loading) {
+      // Only show this message if auth has finished loading and user is not authenticated
       toast({
         title: "Authentication required",
         description: "Please log in to view and edit your profile.",
@@ -31,15 +37,24 @@ const Profile = () => {
       });
       setIsLoading(false);
     }
-  }, [isAuthenticated, user]);
+  }, [isAuthenticated, user, loading]);
   
   const loadUserProfile = async () => {
     setIsLoading(true);
+    setError(null);
+    
     try {
+      console.log('Loading user profile...');
+      
       // Check if user session exists
-      const { data: sessionData } = await supabase.auth.getSession();
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError) {
+        throw new Error(`Session error: ${sessionError.message}`);
+      }
       
       if (!sessionData.session) {
+        console.log('No active session found');
         toast({
           title: "Authentication required",
           description: "Please log in to view your profile.",
@@ -49,11 +64,15 @@ const Profile = () => {
         return;
       }
       
+      console.log('Session found, fetching profile data');
       const userData = await fetchUserProfile();
+      
       if (userData) {
+        console.log('Profile loaded successfully');
         setProfile(userData);
       } else {
         // Handle case when no profile exists
+        console.log('No profile found, creating default');
         setProfile({
           name: 'New User',
           images: [],
@@ -67,11 +86,14 @@ const Profile = () => {
       }
     } catch (error) {
       console.error('Error loading profile:', error);
+      setError('Failed to load profile data');
       toast({
         title: "Failed to load profile",
         description: "Please try again later or contact support.",
         variant: "destructive"
       });
+      
+      // Still provide a default profile to avoid complete UI failure
       setProfile({
         name: 'New User',
         images: [],
@@ -116,7 +138,8 @@ const Profile = () => {
     });
   };
   
-  if (isLoading) {
+  // Show loading state while auth is still being determined
+  if (loading || (isLoading && isAuthenticated)) {
     return <ProfileLoadingState />;
   }
 
@@ -133,6 +156,10 @@ const Profile = () => {
     );
   }
 
+  if (error) {
+    return <ProfileErrorState onRetry={loadUserProfile} />;
+  }
+  
   if (!profile) {
     return <ProfileErrorState onRetry={loadUserProfile} />;
   }

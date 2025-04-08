@@ -18,6 +18,14 @@ const ProfileErrorState = ({ onRetry }: ProfileErrorStateProps) => {
             Unable to load profile data. Please try again later.
           </AlertDescription>
         </Alert>
+        <div className="text-center text-sm text-muted-foreground mt-2">
+          <p>This could be due to:</p>
+          <ul className="list-disc list-inside mt-1 mb-4">
+            <li>A temporary connection issue</li>
+            <li>Your session may have expired</li>
+            <li>The server might be experiencing problems</li>
+          </ul>
+        </div>
         <Button 
           onClick={onRetry}
           className="w-full"
