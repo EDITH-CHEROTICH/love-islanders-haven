@@ -86,6 +86,12 @@ const useImageUpload = ({ toast }: UseImageUploadProps): UseImageUploadReturn =>
         console.error("Error reading file:", file.name);
         processed++;
         checkAllProcessed();
+        
+        toast({
+          title: "Error",
+          description: `Failed to process image: ${file.name}`,
+          variant: "destructive",
+        });
       };
       
       reader.readAsDataURL(file);

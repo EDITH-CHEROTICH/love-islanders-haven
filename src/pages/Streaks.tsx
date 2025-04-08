@@ -79,30 +79,43 @@ const Streaks = () => {
 
       // Log what we're submitting
       console.log("Image data being submitted:", postData.content.length, "images");
-      console.log("First image data prefix:", postData.content[0].substring(0, 50) + "...");
       
-      // Submit post
-      const success = await handlePostSubmit(postData);
+      if (postData.content.length > 0) {
+        console.log("First image data prefix:", postData.content[0].substring(0, 50) + "...");
+      }
       
-      if (success) {
-        // Update UI on success
-        setShowPostForm(false);
+      try {
+        // Submit post
+        const success = await handlePostSubmit(postData);
         
-        // Refresh posts and user streak data
-        await fetchPosts();
-        await checkUserStreak();
-        
-        toast({
-          title: "Success!",
-          description: "Your streak has been posted successfully!",
-        });
-        
-        return true;
-      } else {
-        console.log("Post submission failed");
+        if (success) {
+          // Update UI on success
+          setShowPostForm(false);
+          
+          // Refresh posts and user streak data
+          await fetchPosts();
+          await checkUserStreak();
+          
+          toast({
+            title: "Success!",
+            description: "Your streak has been posted successfully!",
+          });
+          
+          return true;
+        } else {
+          console.log("Post submission failed");
+          toast({
+            title: "Error",
+            description: "Something went wrong while posting your streak. Please try again.",
+            variant: "destructive",
+          });
+          return false;
+        }
+      } catch (error) {
+        console.error("Error from handlePostSubmit:", error);
         toast({
           title: "Error",
-          description: "Something went wrong while posting your streak. Please try again.",
+          description: "Failed to post your streak. Please try again.",
           variant: "destructive",
         });
         return false;
