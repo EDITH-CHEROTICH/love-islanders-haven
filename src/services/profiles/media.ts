@@ -11,7 +11,10 @@ export const saveProfileImage = async (
   isVisible = true
 ) => {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data, error: authError } = await supabase.auth.getSession();
+    if (authError || !data.session) throw new Error('User not authenticated');
+    
+    const user = data.session.user;
     if (!user) throw new Error('User not authenticated');
   
     const { error } = await supabase
@@ -82,7 +85,10 @@ export const saveProfileVideo = async (videoUrl: string) => {
  */
 export const uploadProfileImage = async (file: File): Promise<string> => {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data, error: authError } = await supabase.auth.getSession();
+    if (authError || !data.session) throw new Error('User not authenticated');
+    
+    const user = data.session.user;
     if (!user) throw new Error('User not authenticated');
     
     // Create a unique file name
@@ -91,7 +97,7 @@ export const uploadProfileImage = async (file: File): Promise<string> => {
     const filePath = `${user.id}/${fileName}`;
     
     // Upload to storage
-    const { error: uploadError, data } = await supabase.storage
+    const { error: uploadError, data: uploadData } = await supabase.storage
       .from('profile-images')
       .upload(filePath, file);
       

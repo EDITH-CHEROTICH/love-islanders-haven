@@ -1,8 +1,9 @@
 
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { uploadProfileImage } from '@/services/profiles/uploads';
+import { uploadProfileImage } from '@/services/profiles/media';
 import { saveProfileImage } from '@/services/profiles/media';
+import { supabase } from '@/integrations/supabase/client';
 
 export const useImageUpload = (position: number, onImageUploaded: (imageUrl: string) => void) => {
   const [isUploading, setIsUploading] = useState(false);
@@ -48,6 +49,19 @@ export const useImageUpload = (position: number, onImageUploaded: (imageUrl: str
     
     setIsUploading(true);
     try {
+      // Check authentication status first
+      const { data: authData, error: authError } = await supabase.auth.getSession();
+      
+      if (authError || !authData.session) {
+        toast({
+          title: 'Authentication required',
+          description: 'Please log in to upload images',
+          variant: 'destructive'
+        });
+        setIsUploading(false);
+        return;
+      }
+      
       // 1. Upload file to Supabase storage
       const imageUrl = await uploadProfileImage(file);
       

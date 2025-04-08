@@ -6,8 +6,14 @@ import { v4 as uuidv4 } from "uuid";
  * Uploads an image to Supabase storage and returns the public URL
  */
 export const uploadProfileImage = async (file: File): Promise<string> => {
-  const user = await supabase.auth.getUser();
-  const userId = user.data.user?.id;
+  // First, check for valid session
+  const { data, error: sessionError } = await supabase.auth.getSession();
+  
+  if (sessionError || !data.session) {
+    throw new Error('User not authenticated');
+  }
+  
+  const userId = data.session.user.id;
 
   if (!userId) {
     throw new Error('User not authenticated');
@@ -19,7 +25,7 @@ export const uploadProfileImage = async (file: File): Promise<string> => {
   const filePath = `profiles/${fileName}`;
 
   // Upload the file to Supabase storage
-  const { data, error } = await supabase.storage
+  const { data: uploadData, error } = await supabase.storage
     .from('profile-images')
     .upload(filePath, file, {
       cacheControl: '3600',
