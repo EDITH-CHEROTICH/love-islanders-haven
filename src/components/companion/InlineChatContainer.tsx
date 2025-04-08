@@ -18,7 +18,7 @@ const InlineChatContainer: React.FC<InlineChatContainerProps> = ({
 }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Scroll to bottom when messages change
+  // Scroll to bottom whenever messages change
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
@@ -31,7 +31,7 @@ const InlineChatContainer: React.FC<InlineChatContainerProps> = ({
 
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)]">
-      <ScrollArea className="flex-1 p-4">
+      <ScrollArea className="flex-1 p-4 overflow-y-auto">
         <div className="space-y-4">
           {messages.map((message, index) => (
             <Message 
@@ -43,7 +43,7 @@ const InlineChatContainer: React.FC<InlineChatContainerProps> = ({
           <div ref={messagesEndRef} />
         </div>
       </ScrollArea>
-      <div className="p-4 border-t border-gray-200 dark:border-gray-800 my-[41px]">
+      <div className="p-4 border-t border-gray-200 dark:border-gray-800">
         <ChatInput onSendMessage={onSendMessage} isLoading={isLoading} />
       </div>
     </div>

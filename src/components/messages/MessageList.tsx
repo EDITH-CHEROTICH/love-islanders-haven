@@ -4,6 +4,7 @@ import MessageItem from './MessageItem';
 import TypingIndicator from './TypingIndicator';
 import { useRef, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface MessageListProps {
   messages: Message[];
@@ -61,40 +62,30 @@ const MessageList = ({
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
   
-  if (isLoading) {
-    return (
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 hide-scrollbar">
+  return (
+    <ScrollArea className="flex-1 p-4 space-y-4">
+      {isLoading ? (
         <div className="text-center text-white/60 py-8">
           Loading messages...
         </div>
-      </div>
-    );
-  }
-  
-  if (realTimeMessages.length === 0) {
-    return (
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 hide-scrollbar">
+      ) : realTimeMessages.length === 0 ? (
         <div className="text-center text-white/60 py-8">
           No messages yet. Say hello to start the conversation!
         </div>
-      </div>
-    );
-  }
-  
-  return (
-    <div className="flex-1 overflow-y-auto p-4 space-y-4 hide-scrollbar">
-      {realTimeMessages.map((msg) => (
-        <MessageItem 
-          key={msg.id} 
-          message={msg} 
-          isCurrentUser={msg.sender_id === currentUserId} 
-        />
-      ))}
-      
-      {isTyping && <TypingIndicator />}
-      
-      <div ref={messagesEndRef} />
-    </div>
+      ) : (
+        <div className="space-y-4">
+          {realTimeMessages.map((msg) => (
+            <MessageItem 
+              key={msg.id} 
+              message={msg} 
+              isCurrentUser={msg.sender_id === currentUserId} 
+            />
+          ))}
+          {isTyping && <TypingIndicator />}
+          <div ref={messagesEndRef} />
+        </div>
+      )}
+    </ScrollArea>
   );
 };
 

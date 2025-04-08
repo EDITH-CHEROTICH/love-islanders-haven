@@ -5,6 +5,7 @@ import { markMessagesAsRead, Message as MessageType } from '@/services/messages'
 import MessageItem from '@/components/messages/MessageItem';
 import MessageInput from '@/components/messages/MessageInput';
 import { supabase } from '@/integrations/supabase/client';
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface InlineChatContentProps {
   matchId: string;
@@ -117,8 +118,7 @@ const InlineChatContent: React.FC<InlineChatContentProps> = ({
 
   return (
     <>
-      {/* Messages container with flex-1 to take available space */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 hide-scrollbar">
+      <ScrollArea className="flex-1 p-4 space-y-4">
         {isLoading ? (
           <div className="text-center text-white/60 py-8">
             Loading messages...
@@ -128,16 +128,18 @@ const InlineChatContent: React.FC<InlineChatContentProps> = ({
             No messages yet. Say hello to start the conversation!
           </div>
         ) : (
-          allMessages.map((msg) => (
-            <MessageItem
-              key={msg.id}
-              message={msg}
-              isCurrentUser={msg.sender_id === currentUserId}
-            />
-          ))
+          <div className="space-y-4">
+            {allMessages.map((msg) => (
+              <MessageItem
+                key={msg.id}
+                message={msg}
+                isCurrentUser={msg.sender_id === currentUserId}
+              />
+            ))}
+            <div ref={messagesEndRef} />
+          </div>
         )}
-        <div ref={messagesEndRef} />
-      </div>
+      </ScrollArea>
 
       {/* Input area with fixed position at bottom */}
       <div className="mt-auto">
