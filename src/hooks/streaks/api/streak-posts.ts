@@ -1,3 +1,4 @@
+
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from "@/integrations/supabase/client";
 import { StreakData } from "../types";
@@ -29,10 +30,14 @@ export const fetchStreakPosts = async (): Promise<StreakData[]> => {
     
     // Handle possible error with profiles relation by providing a default
     return data.map(item => {
-      // Ensure proper profile data or use a default - handle null case explicitly
-      const profileData = item.profiles && typeof item.profiles === 'object' && item.profiles !== null && !('error' in item.profiles) 
-        ? item.profiles 
-        : { name: 'Unknown User' };
+      // Create a fallback profile object
+      const defaultProfile = { name: 'Unknown User' };
+      
+      // Check if profiles exists and is not null before accessing it
+      const profileData = item.profiles ? 
+        (typeof item.profiles === 'object' && !('error' in item.profiles) ? 
+          item.profiles : defaultProfile) : 
+        defaultProfile;
       
       return {
         ...item,
