@@ -29,7 +29,7 @@ export async function fetchUserContextData(supabase, userId) {
 
     console.log("Fetching context data for user:", userId);
     
-    // Fetch user profile
+    // Fetch user profile with detailed information
     const { data: userProfile, error: profileError } = await supabase
       .from('profiles')
       .select(`
@@ -42,12 +42,18 @@ export async function fetchUserContextData(supabase, userId) {
       
     if (profileError) {
       console.error("Error fetching user profile:", profileError);
+    } else {
+      console.log("User profile fetched successfully:", userProfile ? "Found" : "Not found");
+      if (userProfile) {
+        console.log(`User details: ${userProfile.name}, ${userProfile.age}, ${userProfile.gender || 'gender not specified'}`);
+      }
     }
     
     // Format profile interests if available
     let interests = [];
     if (userProfile?.profile_interests) {
       interests = userProfile.profile_interests.map(pi => pi.interests.name);
+      console.log("User interests:", interests);
     }
     
     // Create a formatted user profile
@@ -66,6 +72,8 @@ export async function fetchUserContextData(supabase, userId) {
       
     if (messagesError) {
       console.error("Error fetching recent messages:", messagesError);
+    } else {
+      console.log(`Fetched ${recentMessages?.length || 0} recent messages for context`);
     }
     
     // Retrieve relevant memories using embeddings
@@ -76,9 +84,6 @@ export async function fetchUserContextData(supabase, userId) {
         role: msg.role,
         content: msg.message_content
       })).reverse();
-      
-      // Initialize OpenAI client (will be passed from the caller)
-      const openaiClient = null; // This will be passed from aiConversationService.ts
       
       // We'll fetch memories in aiConversationService.ts instead
       userMemoryContext = ''; // Will be populated later

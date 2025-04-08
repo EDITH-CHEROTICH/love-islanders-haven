@@ -5,8 +5,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/context/auth';
 import { MessageType } from './types';
 import { toast } from 'sonner';
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { sendAIMessage } from './aiCompanionService';
+import { fetchUserProfile } from '@/services/profiles';
 
 const AICompanion: React.FC = () => {
   const [messages, setMessages] = useState<MessageType[]>([]);

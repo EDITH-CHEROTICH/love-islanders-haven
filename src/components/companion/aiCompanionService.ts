@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { ChatMessage } from './types';
 
@@ -27,7 +28,7 @@ export const sendAIMessage = async (
       hasUserEmail: !!userEmail
     });
 
-    // Call the Supabase Edge Function directly
+    // Call the Supabase Edge Function
     const { data, error } = await supabase.functions.invoke('ai-companion', {
       body: {
         message,
