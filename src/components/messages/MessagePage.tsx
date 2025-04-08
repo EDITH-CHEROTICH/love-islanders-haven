@@ -18,8 +18,24 @@ const MessagePage: React.FC = () => {
   const { toast } = useToast();
   const { fetchSafetyContacts } = useDatingSafety();
   
-  // Create a matchInfo state that MessageHeaderWrapper requires
+  const { otherUser, loading } = useMessageDetail(matchId);
+  
+  // Create a matchInfo state based on otherUser for MessageHeaderWrapper
   const [matchInfo, setMatchInfo] = useState<any>(null);
+  
+  // Update matchInfo whenever otherUser changes
+  useEffect(() => {
+    if (otherUser) {
+      setMatchInfo({
+        profile: {
+          id: otherUser.id,
+          name: otherUser.name,
+          images: [otherUser.avatar_url || '/placeholder.svg'],
+          verified: false
+        }
+      });
+    }
+  }, [otherUser]);
   
   // Safely set matchId from params
   useEffect(() => {

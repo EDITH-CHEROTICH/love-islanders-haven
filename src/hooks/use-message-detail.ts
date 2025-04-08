@@ -27,8 +27,8 @@ export const useMessageDetail = (matchId: string) => {
           user1_id,
           user2_id,
           matched_at,
-          profiles!matches_user1_id_fkey (id, name, avatar_url),
-          profiles!matches_user2_id_fkey (id, name, avatar_url)
+          user1:user1_id(id, name, avatar_url),
+          user2:user2_id(id, name, avatar_url)
         `)
         .eq('id', matchId)
         .single();
@@ -40,8 +40,8 @@ export const useMessageDetail = (matchId: string) => {
       // Determine which user is the other person in the match
       if (data) {
         const otherUserData = data.user1_id === user?.id 
-          ? data.profiles.matches_user2_id_fkey 
-          : data.profiles.matches_user1_id_fkey;
+          ? data.user2 
+          : data.user1;
         
         setOtherUser(otherUserData);
       }
