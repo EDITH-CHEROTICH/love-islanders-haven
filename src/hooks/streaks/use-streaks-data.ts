@@ -3,10 +3,10 @@ import { useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { 
   fetchStreakPosts, 
-  fetchTopStreaks, 
+  getTopStreaks, 
   checkUserDailyPost, 
   getUserLatestStreakCount
-} from "./api";
+} from "./api/streak-posts";
 import { transformStreakData, transformTopStreaksData } from "./mock-data";
 
 /**
@@ -47,7 +47,7 @@ export const useStreaksData = (
       }
       
       // Fetch top streaks - users with highest streak counts
-      const topStreaksData = await fetchTopStreaks();
+      const topStreaksData = await getTopStreaks();
       
       if (topStreaksData && topStreaksData.length > 0) {
         // Transform the top streaks data

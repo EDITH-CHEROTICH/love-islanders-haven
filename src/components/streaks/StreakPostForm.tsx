@@ -11,14 +11,14 @@ const StreakPostForm = ({
   onCancel, 
   isSubmitting = false 
 }) => {
-  const [content, setContent] = useState([]);
-  const [previewUrls, setPreviewUrls] = useState([]);
+  const [content, setContent] = useState<string[]>([]);
+  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [duration, setDuration] = useState(24); 
   const [isUploading, setIsUploading] = useState(false);
   const { toast } = useToast();
   
   // Handle image selection
-  const handleImageSelect = (e) => {
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
     
@@ -33,11 +33,12 @@ const StreakPostForm = ({
     }
     
     setIsUploading(true);
-    const newImages = [];
+    const newImages: string[] = [];
     let processed = 0;
     
     Array.from(files).forEach(file => {
-      if (!file.type.startsWith('image/')) {
+      // Type guard to check if file is really a File object with type property
+      if (!file.type || !file.type.startsWith('image/')) {
         processed++;
         checkAllProcessed();
         return;
@@ -57,6 +58,7 @@ const StreakPostForm = ({
         checkAllProcessed();
       };
       
+      // Only read the file as data URL if it's a valid file
       reader.readAsDataURL(file);
     });
     
@@ -73,7 +75,7 @@ const StreakPostForm = ({
   };
   
   // Remove image
-  const removeImage = (index) => {
+  const removeImage = (index: number) => {
     setPreviewUrls(prev => {
       const updated = prev.filter((_, i) => i !== index);
       setContent(updated); // Keep in sync
@@ -88,7 +90,7 @@ const StreakPostForm = ({
   };
   
   // Handle form submission
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (content.length === 0) {

@@ -4,30 +4,46 @@ import { supabase } from "@/integrations/supabase/client";
 import { StreakData } from "../types";
 
 // Fetch streak posts from Supabase - simplified version
-export const fetchStreakPosts = async () => {
-  const { data, error } = await supabase
-    .from('streaks')
-    .select(`
-      id,
-      user_id,
-      content,
-      caption,
-      created_at,
-      streak_count,
-      likes_count,
-      comments_count,
-      expires_at,
-      profiles (name)
-    `)
-    .order('created_at', { ascending: false })
-    .limit(20);
+export const fetchStreakPosts = async (): Promise<StreakData[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('streaks')
+      .select(`
+        id,
+        user_id,
+        content,
+        caption,
+        created_at,
+        streak_count,
+        likes_count,
+        comments_count,
+        expires_at,
+        profiles (name)
+      `)
+      .order('created_at', { ascending: false })
+      .limit(20);
 
-  if (error) {
-    console.error("Error fetching streak posts:", error);
+    if (error) {
+      console.error("Error fetching streak posts:", error);
+      return [];
+    }
+    
+    // Handle possible error with profiles relation by providing a default
+    return data.map(item => {
+      // Ensure proper profile data or use a default
+      const profileData = item.profiles && typeof item.profiles === 'object' && !('error' in item.profiles)
+        ? item.profiles
+        : { name: 'Unknown User' };
+      
+      return {
+        ...item,
+        profiles: profileData
+      } as StreakData;
+    });
+  } catch (error) {
+    console.error("Error in fetchStreakPosts:", error);
     return [];
   }
-  
-  return data as StreakData[];
 };
 
 // Create a new streak post - simplified version
@@ -161,4 +177,25 @@ export const getTopStreaks = async (limit = 3) => {
     name: profile.name || 'Anonymous',
     count: profile.streak_count
   }));
+};
+
+// Get user's latest streak count
+export const getUserLatestStreakCount = async (userId: string) => {
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('streak_count')
+      .eq('id', userId)
+      .single();
+      
+    if (error || !data) {
+      console.error("Error getting user streak count:", error);
+      return 0;
+    }
+    
+    return data.streak_count || 0;
+  } catch (error) {
+    console.error("Error in getUserLatestStreakCount:", error);
+    return 0;
+  }
 };

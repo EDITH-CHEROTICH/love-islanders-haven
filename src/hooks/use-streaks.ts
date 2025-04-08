@@ -38,11 +38,7 @@ export const useStreaks = () => {
   // Actions
   const { handlePostSubmit, handleLikePost } = useStreaksActions(
     user,
-    userStreakCount,
-    posts,
-    setPosts,
-    setHasPostedToday,
-    setUserStreakCount
+    fetchPosts
   );
 
   return {
