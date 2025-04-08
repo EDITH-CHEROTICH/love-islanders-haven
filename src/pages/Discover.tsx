@@ -31,7 +31,16 @@ const Discover: React.FC = () => {
   
   // Custom hooks
   const { isAuthenticated } = useAuth();
-  const { currentProfile, isLoading, handleSwipe } = useDiscoverProfiles(filters);
+  const { 
+    currentProfile, 
+    isLoading, 
+    handleSwipe 
+  } = useDiscoverProfiles({
+    minAge: filters.ageRange[0],
+    maxAge: filters.ageRange[1],
+    maxDistance: filters.distance
+  });
+
   const { showVerificationPopup, handleVerificationComplete } = useEmailVerification();
 
   // Count active filters

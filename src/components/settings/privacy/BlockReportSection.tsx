@@ -6,9 +6,17 @@ import { TrashIcon } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 
+interface BlockedUserType {
+  blocked_user_id: string;
+  profiles: {
+    id: string;
+    name: string;
+  };
+}
+
 const BlockReportSection = () => {
   const { user } = useAuth();
-  const [blockedUsers, setBlockedUsers] = useState<any[]>([]);
+  const [blockedUsers, setBlockedUsers] = useState<BlockedUserType[]>([]);
 
   // Fetch blocked users on component mount
   useEffect(() => {
@@ -51,7 +59,9 @@ const BlockReportSection = () => {
       if (error) throw error;
       
       // Refresh blocked users list
-      fetchBlockedUsers(user.id);
+      if (user?.id) {
+        fetchBlockedUsers(user.id);
+      }
     } catch (error) {
       console.error("Error unblocking user:", error);
     }

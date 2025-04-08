@@ -1,49 +1,92 @@
-
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import useMatchMessages from '@/hooks/use-match-messages';
+import { useAuth } from '@/context/auth';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
-import { useMatchMessages } from '@/hooks/use-match-messages';
 
-export const useMessageDetail = () => {
-  const { matchId } = useParams<{ matchId: string }>();
-  const navigate = useNavigate();
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-  const { matchInfo, messages, isLoading } = useMatchMessages(matchId, currentUserId);
-  const { toast } = useToast();
-  
-  // Fetch current user ID on component mount
+const useMessageDetail = (matchId: string) => {
+  const [matchDetails, setMatchDetails] = useState<any>(null);
+  const [otherUser, setOtherUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const { messages, loading: messagesLoading, createMessage, refreshMessages } = useMatchMessages(matchId);
+  const { user } = useAuth();
+
   useEffect(() => {
-    const fetchCurrentUser = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        setCurrentUserId(user?.id || null);
-      } catch (error) {
-        console.error('Error fetching current user:', error);
-      }
-    };
-    
-    fetchCurrentUser();
-  }, []);
-  
-  // Redirect to matches if no matchId
-  useEffect(() => {
-    if (!matchId) {
-      navigate('/matches');
+    if (matchId) {
+      fetchMatchDetails();
     }
-  }, [matchId, navigate]);
-  
-  const handleBackClick = () => {
-    navigate('/matches');
+  }, [matchId]);
+
+  const fetchMatchDetails = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('matches')
+        .select(`
+          id,
+          user_one,
+          user_two,
+          created_at,
+          profiles!matches_user_one_fkey (id, name, avatar_url),
+          profiles!matches_user_two_fkey (id, name, avatar_url)
+        `)
+        .eq('id', matchId)
+        .single();
+
+      if (error) throw error;
+      
+      setMatchDetails(data);
+      
+      // Determine which user is the other person in the match
+      if (data) {
+        const otherUserData = data.user_one === user?.id 
+          ? data.profiles.matches_user_two_fkey 
+          : data.profiles.matches_user_one_fkey;
+        
+        setOtherUser(otherUserData);
+      }
+    } catch (error) {
+      console.error("Error fetching match details:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const sendMessage = async (content: string, contentType: string = 'text', mediaUrl: string = '') => {
+    if (!matchId || !content) return null;
+    
+    const message = await createMessage(matchId, content, contentType, mediaUrl);
+    return message;
+  };
+
+  const markMessagesAsRead = async () => {
+    if (!user?.id || !matchId) return;
+    
+    try {
+      const { error } = await supabase
+        .from('messages')
+        .update({ read: true })
+        .eq('match_id', matchId)
+        .neq('sender_id', user.id)
+        .eq('read', false);
+        
+      if (error) throw error;
+      
+      // Refresh messages to update UI
+      refreshMessages();
+    } catch (error) {
+      console.error("Error marking messages as read:", error);
+    }
   };
 
   return {
-    matchId,
-    currentUserId,
-    matchInfo,
+    matchDetails,
+    otherUser,
     messages,
-    isLoading,
-    handleBackClick,
-    toast
+    loading: loading || messagesLoading,
+    sendMessage,
+    markMessagesAsRead,
+    refreshMessages
   };
 };
+
+export default useMessageDetail;

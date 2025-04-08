@@ -38,7 +38,7 @@ export const fetchProfileById = async (id: string) => {
 /**
  * Fetch profiles for discover page with filtering
  */
-export const fetchDiscoverProfiles = async (filters: any = {}) => {
+export const fetchDiscoverProfiles = async (filters: DiscoverFilters = {}) => {
   let query = supabase
     .from('profiles')
     .select('*');
