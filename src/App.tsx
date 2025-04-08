@@ -7,7 +7,6 @@ import { Toaster } from '@/components/ui/sonner';
 import Feedback from './pages/Feedback';
 import Settings from './pages/Settings';
 import AICompanionChat from './pages/AICompanionChat';
-import Streaks from './pages/Streaks';
 import ProtectedRoute from './components/ProtectedRoute';
 import Verify from './pages/Verify';
 import NotFound from './pages/NotFound';
@@ -29,7 +28,6 @@ const App: React.FC = () => {
             <Route path="/login" element={<Login />} />
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             <Route path="/ai-companion" element={<AICompanionChat />} />
-            <Route path="/streaks" element={<ProtectedRoute><Streaks /></ProtectedRoute>} />
             <Route path="/feedback" element={<Feedback />} />
             <Route path="/matches" element={<ProtectedRoute><Matches /></ProtectedRoute>} />
             <Route path="/discover" element={<ProtectedRoute><Discover /></ProtectedRoute>} />
