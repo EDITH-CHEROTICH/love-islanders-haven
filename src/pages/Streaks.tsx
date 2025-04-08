@@ -73,6 +73,7 @@ const Streaks = () => {
           description: "Invalid image data. Please select images again.",
           variant: "destructive",
         });
+        setIsSubmitting(false);
         return false;
       }
       
