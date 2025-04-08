@@ -3,9 +3,6 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/auth";
 
-// Find and fix the spread type error on line 158
-// Only updating the specific function with the error
-
 export const useMatchMessages = (matchId: string) => {
   const [messages, setMessages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -23,7 +20,6 @@ export const useMatchMessages = (matchId: string) => {
     };
     
     try {
-      // Instead of spreading an unknown type, explicitly set the fields
       const { data, error } = await supabase
         .from('messages')
         .insert(newMessage)
@@ -90,4 +86,5 @@ export const useMatchMessages = (matchId: string) => {
   };
 };
 
+// Make sure to export the hook as default as well
 export default useMatchMessages;

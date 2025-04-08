@@ -1,31 +1,41 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { sendMessage } from '@/services/messages';
 import { useDatingSafety } from '@/hooks/use-dating-safety';
 import { AudioPlayerProvider } from '@/hooks/use-audio-player';
+import { useToast } from '@/hooks/use-toast';
 import MessageHeaderWrapper from './MessageHeaderWrapper';
 import MessageContainer from './MessageContainer';
-import { useMessageDetail } from '@/hooks/use-message-detail';
+import useMessageDetail from '@/hooks/use-message-detail';
+import { useAuth } from '@/context/auth';
 
 const MessagePage: React.FC = () => {
-  const { 
-    matchId, 
-    currentUserId, 
-    matchInfo, 
-    handleBackClick, 
-    toast 
-  } = useMessageDetail();
-  
-  // console logs for debugging
-  console.log('MessagePage component - matchId:', matchId);
-  console.log('MessagePage component - matchInfo:', matchInfo);
-  
+  const { matchId: matchIdParam } = useParams<{ matchId: string }>();
+  const [matchId, setMatchId] = useState<string>(matchIdParam || '');
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
   const { fetchSafetyContacts } = useDatingSafety();
   
+  // Create a matchInfo state that MessageHeaderWrapper requires
+  const [matchInfo, setMatchInfo] = useState<any>(null);
+  
+  // Safely set matchId from params
+  useEffect(() => {
+    if (matchIdParam) {
+      setMatchId(matchIdParam);
+    }
+  }, [matchIdParam]);
+  
   // Fetch safety contacts on component mount
-  React.useEffect(() => {
+  useEffect(() => {
     fetchSafetyContacts();
   }, [fetchSafetyContacts]);
+  
+  const handleBackClick = () => {
+    navigate('/matches');
+  };
   
   const handleSendMessage = async (content: string) => {
     if (!matchId) return;
@@ -54,7 +64,6 @@ const MessagePage: React.FC = () => {
           
           <MessageContainer
             matchId={matchId}
-            currentUserId={currentUserId}
             onSendMessage={handleSendMessage}
           />
         </div>

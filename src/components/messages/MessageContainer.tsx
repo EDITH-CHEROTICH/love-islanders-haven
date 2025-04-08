@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/context/auth';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -9,7 +10,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { useToast } from "@/hooks/use-toast";
 import { useSettings } from '@/context/SettingsContext';
 import { supabase } from '@/integrations/supabase/client';
-import { useMatchMessages } from '@/hooks/use-match-messages';
+import useMatchMessages from '@/hooks/use-match-messages';
 
 interface Message {
   id: string;
@@ -22,9 +23,10 @@ interface Message {
 
 interface MessageContainerProps {
   matchId: string;
+  onSendMessage: (content: string) => Promise<void>;
 }
 
-const MessageContainer: React.FC<MessageContainerProps> = ({ matchId }) => {
+const MessageContainer: React.FC<MessageContainerProps> = ({ matchId, onSendMessage }) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const { settings } = useSettings();
@@ -45,8 +47,6 @@ const MessageContainer: React.FC<MessageContainerProps> = ({ matchId }) => {
 
     if (sentMessage) {
       setNewMessage('');
-      // refreshMessages(); // Refresh messages after sending
-      // Scroll to bottom after sending
       setTimeout(() => {
         if (scrollAreaRef.current) {
           scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
@@ -62,12 +62,13 @@ const MessageContainer: React.FC<MessageContainerProps> = ({ matchId }) => {
   };
 
   const getSenderAvatar = (senderId: string) => {
-    const sender = senderId === user?.id ? user : null;
-
+    // Fix the User type issue by not directly accessing properties that might not exist
+    const isCurrentUser = senderId === user?.id;
+    
     return (
       <Avatar className="w-8 h-8">
-        <AvatarImage src={sender?.avatar_url || '/placeholder.svg'} alt={sender?.name} />
-        <AvatarFallback>{sender?.name?.charAt(0).toUpperCase() || '?'}</AvatarFallback>
+        <AvatarImage src="/placeholder.svg" alt={isCurrentUser ? "You" : "Other user"} />
+        <AvatarFallback>{isCurrentUser ? "You" : "?"}</AvatarFallback>
       </Avatar>
     );
   };

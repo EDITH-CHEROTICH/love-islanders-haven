@@ -27,20 +27,42 @@ const BlockReportSection = () => {
 
   const fetchBlockedUsers = async (userId: string) => {
     try {
-      const { data, error } = await supabase
+      // Updated query to use a simpler approach without requiring a direct relation
+      const { data: blockedUserIds, error: blockedError } = await supabase
         .from('blocked_users')
-        .select(`
-          blocked_user_id,
-          profiles!inner (
-            id,
-            name
-          )
-        `)
+        .select('blocked_user_id')
         .eq('user_id', userId);
 
-      if (error) throw error;
+      if (blockedError) throw blockedError;
       
-      setBlockedUsers(data || []);
+      // If no blocked users, set empty array
+      if (!blockedUserIds || blockedUserIds.length === 0) {
+        setBlockedUsers([]);
+        return;
+      }
+      
+      // Get profile details for each blocked user
+      const blockedUserList: BlockedUserType[] = [];
+      
+      for (const item of blockedUserIds) {
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('id, name')
+          .eq('id', item.blocked_user_id)
+          .single();
+          
+        if (!profileError && profileData) {
+          blockedUserList.push({
+            blocked_user_id: item.blocked_user_id,
+            profiles: {
+              id: profileData.id,
+              name: profileData.name
+            }
+          });
+        }
+      }
+      
+      setBlockedUsers(blockedUserList);
     } catch (error) {
       console.error("Error fetching blocked users:", error);
     }

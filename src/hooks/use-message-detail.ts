@@ -1,9 +1,10 @@
+
 import { useState, useEffect } from 'react';
 import useMatchMessages from '@/hooks/use-match-messages';
 import { useAuth } from '@/context/auth';
 import { supabase } from '@/integrations/supabase/client';
 
-const useMessageDetail = (matchId: string) => {
+export const useMessageDetail = (matchId: string) => {
   const [matchDetails, setMatchDetails] = useState<any>(null);
   const [otherUser, setOtherUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -23,11 +24,11 @@ const useMessageDetail = (matchId: string) => {
         .from('matches')
         .select(`
           id,
-          user_one,
-          user_two,
-          created_at,
-          profiles!matches_user_one_fkey (id, name, avatar_url),
-          profiles!matches_user_two_fkey (id, name, avatar_url)
+          user1_id,
+          user2_id,
+          matched_at,
+          profiles!matches_user1_id_fkey (id, name, avatar_url),
+          profiles!matches_user2_id_fkey (id, name, avatar_url)
         `)
         .eq('id', matchId)
         .single();
@@ -38,9 +39,9 @@ const useMessageDetail = (matchId: string) => {
       
       // Determine which user is the other person in the match
       if (data) {
-        const otherUserData = data.user_one === user?.id 
-          ? data.profiles.matches_user_two_fkey 
-          : data.profiles.matches_user_one_fkey;
+        const otherUserData = data.user1_id === user?.id 
+          ? data.profiles.matches_user2_id_fkey 
+          : data.profiles.matches_user1_id_fkey;
         
         setOtherUser(otherUserData);
       }
