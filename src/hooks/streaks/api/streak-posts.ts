@@ -97,7 +97,7 @@ export const createStreakPost = async (
     console.log("Inserting streak post with ID:", postId);
     
     // Insert the data into the streaks table
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('streaks')
       .insert(postData);
       
