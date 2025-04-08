@@ -2,6 +2,7 @@
 import { Trash2, EyeOff, Eye } from 'lucide-react';
 import ImageVisibilityToggle from './ImageVisibilityToggle';
 import ImageOrderControls from './ImageOrderControls';
+import { useState } from 'react';
 
 interface ProfileImageItemProps {
   image: string;
@@ -24,6 +25,17 @@ const ProfileImageItem = ({
   onMoveUp,
   onMoveDown
 }: ProfileImageItemProps) => {
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleRemove = async () => {
+    setIsDeleting(true);
+    try {
+      await onRemove(index);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+  
   return (
     <div className="relative aspect-square rounded-lg overflow-hidden group">
       <img 
@@ -33,11 +45,16 @@ const ProfileImageItem = ({
       />
       <div className="absolute top-2 right-2 flex flex-col gap-1">
         <button 
-          className="bg-black/60 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-          onClick={() => onRemove(index)}
+          className="bg-black/60 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
+          onClick={handleRemove}
+          disabled={isDeleting}
           aria-label="Remove image"
         >
-          <Trash2 size={16} />
+          {isDeleting ? (
+            <span className="animate-spin h-4 w-4 border-2 border-white/80 border-t-transparent rounded-full" />
+          ) : (
+            <Trash2 size={16} />
+          )}
         </button>
         <ImageVisibilityToggle 
           index={index}

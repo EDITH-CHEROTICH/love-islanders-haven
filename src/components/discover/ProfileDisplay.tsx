@@ -4,9 +4,8 @@ import { Profile } from '@/utils/dummyData';
 import ProfileCard from '@/components/ProfileCard';
 import SwipeButtons from '@/components/SwipeButtons';
 import InlineChatOverlay from '@/components/messages/InlineChatOverlay';
-import { useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
 import { fetchVisibleProfileImages } from '@/services/profiles/media';
+import { toast } from 'sonner';
 
 interface ProfileDisplayProps {
   profile: Profile | null;
@@ -15,6 +14,11 @@ interface ProfileDisplayProps {
   onOpenFilters: () => void;
   filterCount: number;
 }
+
+const DEFAULT_IMAGES = [
+  'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?q=80&w=1964&auto=format&fit=crop', 
+  'https://images.unsplash.com/photo-1604072366595-e75dc92d6bdc?q=80&w=1964&auto=format&fit=crop'
+];
 
 const ProfileDisplay: React.FC<ProfileDisplayProps> = ({
   profile,
@@ -25,23 +29,16 @@ const ProfileDisplay: React.FC<ProfileDisplayProps> = ({
 }) => {
   const [showChatOverlay, setShowChatOverlay] = useState(false);
   const [profileImages, setProfileImages] = useState<string[]>([]);
-  const navigate = useNavigate();
-
+  
   // Load visible profile images when profile changes
   useEffect(() => {
     const loadProfileImages = async () => {
       if (profile?.id) {
         try {
           const images = await fetchVisibleProfileImages(profile.id);
-          if (images.length > 0) {
-            setProfileImages(images);
-          } else {
-            // If no visible images were found, fall back to the default ones
-            setProfileImages(profile.images || []);
-          }
+          setProfileImages(images);
         } catch (error) {
           console.error("Error loading profile images:", error);
-          // Fall back to profile.images on error
           setProfileImages(profile.images || []);
         }
       }
@@ -81,12 +78,17 @@ const ProfileDisplay: React.FC<ProfileDisplayProps> = ({
     }
   };
 
-  // Create a profile with the loaded images or fallback
+  // Use profile images from DB or fall back to profile.images or default images
+  const imagesToDisplay = profileImages.length > 0
+    ? profileImages
+    : profile.images && profile.images.length > 0 
+      ? profile.images 
+      : DEFAULT_IMAGES;
+
+  // Create a profile with the loaded images
   const profileWithImages = {
     ...profile,
-    images: profileImages.length > 0 
-      ? profileImages 
-      : ['https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?q=80&w=1964&auto=format&fit=crop', 'https://images.unsplash.com/photo-1604072366595-e75dc92d6bdc?q=80&w=1964&auto=format&fit=crop']
+    images: imagesToDisplay
   };
 
   return <>

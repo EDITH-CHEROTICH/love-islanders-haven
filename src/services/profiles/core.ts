@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { ProfilePreferences } from "@/components/ProfileSetup";
 import { SupabaseProfile } from "./types";
@@ -90,7 +91,13 @@ export const fetchUserProfile = async () => {
     
     if (!profileData) {
       console.warn('No profile found for user:', userId);
-      return null;
+      return {
+        id: userId,
+        name: user.email?.split('@')[0] || 'User',
+        images: [],
+        bio: '',
+        verified: false
+      };
     }
     
     // Fetch the user's profile images separately

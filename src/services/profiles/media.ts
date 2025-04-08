@@ -35,6 +35,31 @@ export const saveProfileImage = async (
 };
 
 /**
+ * Delete a profile image by URL
+ */
+export const deleteProfileImage = async (imageUrl: string) => {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('User not authenticated');
+
+    const { error } = await supabase
+      .from('profile_images')
+      .delete()
+      .eq('profile_id', user.id)
+      .eq('url', imageUrl);
+
+    if (error) {
+      console.error("Error deleting profile image:", error);
+      throw error;
+    }
+    return true;
+  } catch (error) {
+    console.error("Error in deleteProfileImage:", error);
+    throw error;
+  }
+};
+
+/**
  * Save a video URL to a user's profile
  */
 export const saveProfileVideo = async (videoUrl: string) => {
@@ -134,5 +159,63 @@ export const fetchCurrentUserProfileImages = async (): Promise<string[]> => {
   } catch (error) {
     console.error("Error in fetchCurrentUserProfileImages:", error);
     return [];
+  }
+};
+
+/**
+ * Update the position of a profile image
+ */
+export const updateProfileImagePosition = async (
+  imageUrl: string,
+  newPosition: number
+): Promise<boolean> => {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('User not authenticated');
+
+    const { error } = await supabase
+      .from('profile_images')
+      .update({ position: newPosition })
+      .eq('profile_id', user.id)
+      .eq('url', imageUrl);
+
+    if (error) {
+      console.error('Error updating image position:', error);
+      throw error;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Error in updateProfileImagePosition:', error);
+    return false;
+  }
+};
+
+/**
+ * Update the visibility of a profile image
+ */
+export const updateProfileImageVisibility = async (
+  imageUrl: string,
+  isVisible: boolean
+): Promise<boolean> => {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('User not authenticated');
+
+    const { error } = await supabase
+      .from('profile_images')
+      .update({ is_visible: isVisible })
+      .eq('profile_id', user.id)
+      .eq('url', imageUrl);
+
+    if (error) {
+      console.error('Error updating image visibility:', error);
+      throw error;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Error in updateProfileImageVisibility:', error);
+    return false;
   }
 };
