@@ -15,18 +15,6 @@ interface VerificationFormProps {
   onClose?: () => void; // Make onClose optional
 }
 
-// Define a simple interface for the query result to avoid deep type instantiation
-interface ProfileQueryResult {
-  data: { id: string } | null;
-  error: any;
-}
-
-// Define an interface for Supabase user
-interface SupabaseUser {
-  id: string;
-  email?: string;
-}
-
 const VerificationForm = ({ 
   email, 
   generatedCode, 
@@ -53,10 +41,7 @@ const VerificationForm = ({
       if (verificationCode === generatedCode) {
         console.log("Code verified successfully");
         
-        // Get or create user
-        let userId: string | undefined;
-        
-        // Check if user exists with this email in auth system, not profiles
+        // Sign up the user with Supabase
         const { data: authData, error: authError } = await supabase.auth.signUp({
           email,
           password: crypto.randomUUID(), // Generate a random password
@@ -67,66 +52,59 @@ const VerificationForm = ({
             }
           }
         });
-        
+
         if (authError) {
-          console.error("Error signing up user:", authError);
+          console.error("Error during signup:", authError);
           
-          // If user already exists, try to get the user ID
-          const { data: userData, error: userError } = await supabase.auth.signInWithPassword({
-            email,
-            password: '' // This will fail but might give us user info
-          });
-          
-          if (userError && userError.message.includes("Invalid login credentials")) {
-            // User exists but with incorrect password, which is expected
-            // Try alternative approach to get user ID
-            
-            // We'll use list method instead of filter, as filter is not supported
-            const { data: userList, error: listUsersError } = await supabase.auth.admin.listUsers();
-            
-            if (listUsersError) {
-              console.error("Error listing users:", listUsersError);
-              throw new Error("Could not verify user account");
-            }
-            
-            // Find the user with matching email
-            const matchingUser = userList?.users?.find(user => {
-              // Safely access the email property
-              const userEmail = (user as SupabaseUser).email;
-              return userEmail?.toLowerCase() === email.toLowerCase();
+          // If the error is because the user already exists, try to sign in
+          if (authError.message.includes("User already registered")) {
+            const { data: signInData, error: signInError } = await supabase.auth.signInWithOtp({
+              email,
+              options: {
+                emailRedirectTo: window.location.origin + '/discover'
+              }
             });
             
-            if (matchingUser) {
-              userId = (matchingUser as SupabaseUser).id;
+            if (signInError) {
+              throw new Error(signInError.message);
             }
+          } else {
+            throw authError;
           }
-        } else if (authData && authData.user) {
-          userId = authData.user.id;
         }
         
-        // If we found or created a user, create/update the profile
-        if (userId) {
+        // Get user ID (either from signup or from existing session)
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        if (user) {
           try {
-            const { error: profileError } = await supabase
+            // Use RLS bypass with service role to insert/update profile
+            const serviceClient = supabase.auth.admin;
+            
+            // Check if profile already exists
+            const { data: existingProfile } = await supabase
               .from('profiles')
-              .upsert({
-                id: userId,
-                name: email.split('@')[0], // Default name from email
-                email_verified: true // Set email as verified
-              }, {
-                onConflict: 'id'
+              .select('id')
+              .eq('id', user.id)
+              .single();
+
+            if (!existingProfile) {
+              // Create profile using an admin function (bypassing RLS)
+              await supabase.functions.invoke('create-user-profile', {
+                body: { 
+                  userId: user.id,
+                  name: email.split('@')[0], 
+                  emailVerified: true
+                }
               });
-                
-            if (profileError) {
-              console.error("Error creating profile:", profileError);
+              console.log("Profile created for user");
             } else {
-              console.log("Profile created/updated for user");
+              console.log("Profile already exists for user");
             }
-          } catch (err) {
-            console.error("Error creating profile:", err);
+          } catch (profileError) {
+            console.error("Error handling profile:", profileError);
+            // Continue even if profile creation fails - we can try again later
           }
-        } else {
-          throw new Error("Could not create or find user account");
         }
         
         // Set authentication in localStorage

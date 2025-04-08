@@ -6,6 +6,7 @@ import EmailAuthForm from './auth/EmailAuthForm';
 import VerificationForm from './auth/VerificationForm';
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -19,9 +20,31 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const [verificationCode, setVerificationCode] = useState("");
   const [isEmailSubmitted, setIsEmailSubmitted] = useState(false);
   const [isSendingCode, setIsSendingCode] = useState(false);
+  const [authenticationAttempted, setAuthenticationAttempted] = useState(false);
 
   console.log("ProtectedRoute - Path:", location.pathname);
   console.log("ProtectedRoute - Auth state:", { isAuthenticated, loading });
+  
+  // Check localStorage for authentication status
+  useEffect(() => {
+    // If localStorage indicates the user is authenticated but our auth context doesn't
+    // This handles cases where the auth state hasn't yet been updated by the context
+    const localStorageAuth = localStorage.getItem('isAuthenticated') === 'true';
+    const verificationCompleted = localStorage.getItem('emailVerificationCompleted') === 'true';
+    
+    if (localStorageAuth && verificationCompleted && !isAuthenticated && !authenticationAttempted) {
+      setAuthenticationAttempted(true);
+      // Try to refresh the auth state
+      supabase.auth.refreshSession().then(({ data }) => {
+        if (!data.session) {
+          // If still no session, we need to clear localStorage to avoid an infinite loop
+          localStorage.removeItem('isAuthenticated');
+          localStorage.removeItem('emailVerificationCompleted');
+          toast.error("Your session has expired. Please sign in again.");
+        }
+      });
+    }
+  }, [isAuthenticated, authenticationAttempted]);
   
   const handleEmailSubmit = (email: string, code: string) => {
     setEmail(email);
@@ -49,9 +72,11 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
         throw new Error(error.message);
       }
       
+      toast.success("New verification code sent to your email");
       console.log("Resent verification code:", newCode);
     } catch (error: any) {
       console.error("Error resending verification code:", error);
+      toast.error("Failed to send verification code. Please try again.");
     } finally {
       setIsSendingCode(false);
     }
