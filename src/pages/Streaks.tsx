@@ -79,6 +79,7 @@ const Streaks = () => {
 
       // Log what we're submitting
       console.log("Image data being submitted:", postData.content.length, "images");
+      console.log("First image data prefix:", postData.content[0].substring(0, 50) + "...");
       
       // Submit post
       const success = await handlePostSubmit(postData);
@@ -97,10 +98,15 @@ const Streaks = () => {
         });
         
         return true;
+      } else {
+        console.log("Post submission failed");
+        toast({
+          title: "Error",
+          description: "Something went wrong while posting your streak. Please try again.",
+          variant: "destructive",
+        });
+        return false;
       }
-      
-      console.log("Post submission was not successful");
-      return false;
     } catch (error) {
       console.error("Error submitting post:", error);
       toast({

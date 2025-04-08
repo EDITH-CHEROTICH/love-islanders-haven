@@ -80,7 +80,7 @@ export const createStreakPost = async (
     // Create a unique ID for the post
     const postId = uuidv4();
     
-    // Use the content array directly without stringifying for debugging
+    // Convert content to string for storage
     const contentForDb = JSON.stringify(content);
     console.log("Content prepared for storage, length:", contentForDb.length);
     

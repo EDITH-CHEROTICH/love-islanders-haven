@@ -69,7 +69,10 @@ const StreakPostFormContainer = ({
         duration: duration
       };
       
-      console.log("Submitting data:", submissionData);
+      console.log("Submitting data:", {
+        contentLength: submissionData.content.length,
+        duration: submissionData.duration
+      });
       
       // Call the onSubmit function passed from parent component
       const success = await onSubmit(submissionData);

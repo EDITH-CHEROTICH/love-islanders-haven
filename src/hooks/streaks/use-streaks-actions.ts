@@ -40,6 +40,7 @@ export const useStreaksActions = (
     try {
       console.log("Submitting post with data:", {
         contentLength: postData.content.length,
+        content: postData.content.slice(0, 100) + "...", // Log partial content for debugging
         duration: postData.duration
       });
       
@@ -99,6 +100,8 @@ export const useStreaksActions = (
         user_profile_image: user.user_metadata?.avatar_url || null,
         expires_at: streakData.expires_at
       };
+      
+      console.log("Adding new post to state:", newPost);
       
       // Add the new post to the beginning of the posts array
       setPosts([newPost, ...posts]);
