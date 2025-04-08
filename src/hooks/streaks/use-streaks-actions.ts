@@ -40,7 +40,7 @@ export const useStreaksActions = (
     try {
       console.log("Submitting post with data:", {
         contentLength: postData.content.length,
-        content: postData.content.slice(0, 100) + "...", // Log partial content for debugging
+        content: postData.content[0].substring(0, 50) + "...", // Log partial content for debugging
         duration: postData.duration
       });
       
@@ -57,7 +57,7 @@ export const useStreaksActions = (
       
       console.log('Creating streak post with expiration:', expiresAt.toISOString());
       
-      // Create a new streak post - make sure we're passing valid data
+      // Create a new streak post
       const streakData = await createStreakPost(
         user.id,
         postData.content,
@@ -96,8 +96,7 @@ export const useStreaksActions = (
         streak_count: streakData.streak_count,
         likes_count: 0,
         comments_count: 0,
-        user_name: user.user_metadata?.name || user.email?.split('@')[0] || "You",
-        user_profile_image: user.user_metadata?.avatar_url || null,
+        profiles: { name: user.user_metadata?.name || user.email?.split('@')[0] || "You" },
         expires_at: streakData.expires_at
       };
       

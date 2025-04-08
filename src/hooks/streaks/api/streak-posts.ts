@@ -99,21 +99,30 @@ export const createStreakPost = async (
     // Insert the data into the streaks table
     const { data, error } = await supabase
       .from('streaks')
-      .insert(postData)
-      .select();
+      .insert(postData);
       
     if (error) {
       console.error("Error creating streak post:", error);
       throw error;
     }
 
-    console.log("Streak post created successfully, returning data:", data);
-
-    if (!data || data.length === 0) {
+    // Get the created post data
+    const { data: createdPost, error: fetchError } = await supabase
+      .from('streaks')
+      .select('*')
+      .eq('id', postId)
+      .single();
+      
+    if (fetchError) {
+      console.error("Error fetching created post:", fetchError);
+      throw fetchError;
+    }
+      
+    if (!createdPost) {
       console.error("No data returned after creating streak post");
       throw new Error("Failed to create streak post");
     }
-    
+
     // Update user's streak count in profiles table
     const { error: profileError } = await supabase
       .from('profiles')
@@ -125,8 +134,8 @@ export const createStreakPost = async (
       // Continue anyway since the post was created
     }
     
-    console.log("Streak post created successfully:", data[0]);
-    return data[0];
+    console.log("Streak post created successfully:", createdPost);
+    return createdPost;
   } catch (error) {
     console.error("Error in createStreakPost:", error);
     throw error;
