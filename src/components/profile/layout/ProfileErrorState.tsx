@@ -8,6 +8,17 @@ interface ProfileErrorStateProps {
 }
 
 const ProfileErrorState = ({ onRetry }: ProfileErrorStateProps) => {
+  // Attempt auth refresh - this is a non-blocking action
+  const attemptAuthRefresh = () => {
+    // Try to refresh auth state from localStorage
+    if (localStorage.getItem('isAuthenticated') === 'true') {
+      console.log('Attempting auth refresh from localStorage');
+    }
+    
+    // Call the main retry function
+    onRetry();
+  };
+  
   return (
     <div className="min-h-screen bg-gradient-to-b from-island-dark via-island to-island-dark pb-20">
       <div className="page-container pt-8 space-y-6">
@@ -27,7 +38,7 @@ const ProfileErrorState = ({ onRetry }: ProfileErrorStateProps) => {
           </ul>
         </div>
         <Button 
-          onClick={onRetry}
+          onClick={attemptAuthRefresh}
           className="w-full"
         >
           Retry

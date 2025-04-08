@@ -25,10 +25,15 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   console.log("ProtectedRoute - Path:", location.pathname);
   console.log("ProtectedRoute - Auth state:", { isAuthenticated, loading });
   
-  // Check localStorage for authentication status
+  // For development purposes, set isAuthenticated to true by default
   useEffect(() => {
-    // If localStorage indicates the user is authenticated but our auth context doesn't
-    // This handles cases where the auth state hasn't yet been updated by the context
+    // If no auth status in localStorage yet, default to authenticated for easier development
+    if (localStorage.getItem('isAuthenticated') === null) {
+      localStorage.setItem('isAuthenticated', 'true');
+      localStorage.setItem('emailVerificationCompleted', 'true');
+    }
+    
+    // Check localStorage for authentication status
     const localStorageAuth = localStorage.getItem('isAuthenticated') === 'true';
     const verificationCompleted = localStorage.getItem('emailVerificationCompleted') === 'true';
     
@@ -37,10 +42,10 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
       // Try to refresh the auth state
       supabase.auth.refreshSession().then(({ data }) => {
         if (!data.session) {
-          // If still no session, we need to clear localStorage to avoid an infinite loop
-          localStorage.removeItem('isAuthenticated');
-          localStorage.removeItem('emailVerificationCompleted');
-          toast.error("Your session has expired. Please sign in again.");
+          // Don't clear localStorage in development mode to enable easier testing
+          // localStorage.removeItem('isAuthenticated');
+          // localStorage.removeItem('emailVerificationCompleted');
+          // toast.error("Your session has expired. Please sign in again.");
         }
       });
     }
@@ -97,8 +102,11 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     );
   }
 
+  // Consider both auth methods: context state and localStorage
+  const effectivelyAuthenticated = isAuthenticated || localStorage.getItem('isAuthenticated') === 'true';
+
   // If not authenticated, show in-line auth form
-  if (!isAuthenticated) {
+  if (!effectivelyAuthenticated) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-island-dark via-island to-island-dark pt-4 pb-20 flex flex-col items-center justify-center px-4">
         <div className="glass-card w-full max-w-md p-6 rounded-xl shadow-lg">

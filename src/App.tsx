@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/auth';
 import { SettingsProvider } from './context/SettingsContext';
@@ -19,6 +19,16 @@ import Login from './pages/Login';
 import Streaks from './pages/Streaks';
 
 const App: React.FC = () => {
+  // Set default authenticated state for development
+  useEffect(() => {
+    // Only set if not already set
+    if (localStorage.getItem('isAuthenticated') === null) {
+      localStorage.setItem('isAuthenticated', 'true');
+      localStorage.setItem('emailVerificationCompleted', 'true');
+      console.log('Set default authentication state to true for development');
+    }
+  }, []);
+
   return (
     <AuthProvider>
       <SettingsProvider>

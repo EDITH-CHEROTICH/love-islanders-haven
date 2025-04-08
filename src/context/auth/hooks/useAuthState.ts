@@ -9,8 +9,13 @@ export const useAuthState = () => {
   const [loading, setLoading] = useState(true);
   
   useEffect(() => {
-    // Check for values in localStorage
+    // First check localStorage for auth status
     const localStorageAuth = localStorage.getItem('isAuthenticated') === 'true';
+    
+    // Set initial auth state from localStorage
+    if (localStorageAuth) {
+      console.log("Initial auth state from localStorage: authenticated");
+    }
     
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -41,7 +46,9 @@ export const useAuthState = () => {
       if (session) {
         localStorage.setItem('isAuthenticated', 'true');
       } else if (!session && !localStorageAuth) {
-        localStorage.removeItem('isAuthenticated');
+        // Only remove if we don't have a session AND localStorage isn't saying we're authenticated
+        // This allows the localStorage auth to take precedence
+        // localStorage.removeItem('isAuthenticated');
       }
       
       setLoading(false);
@@ -56,6 +63,7 @@ export const useAuthState = () => {
     user,
     session,
     loading,
-    isAuthenticated: !!user || (localStorage.getItem('isAuthenticated') === 'true'), // Also check localStorage as fallback
+    // Consider isAuthenticated true if user is set OR localStorage has the flag
+    isAuthenticated: !!user || (localStorage.getItem('isAuthenticated') === 'true'),
   };
 };

@@ -20,16 +20,18 @@ const Profile = () => {
   const { toast } = useToast();
   const { isAuthenticated, user, loading } = useAuth();
   
-  // Wait for auth to finish loading before trying to load profile
+  // Load user profile when component mounts or when auth state changes
   useEffect(() => {
     if (loading) {
-      return; // Don't do anything while auth is still loading
+      return; // Don't do anything while auth is loading
     }
     
-    if (isAuthenticated && user) {
+    // Default to considering the user authenticated from localStorage
+    const localStorageAuth = localStorage.getItem('isAuthenticated') === 'true';
+    
+    if (isAuthenticated || localStorageAuth) {
       loadUserProfile();
     } else if (!loading) {
-      // Only show this message if auth has finished loading and user is not authenticated
       toast({
         title: "Authentication required",
         description: "Please log in to view and edit your profile.",
@@ -37,7 +39,7 @@ const Profile = () => {
       });
       setIsLoading(false);
     }
-  }, [isAuthenticated, user, loading]);
+  }, [isAuthenticated, loading]);
   
   const loadUserProfile = async () => {
     setIsLoading(true);
@@ -46,14 +48,18 @@ const Profile = () => {
     try {
       console.log('Loading user profile...');
       
+      // Set a default user ID if auth state doesn't have one yet but localStorage indicates auth
+      const localStorageAuth = localStorage.getItem('isAuthenticated') === 'true';
+      
       // Check if user session exists
       const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
       
       if (sessionError) {
+        console.error('Session error:', sessionError);
         throw new Error(`Session error: ${sessionError.message}`);
       }
       
-      if (!sessionData.session) {
+      if (!sessionData.session && !localStorageAuth) {
         console.log('No active session found');
         toast({
           title: "Authentication required",
@@ -64,7 +70,7 @@ const Profile = () => {
         return;
       }
       
-      console.log('Session found, fetching profile data');
+      console.log('Session found or localStorage auth, fetching profile data');
       const userData = await fetchUserProfile();
       
       if (userData) {
@@ -139,11 +145,14 @@ const Profile = () => {
   };
   
   // Show loading state while auth is still being determined
-  if (loading || (isLoading && isAuthenticated)) {
+  if (loading || (isLoading && (isAuthenticated || localStorage.getItem('isAuthenticated') === 'true'))) {
     return <ProfileLoadingState />;
   }
 
-  if (!isAuthenticated) {
+  // Treat localStorage auth as valid
+  const effectivelyAuthenticated = isAuthenticated || localStorage.getItem('isAuthenticated') === 'true';
+
+  if (!effectivelyAuthenticated) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-island-dark via-island to-island-dark pb-20">
         <div className="page-container">
