@@ -57,10 +57,10 @@ export const transformStreakData = (streakData: StreakData): StreakPost => {
 };
 
 // Transform Supabase top streak data for the UI
-export const transformTopStreaksData = (profileData: ProfileWithStreak[]) => {
+export const transformTopStreaksData = (profileData: any[]) => {
   return profileData.map(profile => ({
     name: profile.name || 'Anonymous',
-    count: profile.streak_count?.[0]?.streak_count || 0
+    count: profile.count || profile.streak_count?.[0]?.streak_count || 0
   })).filter(streak => streak.count > 0);
 };
 

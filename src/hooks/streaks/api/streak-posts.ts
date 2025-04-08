@@ -1,4 +1,3 @@
-
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from "@/integrations/supabase/client";
 import { StreakData } from "../types";
@@ -30,8 +29,8 @@ export const fetchStreakPosts = async (): Promise<StreakData[]> => {
     
     // Handle possible error with profiles relation by providing a default
     return data.map(item => {
-      // Ensure proper profile data or use a default
-      const profileData = item.profiles && typeof item.profiles === 'object' && !('error' in item.profiles) 
+      // Ensure proper profile data or use a default - handle null case explicitly
+      const profileData = item.profiles && typeof item.profiles === 'object' && item.profiles !== null && !('error' in item.profiles) 
         ? item.profiles 
         : { name: 'Unknown User' };
       
@@ -174,10 +173,10 @@ export const getTopStreaks = async (limit = 3) => {
   }
   
   return data.map(profile => ({
-    id: profile.id, // Adding id property to match the ProfileWithStreak type
+    id: profile.id,
     name: profile.name || 'Anonymous',
     count: profile.streak_count,
-    streak_count: [{ streak_count: profile.streak_count }] // Adding required streak_count property
+    streak_count: [{ streak_count: profile.streak_count || 0 }] // Ensure there's always at least one element in the array
   }));
 };
 

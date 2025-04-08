@@ -10,7 +10,7 @@ export interface StreakData {
   comments_count: number;
   profiles?: {
     name: string;
-  };
+  } | null;
   song_title?: string | null;
   song_artist?: string | null;
   song_album_art?: string | null;
@@ -21,5 +21,6 @@ export interface StreakData {
 export interface ProfileWithStreak {
   id: string;
   name: string;
-  streak_count: [{ streak_count: number }];
+  count?: number;
+  streak_count: { streak_count: number }[];
 }
