@@ -112,7 +112,7 @@ export const createStreakPost = async (
       .from('streaks')
       .select('*')
       .eq('id', postId)
-      .single();
+      .maybeSingle();
       
     if (fetchError) {
       console.error("Error fetching created post:", fetchError);
