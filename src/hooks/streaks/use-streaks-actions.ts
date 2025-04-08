@@ -1,6 +1,6 @@
-
 import { useToast } from "@/hooks/use-toast";
-import { createStreakPost, likeStreakPost } from "./api";
+import { createStreakPost } from "./api/streak-posts";
+import { likeStreakPost } from "./api";
 
 /**
  * Custom hook for streak post actions (create, like)
@@ -59,60 +59,55 @@ export const useStreaksActions = (
       
       console.log('Creating streak post with expiration:', expiresAt.toISOString());
       
-      try {
-        // Create a new streak post
-        const streakData = await createStreakPost(
-          user.id,
-          postData.content,
-          newStreakCount,
-          expiresAt.toISOString()
-        );
-        
-        if (!streakData) {
-          throw new Error("Failed to create streak post - no data returned");
-        }
-        
-        toast({
-          title: "Success!",
-          description: "Your streak post has been shared!",
-        });
-        
-        // Update state
-        setHasPostedToday(true);
-        setUserStreakCount(newStreakCount);
-        
-        // Parse the content string back to an array for the UI
-        let parsedContent;
-        try {
-          parsedContent = JSON.parse(streakData.content);
-        } catch (e) {
-          console.error("Error parsing content:", e);
-          parsedContent = postData.content; // Fallback to the original content
-        }
-        
-        // Create a new post object with all the necessary fields
-        const newPost = {
-          id: streakData.id,
-          user_id: streakData.user_id,
-          content: parsedContent || postData.content, // Use parsed content or fallback
-          created_at: streakData.created_at,
-          streak_count: streakData.streak_count,
-          likes_count: 0,
-          comments_count: 0,
-          profiles: { name: user.user_metadata?.name || user.email?.split('@')[0] || "You" },
-          expires_at: streakData.expires_at
-        };
-        
-        console.log("Adding new post to state:", newPost);
-        
-        // Add the new post to the beginning of the posts array
-        setPosts([newPost, ...posts]);
-        
-        return true;
-      } catch (error) {
-        console.error("Error from createStreakPost:", error);
-        throw error;
+      // Create a new streak post
+      const streakData = await createStreakPost(
+        user.id,
+        postData.content,
+        newStreakCount,
+        expiresAt.toISOString()
+      );
+      
+      if (!streakData) {
+        throw new Error("Failed to create streak post - no data returned");
       }
+      
+      toast({
+        title: "Success!",
+        description: "Your streak post has been shared!",
+      });
+      
+      // Update state
+      setHasPostedToday(true);
+      setUserStreakCount(newStreakCount);
+      
+      // Parse the content string back to an array for the UI
+      let parsedContent;
+      try {
+        parsedContent = JSON.parse(streakData.content);
+      } catch (e) {
+        console.error("Error parsing content:", e);
+        parsedContent = postData.content; // Fallback to the original content
+      }
+      
+      // Create a new post object with all the necessary fields
+      const newPost = {
+        id: streakData.id,
+        user_id: streakData.user_id,
+        content: parsedContent || postData.content, // Use parsed content or fallback
+        created_at: streakData.created_at,
+        streak_count: streakData.streak_count,
+        likes_count: 0,
+        comments_count: 0,
+        profiles: { name: user.user_metadata?.name || user.email?.split('@')[0] || "You" },
+        expires_at: streakData.expires_at
+      };
+      
+      console.log("Adding new post to state:", newPost);
+      
+      // Add the new post to the beginning of the posts array
+      setPosts([newPost, ...posts]);
+      
+      return true;
     } catch (error) {
       console.error("Error creating streak post:", error);
       toast({
