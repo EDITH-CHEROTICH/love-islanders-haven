@@ -3,95 +3,55 @@ import { v4 as uuidv4 } from 'uuid';
 import { supabase } from "@/integrations/supabase/client";
 import { StreakData } from "../types";
 
-// Fetch streak posts from Supabase
+// Fetch streak posts from Supabase - simplified version
 export const fetchStreakPosts = async () => {
-  try {
-    // First, get the streaks data
-    const { data: streaksData, error } = await supabase
-      .from('streaks')
-      .select(`
-        id,
-        user_id,
-        content,
-        caption,
-        created_at,
-        streak_count,
-        likes_count,
-        comments_count,
-        expires_at
-      `)
-      .order('created_at', { ascending: false })
-      .limit(20);
+  const { data, error } = await supabase
+    .from('streaks')
+    .select(`
+      id,
+      user_id,
+      content,
+      caption,
+      created_at,
+      streak_count,
+      likes_count,
+      comments_count,
+      expires_at,
+      profiles (name)
+    `)
+    .order('created_at', { ascending: false })
+    .limit(20);
 
-    if (error) {
-      console.error("Error fetching streak posts:", error);
-      throw error;
-    }
-    
-    if (!streaksData || streaksData.length === 0) {
-      console.log("No streak posts found");
-      return [];
-    }
-    
-    // Then, get user names for each post
-    const streakDataWithUsernames = await Promise.all(
-      streaksData.map(async (streak) => {
-        const { data: profileData } = await supabase
-          .from('profiles')
-          .select('name')
-          .eq('id', streak.user_id)
-          .maybeSingle();
-        
-        return {
-          ...streak,
-          profiles: profileData ? { name: profileData.name } : { name: 'Unknown User' }
-        };
-      })
-    );
-    
-    return streakDataWithUsernames as StreakData[];
-  } catch (error) {
-    console.error("Error in fetchStreakPosts:", error);
+  if (error) {
+    console.error("Error fetching streak posts:", error);
     return [];
   }
+  
+  return data as StreakData[];
 };
 
-// Create a new streak post
+// Create a new streak post - simplified version
 export const createStreakPost = async (
   userId: string, 
   content: string[], 
   streakCount: number,
   expiresAt: string
 ) => {
-  console.log("Creating streak post with data:", {
-    userId,
-    contentLength: content.length,
-    streakCount,
-    expiresAt
-  });
-
   try {
     // Validate content
-    if (!content || !Array.isArray(content) || content.length === 0) {
-      console.error("Invalid content format or empty content array");
-      throw new Error("Invalid content format");
+    if (!content || content.length === 0) {
+      throw new Error("No content provided");
     }
 
-    // Create a unique ID for the post
+    // Create post data
     const postId = uuidv4();
-    
-    // Store content as a JSON string
-    const contentForDb = JSON.stringify(content);
-    
-    console.log("Content prepared for storage, length:", contentForDb.length);
-    
-    // Ensure created_at is included and correctly formatted
+    const contentString = JSON.stringify(content);
     const createdAt = new Date().toISOString();
     
     const postData = {
       id: postId,
       user_id: userId,
-      content: contentForDb,
+      content: contentString,
       streak_count: streakCount,
       expires_at: expiresAt,
       likes_count: 0, 
@@ -99,53 +59,106 @@ export const createStreakPost = async (
       created_at: createdAt
     };
     
-    console.log("Inserting streak post with ID:", postId);
-    
-    // Insert the data into the streaks table
+    // Insert streak post
     const { error } = await supabase
       .from('streaks')
       .insert(postData);
       
     if (error) {
-      console.error("Error creating streak post:", error);
       throw error;
     }
 
-    // Get the created post data
-    const { data: createdPost, error: fetchError } = await supabase
-      .from('streaks')
-      .select('*')
-      .eq('id', postId)
-      .maybeSingle();
-      
-    if (fetchError) {
-      console.error("Error fetching created post:", fetchError);
-      // Return the post data we created as fallback
-      return postData;
-    }
-      
-    if (!createdPost) {
-      console.log("No post data returned after creation, returning basic post data instead");
-      return postData; // Return the post data we created as fallback
-    }
-
-    // Update user's streak count in profiles table
-    const { error: profileError } = await supabase
+    // Update user's streak count
+    await supabase
       .from('profiles')
       .update({ streak_count: streakCount })
       .eq('id', userId);
-      
-    if (profileError) {
-      console.error("Error updating user profile streak count:", profileError);
-      // Continue anyway since the post was created
-    } else {
-      console.log("User profile streak count updated successfully to:", streakCount);
-    }
     
-    console.log("Streak post created successfully:", createdPost);
-    return createdPost;
+    // Return the created post with user data
+    return {
+      ...postData,
+      profiles: { name: "You" } // Default name until we get the real one
+    };
   } catch (error) {
-    console.error("Error in createStreakPost:", error);
+    console.error("Error creating streak post:", error);
     throw error;
   }
+};
+
+// Like a streak post - simplified
+export const likeStreakPost = async (userId: string, postId: string) => {
+  try {
+    // Check if user already liked this post
+    const { data: existingLike } = await supabase
+      .from('streak_likes')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('streak_id', postId)
+      .maybeSingle();
+      
+    if (existingLike) {
+      return false; // User already liked this post
+    }
+    
+    // Create like record
+    const { error } = await supabase
+      .from('streak_likes')
+      .insert({
+        user_id: userId,
+        streak_id: postId
+      });
+      
+    if (error) {
+      throw error;
+    }
+    
+    return true; // Successfully liked the post
+  } catch (error) {
+    console.error("Error liking streak post:", error);
+    return false;
+  }
+};
+
+// Check if user has posted today - simplified
+export const checkUserDailyPost = async (userId: string) => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  const { data, error } = await supabase
+    .from('streaks')
+    .select('streak_count')
+    .eq('user_id', userId)
+    .gte('created_at', today.toISOString())
+    .order('created_at', { ascending: false })
+    .limit(1);
+    
+  if (error) {
+    console.error("Error checking daily post:", error);
+    return { hasPostedToday: false, streakCount: 0 };
+  }
+  
+  return { 
+    hasPostedToday: data && data.length > 0, 
+    streakCount: data && data.length > 0 ? data[0].streak_count : 0
+  };
+};
+
+// Get top users by streak count - simplified
+export const getTopStreaks = async (limit = 3) => {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id, name, streak_count')
+    .order('streak_count', { ascending: false })
+    .gt('streak_count', 0)
+    .limit(limit);
+    
+  if (error) {
+    console.error("Error fetching top streaks:", error);
+    return [];
+  }
+  
+  return data.map(profile => ({
+    name: profile.name || 'Anonymous',
+    count: profile.streak_count
+  }));
 };

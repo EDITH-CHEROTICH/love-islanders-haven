@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Camera } from "lucide-react";
 import StreakPostForm from "@/components/streaks/StreakPostForm";
-import useStreaks from "@/hooks/use-streaks";
 import UserStreakCard from "@/components/streaks/UserStreakCard";
 import TopStreaksCard from "@/components/streaks/TopStreaksCard";
 import StreaksList from "@/components/streaks/StreaksList";
@@ -14,95 +13,74 @@ import Navbar from "@/components/Navbar";
 import { AudioPlayerProvider } from "@/hooks/use-audio-player";
 import { useToast } from "@/hooks/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { supabase } from "@/integrations/supabase/client";
+import { fetchStreakPosts, checkUserDailyPost, getTopStreaks } from "@/hooks/streaks/api/streak-posts";
+import useStreaksActions from "@/hooks/streaks/use-streaks-actions";
 
 const Streaks = () => {
   const { isAuthenticated, user } = useAuth();
   const { toast } = useToast();
-  const { 
-    loading, 
-    posts, 
-    hasPostedToday, 
-    userStreakCount, 
-    topStreaks,
-    handlePostSubmit,
-    handleLikePost,
-    fetchPosts,
-    checkUserStreak
-  } = useStreaks();
+  
+  // State
+  const [loading, setLoading] = useState(true);
+  const [posts, setPosts] = useState([]);
+  const [hasPostedToday, setHasPostedToday] = useState(false);
+  const [userStreakCount, setUserStreakCount] = useState(0);
+  const [topStreaks, setTopStreaks] = useState([]);
   const [showPostForm, setShowPostForm] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  useEffect(() => {
-    // Refresh posts when component mounts
-    if (isAuthenticated) {
-      fetchPosts();
+  
+  // Load data
+  const fetchData = async () => {
+    if (!isAuthenticated) return;
+    
+    setLoading(true);
+    try {
+      // Get streak posts
+      const postsData = await fetchStreakPosts();
+      setPosts(postsData);
+      
       // Check if user has posted today
-      checkUserStreak();
+      if (user?.id) {
+        const { hasPostedToday: postedToday, streakCount } = await checkUserDailyPost(user.id);
+        setHasPostedToday(postedToday);
+        setUserStreakCount(streakCount);
+      }
+      
+      // Get top streaks
+      const topStreaksData = await getTopStreaks();
+      setTopStreaks(topStreaksData);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load streak data. Please try again later.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  // Fetch data when component mounts or user authenticates
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchData();
     }
   }, [isAuthenticated]);
-
-  const handleCreatePost = () => {
-    setShowPostForm(true);
+  
+  // Actions
+  const { handlePostSubmit, handleLikePost, isSubmitting } = useStreaksActions(user, fetchData);
+  
+  const onPostSubmit = async (postData) => {
+    const success = await handlePostSubmit(postData);
+    if (success) {
+      setShowPostForm(false);
+      await fetchData(); // Refresh data
+    }
+    return success;
   };
-
-  const onPostSubmit = async (postData: { 
-    content: string[];
-    duration?: number 
-  }) => {
-    if (!user) {
-      toast({
-        title: "Error",
-        description: "You must be logged in to post",
-        variant: "destructive",
-      });
-      return false;
-    }
-    
-    if (!postData.content || postData.content.length === 0) {
-      toast({
-        title: "Error",
-        description: "Please select at least one image for your post",
-        variant: "destructive",
-      });
-      return false;
-    }
-    
-    try {
-      setIsSubmitting(true);
-      console.log("Streak form submitted with data:", {
-        contentLength: postData.content.length,
-        duration: postData.duration
-      });
-
-      const success = await handlePostSubmit(postData);
-      
-      if (success) {
-        setShowPostForm(false);
-        await fetchPosts();
-        await checkUserStreak();
-        return true;
-      } else {
-        console.log("Post submission failed");
-        toast({
-          title: "Error",
-          description: "Something went wrong while posting your streak. Please try again.",
-          variant: "destructive",
-        });
-        return false;
-      }
-    } catch (error) {
-      console.error("Error submitting post:", error);
-      toast({
-        title: "Error",
-        description: "Failed to post your streak. Please try again.",
-        variant: "destructive",
-      });
-      return false;
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
+  
+  // If not authenticated, show login required
   if (!isAuthenticated) {
     return <LoginRequired />;
   }
@@ -115,7 +93,7 @@ const Streaks = () => {
             <div className="flex justify-between items-center mb-6">
               <h1 className="text-2xl font-bold">Streaks</h1>
               {!showPostForm && !hasPostedToday && (
-                <Button onClick={handleCreatePost} className="flex items-center gap-2">
+                <Button onClick={() => setShowPostForm(true)} className="flex items-center gap-2">
                   <Camera size={18} />
                   <span>Post</span>
                 </Button>
