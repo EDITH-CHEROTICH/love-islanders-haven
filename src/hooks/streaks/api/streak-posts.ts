@@ -85,6 +85,9 @@ export const createStreakPost = async (
     
     console.log("Content prepared for storage, length:", contentForDb.length);
     
+    // Ensure created_at is included and correctly formatted
+    const createdAt = new Date().toISOString();
+    
     const postData = {
       id: postId,
       user_id: userId,
@@ -93,7 +96,7 @@ export const createStreakPost = async (
       expires_at: expiresAt,
       likes_count: 0, 
       comments_count: 0,
-      created_at: new Date().toISOString() // Ensure created_at is included
+      created_at: createdAt
     };
     
     console.log("Inserting streak post with ID:", postId);
@@ -117,13 +120,13 @@ export const createStreakPost = async (
       
     if (fetchError) {
       console.error("Error fetching created post:", fetchError);
-      // Return the post data as fallback if we couldn't fetch it
+      // Return the post data we created as fallback
       return postData;
     }
       
     if (!createdPost) {
       console.log("No post data returned after creation, returning basic post data instead");
-      return postData; // Return the post data we tried to insert as fallback
+      return postData; // Return the post data we created as fallback
     }
 
     // Update user's streak count in profiles table
@@ -135,6 +138,8 @@ export const createStreakPost = async (
     if (profileError) {
       console.error("Error updating user profile streak count:", profileError);
       // Continue anyway since the post was created
+    } else {
+      console.log("User profile streak count updated successfully to:", streakCount);
     }
     
     console.log("Streak post created successfully:", createdPost);
