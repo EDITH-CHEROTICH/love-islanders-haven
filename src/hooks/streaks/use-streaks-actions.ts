@@ -99,12 +99,15 @@ export const useStreaksActions = (
         parsedContent = []; // Fallback to empty array
       }
       
+      // Get the created_at from the response or use current timestamp as fallback
+      const createdAt = streakData.created_at || new Date().toISOString();
+      
       // Create a new post object with all the necessary fields
       const newPost = {
         id: streakData.id,
         user_id: streakData.user_id,
         content: parsedContent,
-        created_at: streakData.created_at || new Date().toISOString(),
+        created_at: createdAt,
         streak_count: streakData.streak_count,
         likes_count: 0,
         comments_count: 0,
