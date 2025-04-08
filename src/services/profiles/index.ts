@@ -7,3 +7,6 @@ export * from './media';
 export * from './location';
 export * from './verification';
 export * from './blocking';
+export * from './profile-creation';
+export * from './profile-fetch';
+export * from './profile-preferences';
