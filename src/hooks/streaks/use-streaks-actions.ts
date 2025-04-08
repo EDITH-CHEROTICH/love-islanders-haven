@@ -1,3 +1,4 @@
+
 import { useToast } from "@/hooks/use-toast";
 import { createStreakPost, likeStreakPost } from "./api";
 
@@ -55,7 +56,7 @@ export const useStreaksActions = (
       
       console.log('Creating streak post with expiration:', expiresAt.toISOString());
       
-      // Create a new streak post
+      // Create a new streak post - make sure we're passing valid data
       const streakData = await createStreakPost(
         user.id,
         postData.content,
@@ -76,11 +77,20 @@ export const useStreaksActions = (
       setHasPostedToday(true);
       setUserStreakCount(newStreakCount);
       
+      // Parse the content string back to an array for the UI
+      let parsedContent;
+      try {
+        parsedContent = JSON.parse(streakData.content);
+      } catch (e) {
+        console.error("Error parsing content:", e);
+        parsedContent = postData.content; // Fallback to the original content
+      }
+      
       // Create a new post object with all the necessary fields
       const newPost = {
         id: streakData.id,
         user_id: streakData.user_id,
-        content: postData.content, // Use the original array of image strings
+        content: parsedContent || postData.content, // Use parsed content or fallback
         created_at: streakData.created_at,
         streak_count: streakData.streak_count,
         likes_count: 0,

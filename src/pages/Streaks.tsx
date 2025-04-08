@@ -65,7 +65,7 @@ const Streaks = () => {
         duration: postData.duration
       });
       
-      // Validate content data
+      // Validate content data before sending
       if (!postData.content || !Array.isArray(postData.content) || postData.content.length === 0) {
         console.error("Invalid content data:", postData.content);
         toast({

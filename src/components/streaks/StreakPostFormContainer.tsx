@@ -19,6 +19,7 @@ const StreakPostFormContainer = ({
   isSubmitting = false 
 }: StreakPostFormContainerProps) => {
   const [duration, setDuration] = useState<number>(24); // Default to 24 hours
+  const [localSubmitting, setLocalSubmitting] = useState<boolean>(false);
   const { toast } = useToast();
   
   // Use our custom hooks
@@ -31,14 +32,20 @@ const StreakPostFormContainer = ({
     clearImages 
   } = useImageUpload({ toast });
 
+  // Update local submitting state when parent prop changes
+  useEffect(() => {
+    setLocalSubmitting(isSubmitting);
+  }, [isSubmitting]);
+
   // Debug the form state
   useEffect(() => {
     console.log("Form state updated:", { 
       contentLength: content.length, 
       isUploading,
-      isSubmitting
+      localSubmitting,
+      parentIsSubmitting: isSubmitting
     });
-  }, [content, isUploading, isSubmitting]);
+  }, [content, isUploading, localSubmitting, isSubmitting]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,6 +61,7 @@ const StreakPostFormContainer = ({
     
     try {
       console.log("Form submission started with content length:", content.length);
+      setLocalSubmitting(true);
       
       // Prepare submission data
       const submissionData = { 
@@ -89,6 +97,8 @@ const StreakPostFormContainer = ({
         description: "Failed to post your streak. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setLocalSubmitting(false);
     }
   };
 
@@ -110,13 +120,13 @@ const StreakPostFormContainer = ({
       <DurationSelector
         duration={duration}
         onDurationChange={handleDurationChange}
-        disabled={isSubmitting}
+        disabled={localSubmitting || isSubmitting}
       />
       
       <FormControls
         onCancel={onCancel}
         isSubmitDisabled={content.length === 0 || isUploading}
-        isSubmitting={isSubmitting}
+        isSubmitting={localSubmitting || isSubmitting}
       />
     </form>
   );

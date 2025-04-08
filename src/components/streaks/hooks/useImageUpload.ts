@@ -68,8 +68,12 @@ const useImageUpload = ({ toast }: UseImageUploadProps): UseImageUploadReturn =>
           // When all files are processed, update state
           if (processed === fileCount) {
             console.log("All images processed, updating state with", newImages.length, "new images");
-            setPreviewUrls(prev => [...prev, ...newImages]);
-            setContent(prev => [...prev, ...newImages]);
+            // Update both states in one go to ensure consistency
+            setPreviewUrls(prev => {
+              const updatedPreviews = [...prev, ...newImages];
+              setContent(updatedPreviews); // Ensure content and previewUrls stay in sync
+              return updatedPreviews;
+            });
             setIsUploading(false);
           }
         } else {
@@ -93,8 +97,11 @@ const useImageUpload = ({ toast }: UseImageUploadProps): UseImageUploadReturn =>
       if (processed === fileCount) {
         setIsUploading(false);
         if (newImages.length > 0) {
-          setPreviewUrls(prev => [...prev, ...newImages]);
-          setContent(prev => [...prev, ...newImages]);
+          setPreviewUrls(prev => {
+            const updatedPreviews = [...prev, ...newImages];
+            setContent(updatedPreviews); // Keep in sync
+            return updatedPreviews;
+          });
         }
       }
     }
@@ -102,8 +109,11 @@ const useImageUpload = ({ toast }: UseImageUploadProps): UseImageUploadReturn =>
 
   const removeImage = (index: number) => {
     console.log("Removing image at index", index);
-    setPreviewUrls(prev => prev.filter((_, i) => i !== index));
-    setContent(prev => prev.filter((_, i) => i !== index));
+    setPreviewUrls(prev => {
+      const updated = prev.filter((_, i) => i !== index);
+      setContent(updated); // Keep in sync
+      return updated;
+    });
   };
 
   const clearImages = () => {

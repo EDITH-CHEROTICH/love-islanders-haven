@@ -80,13 +80,14 @@ export const createStreakPost = async (
     // Create a unique ID for the post
     const postId = uuidv4();
     
-    // Convert the content array to a JSON string for storage
-    // This is required because even though the DB column is JSONB, 
-    // the Supabase client expects a string for this field
+    // Use the content array directly without stringifying for debugging
+    const contentForDb = JSON.stringify(content);
+    console.log("Content prepared for storage, length:", contentForDb.length);
+    
     const postData = {
       id: postId,
       user_id: userId,
-      content: JSON.stringify(content), // Convert array to JSON string for DB storage
+      content: contentForDb,
       streak_count: streakCount,
       expires_at: expiresAt,
       likes_count: 0, 
