@@ -33,11 +33,15 @@ export const fetchStreakPosts = async (): Promise<StreakData[]> => {
       // Create a fallback profile object
       const defaultProfile = { name: 'Unknown User' };
       
-      // Check if profiles exists and is not null before accessing it
-      const profileData = item.profiles ? 
-        (typeof item.profiles === 'object' && !('error' in item.profiles) ? 
-          item.profiles : defaultProfile) : 
-        defaultProfile;
+      // Safely check profiles - handle null case explicitly
+      let profileData = defaultProfile;
+      
+      // Only try to access properties if profiles exists and is not null
+      if (item.profiles !== null && item.profiles !== undefined) {
+        if (typeof item.profiles === 'object' && !('error' in item.profiles)) {
+          profileData = item.profiles;
+        }
+      }
       
       return {
         ...item,
