@@ -1,135 +1,104 @@
-
 import { useState, useEffect } from 'react';
-import { UserX, X, Shield } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { toast } from 'sonner';
 import { getBlockedUsers, unblockUser } from '@/services/profiles/blocking';
-import { supabase } from '@/integrations/supabase/client';
-import PrivacyControlsSection from './PrivacyControlsSection';
+import { ScrollArea } from "@/components/ui/scroll-area"
 
 const BlockReportSection = () => {
-  const [isBlockedUsersOpen, setIsBlockedUsersOpen] = useState(false);
   const [blockedUsers, setBlockedUsers] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [userId, setUserId] = useState<string | null>(null);
-  const [unblockingId, setUnblockingId] = useState<string | null>(null);
-
+  const { toast } = useToast();
+  
   useEffect(() => {
-    const checkAuth = async () => {
-      const { data } = await supabase.auth.getUser();
-      setUserId(data.user?.id || null);
-    };
-    
-    checkAuth();
+    fetchBlockedUsers();
   }, []);
-
+  
   const fetchBlockedUsers = async () => {
-    if (!userId) return;
-    
-    setIsLoading(true);
     try {
-      const blockedUsersData = await getBlockedUsers();
-      setBlockedUsers(blockedUsersData);
+      const { data, error } = await getBlockedUsers();
+      
+      // Use the correctly typed data
+      if (error) {
+        toast({
+          title: "Error",
+          description: "Failed to load blocked users",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      setBlockedUsers(data || []);
     } catch (error) {
-      console.error('Error fetching blocked users:', error);
-      toast.error('Failed to load blocked users');
-    } finally {
-      setIsLoading(false);
+      console.error("Error fetching blocked users:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load blocked users",
+        variant: "destructive",
+      });
     }
   };
-
-  const handleOpenBlockedUsers = () => {
-    setIsBlockedUsersOpen(true);
-    fetchBlockedUsers();
-  };
-
-  const handleUnblockUser = async (blockedUserId: string) => {
-    if (!userId) return;
-    
-    setUnblockingId(blockedUserId);
-    
+  
+  const handleUnblockUser = async (userId: string) => {
     try {
-      const { error } = await unblockUser(blockedUserId);
+      const { error } = await unblockUser(userId);
       
       if (error) {
         throw error;
       }
       
-      setBlockedUsers(blockedUsers.filter(user => user.blocked_user_id !== blockedUserId));
-      toast.success('User unblocked successfully');
+      // Refresh the blocked users list
+      fetchBlockedUsers();
+      
+      toast({
+        title: "User unblocked",
+        description: "You've successfully unblocked this user",
+      });
     } catch (error) {
-      console.error('Error unblocking user:', error);
-      toast.error('Failed to unblock user');
-    } finally {
-      setUnblockingId(null);
+      console.error("Error unblocking user:", error);
+      toast({
+        title: "Error",
+        description: "Failed to unblock user. Please try again.",
+        variant: "destructive",
+      });
     }
   };
-
+  
+  if (!blockedUsers || blockedUsers.length === 0) {
+    return (
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold">Blocked Accounts</h3>
+        <p className="text-sm text-muted-foreground">
+          You haven't blocked any accounts yet.
+        </p>
+      </div>
+    );
+  }
+  
   return (
-    <PrivacyControlsSection title="Block & Report" icon={<UserX size={16} className="text-love" />}>
-      <Button 
-        variant="outline" 
-        className="w-full bg-island-light/10 border-island-light/40"
-        onClick={handleOpenBlockedUsers}
-      >
-        <UserX size={16} className="mr-2" />
-        Manage Blocked Users
-      </Button>
-      
-      <Dialog open={isBlockedUsersOpen} onOpenChange={setIsBlockedUsersOpen}>
-        <DialogContent className="bg-island-dark border-island-light text-white max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-white">Blocked Users</DialogTitle>
-            <DialogDescription className="text-muted-foreground">
-              Manage users you've blocked. Blocked users can't message you or see your profile.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="py-2">
-            {isLoading ? (
-              <div className="py-8 text-center text-muted-foreground">Loading...</div>
-            ) : blockedUsers.length === 0 ? (
-              <div className="py-8 text-center text-muted-foreground">
-                <Shield className="mx-auto mb-2 text-muted-foreground" size={32} />
-                <p>You haven't blocked anyone yet.</p>
+    <div className="space-y-4">
+      <h3 className="text-lg font-semibold">Blocked Accounts</h3>
+      <ScrollArea className="h-[200px] w-full rounded-md border">
+        <div className="divide-y divide-border">
+          {blockedUsers.map((blockedUser) => (
+            <div key={blockedUser.blocked_user_id} className="flex items-center justify-between p-4">
+              <div className="flex items-center space-x-4">
+                <Avatar>
+                  <AvatarImage src={blockedUser.profiles?.avatar_url} />
+                  <AvatarFallback>{blockedUser.profiles?.name?.charAt(0)}</AvatarFallback>
+                </Avatar>
+                <div>
+                  <p className="text-sm font-medium leading-none">{blockedUser.profiles?.name}</p>
+                  <p className="text-sm text-muted-foreground">@{blockedUser.profiles?.name}</p>
+                </div>
               </div>
-            ) : (
-              <div className="space-y-2">
-                {blockedUsers.map((blockedUser) => (
-                  <div 
-                    key={blockedUser.blocked_user_id} 
-                    className="flex items-center justify-between p-3 rounded-md bg-island-light/10"
-                  >
-                    <div>
-                      <p className="font-medium">{blockedUser.profiles?.name || 'Unknown User'}</p>
-                      {blockedUser.profiles?.age && (
-                        <p className="text-sm text-muted-foreground">Age: {blockedUser.profiles.age}</p>
-                      )}
-                    </div>
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      onClick={() => handleUnblockUser(blockedUser.blocked_user_id)}
-                      disabled={unblockingId === blockedUser.blocked_user_id}
-                      className="text-love hover:text-love hover:bg-love/10"
-                    >
-                      {unblockingId === blockedUser.blocked_user_id ? (
-                        "Unblocking..."
-                      ) : (
-                        <>
-                          <X size={16} className="mr-1" /> Unblock
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
-    </PrivacyControlsSection>
+              <Button size="sm" onClick={() => handleUnblockUser(blockedUser.blocked_user_id)}>
+                Unblock
+              </Button>
+            </div>
+          ))}
+        </div>
+      </ScrollArea>
+    </div>
   );
 };
 

@@ -9,10 +9,6 @@ export interface StreakData {
   likes_count: number;
   comments_count: number;
   expires_at?: string;
-  song_title?: string;
-  song_artist?: string;
-  song_album_art?: string;
-  song_preview_url?: string;
   profiles: {
     name: string;
   };
@@ -38,7 +34,6 @@ export interface TopStreakUser {
   streak_count: { streak_count: number }[];
 }
 
-// Add the missing ProfileWithStreak type
 export interface ProfileWithStreak {
   id: string;
   name: string;

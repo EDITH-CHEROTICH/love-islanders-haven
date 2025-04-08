@@ -1,5 +1,5 @@
 
-import { StreakData, ProfileWithStreak } from "./types";
+import { StreakData } from "./types";
 import { StreakPost } from "@/components/streaks/types";
 
 /**
@@ -46,12 +46,6 @@ export const transformStreakData = (streakData: StreakData): StreakPost => {
     comments_count: streakData.comments_count || 0,
     user_name: streakData.profiles?.name || 'Unknown User',
     user_profile_image: null, // We don't have profile images yet
-    song: streakData.song_title ? {
-      title: streakData.song_title,
-      artist: streakData.song_artist || '',
-      albumArt: streakData.song_album_art || '',
-      previewUrl: streakData.song_preview_url || ''
-    } : undefined,
     expires_at: streakData.expires_at
   };
 };

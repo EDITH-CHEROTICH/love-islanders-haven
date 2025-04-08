@@ -6,7 +6,6 @@ import { Heart, MessageCircle, Flame, User } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { formatDistanceToNow } from "date-fns";
 import { StreakPost as StreakPostType } from "./types";
-import { useAudioPlayer } from "@/hooks/use-audio-player";
 import { 
   Carousel, 
   CarouselContent, 
@@ -21,7 +20,6 @@ interface StreakPostProps {
 }
 
 const StreakPost = ({ post, onLike }: StreakPostProps) => {
-  const { isPlaying, currentAudioId, playAudio } = useAudioPlayer();
   const [liked, setLiked] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [commentText, setCommentText] = useState("");
