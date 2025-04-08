@@ -34,13 +34,16 @@ export const fetchStreakPosts = async (): Promise<StreakData[]> => {
       const defaultProfile = { name: 'Unknown User' };
       
       // Safely check if profiles exists, is not null, and has a name property
-      let profileData = defaultProfile;
+      let profileData: { name: string } = defaultProfile;
       
       if (item.profiles !== null && 
           item.profiles !== undefined && 
-          typeof item.profiles === 'object' && 
-          'name' in item.profiles) {
-        profileData = item.profiles;
+          typeof item.profiles === 'object') {
+        // Cast to any first to check if name exists
+        const profileObj = item.profiles as any;
+        if (profileObj && 'name' in profileObj) {
+          profileData = { name: profileObj.name };
+        }
       }
       
       return {
