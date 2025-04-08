@@ -72,7 +72,7 @@ export const createStreakPost = async (
 
   try {
     // Validate content
-    if (!Array.isArray(content) || content.length === 0) {
+    if (!content || !Array.isArray(content) || content.length === 0) {
       console.error("Invalid content format or empty content array");
       throw new Error("Invalid content format");
     }
@@ -80,18 +80,8 @@ export const createStreakPost = async (
     // Create a unique ID for the post
     const postId = uuidv4();
     
-    // Convert content to string for storage
-    // Make sure content array is serializable and handle any non-string items
-    const safeContent = content.map(item => {
-      if (typeof item === 'string') {
-        return item;
-      } else {
-        console.warn("Non-string item found in content array:", item);
-        return String(item);
-      }
-    });
-    
-    const contentForDb = JSON.stringify(safeContent);
+    // Store content as a JSON string
+    const contentForDb = JSON.stringify(content);
     
     console.log("Content prepared for storage, length:", contentForDb.length);
     

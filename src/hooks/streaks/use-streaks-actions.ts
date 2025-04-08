@@ -1,4 +1,3 @@
-
 import { useToast } from "@/hooks/use-toast";
 import { createStreakPost } from "./api/streak-posts";
 import { likeStreakPost } from "./api";
@@ -43,7 +42,6 @@ export const useStreaksActions = (
     try {
       console.log("Submitting post with data:", {
         contentLength: postData.content.length,
-        content: postData.content.length > 0 ? "data:image..." : "empty", // Truncated for log readability
         duration: postData.duration
       });
       
@@ -87,14 +85,14 @@ export const useStreaksActions = (
         parsedContent = JSON.parse(streakData.content);
       } catch (e) {
         console.error("Error parsing content:", e);
-        parsedContent = postData.content; // Fallback to the original content
+        parsedContent = []; // Fallback to empty array
       }
       
       // Create a new post object with all the necessary fields
       const newPost = {
         id: streakData.id,
         user_id: streakData.user_id,
-        content: parsedContent || postData.content, // Use parsed content or fallback
+        content: parsedContent,
         created_at: streakData.created_at,
         streak_count: streakData.streak_count,
         likes_count: 0,

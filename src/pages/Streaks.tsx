@@ -58,38 +58,28 @@ const Streaks = () => {
       return false;
     }
     
+    if (!postData.content || postData.content.length === 0) {
+      toast({
+        title: "Error",
+        description: "Please select at least one image for your post",
+        variant: "destructive",
+      });
+      return false;
+    }
+    
     try {
       setIsSubmitting(true);
       console.log("Streak form submitted with data:", {
         contentLength: postData.content.length,
         duration: postData.duration
       });
-      
-      // Validate content data before sending
-      if (!postData.content || !Array.isArray(postData.content) || postData.content.length === 0) {
-        console.error("Invalid content data:", postData.content);
-        toast({
-          title: "Error",
-          description: "Invalid image data. Please select images again.",
-          variant: "destructive",
-        });
-        setIsSubmitting(false);
-        return false;
-      }
 
-      // Log what we're submitting
-      console.log("Image data being submitted:", postData.content.length, "images");
-      
       const success = await handlePostSubmit(postData);
       
       if (success) {
-        // Update UI on success
         setShowPostForm(false);
-        
-        // Refresh posts and user streak data
         await fetchPosts();
         await checkUserStreak();
-        
         return true;
       } else {
         console.log("Post submission failed");

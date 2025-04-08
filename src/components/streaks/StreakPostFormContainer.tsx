@@ -65,8 +65,10 @@ const StreakPostFormContainer = ({
       setLocalSubmitting(true);
       
       // Create a deep copy of the content to prevent any reference issues
+      const contentCopy = [...content];
+      
       const submissionData = { 
-        content: [...content],
+        content: contentCopy,
         duration: duration
       };
       
@@ -76,30 +78,21 @@ const StreakPostFormContainer = ({
       });
       
       // Call the onSubmit function passed from parent component
-      try {
-        const success = await onSubmit(submissionData);
-        
-        if (success) {
-          console.log("Form submitted successfully");
-          clearImages();
-          setDuration(24);
-          toast({
-            title: "Success",
-            description: "Your streak has been posted successfully!",
-          });
-        } else {
-          console.error("Form submission failed");
-          toast({
-            title: "Error",
-            description: "Failed to post your streak. Please try again.",
-            variant: "destructive",
-          });
-        }
-      } catch (error) {
-        console.error("Error from onSubmit function:", error);
+      const success = await onSubmit(submissionData);
+      
+      if (success) {
+        console.log("Form submitted successfully");
+        clearImages();
+        setDuration(24);
+        toast({
+          title: "Success",
+          description: "Your streak has been posted successfully!",
+        });
+      } else {
+        console.error("Form submission failed");
         toast({
           title: "Error",
-          description: "An error occurred while posting your streak.",
+          description: "Failed to post your streak. Please try again.",
           variant: "destructive",
         });
       }

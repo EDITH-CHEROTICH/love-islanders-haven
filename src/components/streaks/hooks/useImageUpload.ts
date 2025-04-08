@@ -79,15 +79,7 @@ const useImageUpload = ({ toast }: UseImageUploadProps): UseImageUploadReturn =>
           console.log(`Processed ${processed} of ${fileCount} images`);
           
           // When all files are processed, update state
-          if (processed === fileCount) {
-            console.log("All images processed, updating state with", newImages.length, "new images");
-            setPreviewUrls(prev => {
-              const updatedPreviews = [...prev, ...newImages];
-              setContent(updatedPreviews); // Ensure content and previewUrls stay in sync
-              return updatedPreviews;
-            });
-            setIsUploading(false);
-          }
+          checkAllProcessed();
         } else {
           console.error("Error reading file: null result");
           processed++;
@@ -113,7 +105,6 @@ const useImageUpload = ({ toast }: UseImageUploadProps): UseImageUploadReturn =>
     // Helper function to check if all files have been processed
     function checkAllProcessed() {
       if (processed === fileCount) {
-        setIsUploading(false);
         if (newImages.length > 0) {
           setPreviewUrls(prev => {
             const updatedPreviews = [...prev, ...newImages];
@@ -121,6 +112,7 @@ const useImageUpload = ({ toast }: UseImageUploadProps): UseImageUploadReturn =>
             return updatedPreviews;
           });
         }
+        setIsUploading(false);
       }
     }
   };
