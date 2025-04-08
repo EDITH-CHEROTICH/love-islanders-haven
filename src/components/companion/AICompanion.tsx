@@ -6,6 +6,7 @@ import { useAuth } from '@/context/auth';
 import { MessageType } from './types';
 import { toast } from 'sonner';
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { sendAIMessage } from './aiCompanionService';
 
 const AICompanion: React.FC = () => {
   const [messages, setMessages] = useState<MessageType[]>([]);
@@ -105,32 +106,30 @@ const AICompanion: React.FC = () => {
           message_type: userMessage.type || 'chat'
         });
       }
+
+      // Format conversation history for the AI
+      const conversationHistory = messages
+        .slice(-10) // Only use last 10 messages for context
+        .map(msg => ({
+          role: msg.role,
+          content: msg.content
+        }));
       
-      // Call AI assistant API
-      const response = await fetch('/api/ai-companion', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          message: messageContent,
-          userId: user?.id || 'guest'
-        }),
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to get response from AI companion');
-      }
-      
-      const data = await response.json();
+      // Call AI assistant using our updated service
+      const aiResponse = await sendAIMessage(
+        messageContent,
+        conversationHistory,
+        user?.id,
+        user?.email || undefined
+      );
       
       // Create assistant message
       const assistantMessage: MessageType = {
         id: crypto.randomUUID(),
         role: 'assistant',
-        content: data.message || "I'm sorry, I couldn't process your request right now.",
+        content: aiResponse || "I'm sorry, I couldn't process your request right now.",
         timestamp: new Date(),
-        type: data.type || 'chat'
+        type: 'chat'
       };
       
       // Update UI with assistant response
@@ -167,13 +166,13 @@ const AICompanion: React.FC = () => {
   };
 
   return (
-    <ScrollArea className="h-full w-full">
+    <div className="h-full w-full">
       <InlineChatContainer 
         messages={messages} 
         isLoading={isLoading} 
         onSendMessage={handleSendMessage} 
       />
-    </ScrollArea>
+    </div>
   );
 };
 

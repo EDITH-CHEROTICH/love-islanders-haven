@@ -1,12 +1,16 @@
+
 import React, { useRef, useEffect } from 'react';
 import Message from './Message';
 import ChatInput from './ChatInput';
 import { MessageType } from './types';
+import { ScrollArea } from "@/components/ui/scroll-area";
+
 interface InlineChatContainerProps {
   messages: MessageType[];
   isLoading: boolean;
   onSendMessage: (message: string) => void;
 }
+
 const InlineChatContainer: React.FC<InlineChatContainerProps> = ({
   messages,
   isLoading,
@@ -18,19 +22,32 @@ const InlineChatContainer: React.FC<InlineChatContainerProps> = ({
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+  
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({
       behavior: 'smooth'
     });
   };
-  return <div className="flex flex-col h-[calc(100vh-4rem)]">
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.map((message, index) => <Message key={index} message={message} isLast={index === messages.length - 1} />)}
-        <div ref={messagesEndRef} />
-      </div>
-      <div className="p-4 border-t border-gray-200 dark:border-gray-800 my-[47px]">
+  
+  return (
+    <div className="flex flex-col h-[calc(100vh-4rem)]">
+      <ScrollArea className="flex-1 p-4">
+        <div className="space-y-4">
+          {messages.map((message, index) => (
+            <Message 
+              key={message.id || index} 
+              message={message} 
+              isLast={index === messages.length - 1} 
+            />
+          ))}
+          <div ref={messagesEndRef} />
+        </div>
+      </ScrollArea>
+      <div className="p-4 border-t border-gray-200 dark:border-gray-800">
         <ChatInput onSendMessage={onSendMessage} isLoading={isLoading} />
       </div>
-    </div>;
+    </div>
+  );
 };
+
 export default InlineChatContainer;

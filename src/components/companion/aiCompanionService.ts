@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { ChatMessage } from './types';
 
@@ -28,31 +27,22 @@ export const sendAIMessage = async (
       hasUserEmail: !!userEmail
     });
 
-    // Determine if we're using the edge function directly or via API route
-    const endpoint = '/api/ai-companion';
-    console.log(`Using endpoint: ${endpoint}`);
-
-    const response = await fetch(endpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ 
-        message, 
-        userId: userId || null, 
+    // Call the Supabase Edge Function directly
+    const { data, error } = await supabase.functions.invoke('ai-companion', {
+      body: {
+        message,
+        userId: userId || null,
         userEmail: userEmail || null,
-        conversationHistory 
-      }),
+        conversationHistory
+      }
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`HTTP error! status: ${response.status}`, errorText);
-      throw new Error(`HTTP error! status: ${response.status}. Details: ${errorText}`);
+    if (error) {
+      console.error('Error calling AI companion function:', error);
+      throw new Error(error.message || 'Failed to get a response from AI companion');
     }
 
     console.log('Response received from AI companion');
-    const data = await response.json();
     
     if (data.demo === true) {
       console.log('AI companion is running in demo mode');
