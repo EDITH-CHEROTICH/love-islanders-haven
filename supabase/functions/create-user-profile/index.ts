@@ -14,7 +14,7 @@ serve(async (req: Request) => {
   }
 
   try {
-    const { userId, name, emailVerified } = await req.json();
+    const { userId, name, emailVerified, verified } = await req.json();
 
     if (!userId) {
       return new Response(
@@ -34,13 +34,18 @@ serve(async (req: Request) => {
     // Create admin client to bypass RLS
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     
+    // Prepare update data
+    const updateData: any = {};
+    if (name !== undefined) updateData.name = name || 'User';
+    if (emailVerified !== undefined) updateData.email_verified = emailVerified || false;
+    if (verified !== undefined) updateData.verified = verified || false;
+    
     // Create or update the profile with admin privileges
     const { data, error } = await supabase
       .from('profiles')
       .upsert({
         id: userId,
-        name: name || 'User',
-        email_verified: emailVerified || false
+        ...updateData
       }, {
         onConflict: 'id'
       });

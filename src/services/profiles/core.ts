@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { ProfilePreferences } from "@/components/ProfileSetup";
 import { SupabaseProfile } from "./types";
@@ -59,75 +58,92 @@ export const createOrUpdateProfile = async (preferences: ProfilePreferences, nam
 };
 
 export const fetchUserProfile = async () => {
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-  
-  if (authError) {
-    console.error('Authentication error:', authError);
-    throw new Error('Authentication error');
-  }
-  
-  if (!user) {
-    console.warn('No authenticated user found');
-    return null;
-  }
-  
-  const userId = user.id;
+  try {
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    
+    if (authError) {
+      console.error('Authentication error:', authError);
+      throw new Error('Authentication error');
+    }
+    
+    if (!user) {
+      console.warn('No authenticated user found');
+      return null;
+    }
+    
+    const userId = user.id;
 
-  const { data, error } = await supabase
-    .from('profiles')
-    .select(`
-      *,
-      profile_images (url, position),
-      profile_interests (interests(name))
-    `)
-    .eq('id', userId)
-    .maybeSingle(); // Using maybeSingle instead of single to avoid errors if no profile exists
+    // Fetch the user's profile data
+    const { data: profileData, error: profileError } = await supabase
+      .from('profiles')
+      .select(`
+        *,
+        profile_interests (interests(name))
+      `)
+      .eq('id', userId)
+      .maybeSingle(); // Using maybeSingle instead of single to avoid errors if no profile exists
 
-  if (error) {
-    console.error('Error fetching profile:', error);
+    if (profileError) {
+      console.error('Error fetching profile:', profileError);
+      throw profileError;
+    }
+    
+    if (!profileData) {
+      console.warn('No profile found for user:', userId);
+      return null;
+    }
+    
+    // Fetch the user's profile images separately
+    const { data: imageData, error: imageError } = await supabase
+      .from('profile_images')
+      .select('url, position, is_visible')
+      .eq('profile_id', userId)
+      .order('position', { ascending: true });
+      
+    if (imageError) {
+      console.error('Error fetching profile images:', imageError);
+    }
+
+    // Cast relationship_goal to the allowed type values or use a default
+    const relationshipGoal = profileData.relationship_goal as 'long-term' | 'casual' | 'both' | undefined;
+    
+    // Cast gender to the allowed type values or use a default
+    const gender = profileData.gender as 'male' | 'female' | 'other' | undefined;
+    
+    // Cast gender_preference to match the expected literal types
+    const genderPreference = profileData.gender_preference as 'male' | 'female' | 'both' | undefined;
+
+    // Cast height_unit to the allowed type values or default to undefined
+    const heightUnit = profileData.height_unit as 'ft' | 'm' | undefined;
+
+    // Convert dob string to Date object if it exists
+    const dob = profileData.dob ? new Date(profileData.dob) : undefined;
+
+    // Transform the data to match our SupabaseProfile type
+    const profile = {
+      ...profileData,
+      dob, // Use the converted Date object or undefined
+      gender: gender || undefined, // Use undefined if gender is not set
+      gender_preference: genderPreference || 'both', // Use 'both' as a default value
+      relationship_goal: relationshipGoal || 'both', // Ensure it matches our type
+      height_unit: heightUnit, // Use the properly cast height_unit value
+      show_age: profileData.show_age !== undefined ? profileData.show_age : true, // Make sure show_age is included
+      images: imageData 
+        ? imageData
+            .filter(img => img.is_visible)
+            .sort((a, b) => a.position - b.position)
+            .map(img => img.url) 
+        : [],
+      interests: profileData.profile_interests
+        ? profileData.profile_interests.map(pi => pi.interests.name)
+        : []
+    };
+
+    return profile;
+  } catch (error) {
+    console.error("Error in fetchUserProfile:", error);
     throw error;
   }
-  
-  if (!data) {
-    console.warn('No profile found for user:', userId);
-    return null;
-  }
-
-  // Cast relationship_goal to the allowed type values or use a default
-  const relationshipGoal = data.relationship_goal as 'long-term' | 'casual' | 'both' | undefined;
-  
-  // Cast gender to the allowed type values or use a default
-  const gender = data.gender as 'male' | 'female' | 'other' | undefined;
-  
-  // Cast gender_preference to match the expected literal types
-  const genderPreference = data.gender_preference as 'male' | 'female' | 'both' | undefined;
-
-  // Cast height_unit to the allowed type values or default to undefined
-  const heightUnit = data.height_unit as 'ft' | 'm' | undefined;
-
-  // Convert dob string to Date object if it exists
-  const dob = data.dob ? new Date(data.dob) : undefined;
-
-  // Transform the data to match our SupabaseProfile type
-  const profile: SupabaseProfile = {
-    ...data,
-    dob, // Use the converted Date object or undefined
-    gender: gender || undefined, // Use undefined if gender is not set
-    gender_preference: genderPreference || 'both', // Use 'both' as a default value
-    relationship_goal: relationshipGoal || 'both', // Ensure it matches our type
-    height_unit: heightUnit, // Use the properly cast height_unit value
-    show_age: data.show_age !== undefined ? data.show_age : true, // Make sure show_age is included
-    images: data.profile_images 
-      ? data.profile_images
-          .sort((a: any, b: any) => a.position - b.position)
-          .map((img: any) => img.url) 
-      : [],
-    interests: data.profile_interests
-      ? data.profile_interests.map((pi: any) => pi.interests.name)
-      : []
-  };
-
-  return profile;
 };
 
 export const updateRelationshipGoal = async (goal: 'long-term' | 'casual' | 'both') => {

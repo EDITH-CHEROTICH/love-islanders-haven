@@ -53,7 +53,7 @@ const ProfileImageUploader = ({ onImageUploaded, position }: ProfileImageUploade
       const imageUrl = await uploadProfileImage(file);
       
       // 2. Save the URL to the profile images table with position
-      await saveProfileImage(imageUrl, position);
+      await saveProfileImage(imageUrl, position, true); // Explicitly set isVisible to true
       
       // 3. Notify parent component
       onImageUploaded(imageUrl);

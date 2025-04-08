@@ -1,11 +1,12 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Profile } from '@/utils/dummyData';
 import ProfileCard from '@/components/ProfileCard';
 import SwipeButtons from '@/components/SwipeButtons';
 import InlineChatOverlay from '@/components/messages/InlineChatOverlay';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { fetchVisibleProfileImages } from '@/services/profiles/media';
 
 interface ProfileDisplayProps {
   profile: Profile | null;
@@ -23,7 +24,31 @@ const ProfileDisplay: React.FC<ProfileDisplayProps> = ({
   filterCount
 }) => {
   const [showChatOverlay, setShowChatOverlay] = useState(false);
+  const [profileImages, setProfileImages] = useState<string[]>([]);
   const navigate = useNavigate();
+
+  // Load visible profile images when profile changes
+  useEffect(() => {
+    const loadProfileImages = async () => {
+      if (profile?.id) {
+        try {
+          const images = await fetchVisibleProfileImages(profile.id);
+          if (images.length > 0) {
+            setProfileImages(images);
+          } else {
+            // If no visible images were found, fall back to the default ones
+            setProfileImages(profile.images || []);
+          }
+        } catch (error) {
+          console.error("Error loading profile images:", error);
+          // Fall back to profile.images on error
+          setProfileImages(profile.images || []);
+        }
+      }
+    };
+    
+    loadProfileImages();
+  }, [profile]);
 
   if (isLoading) {
     return <div className="flex items-center justify-center h-48">
@@ -56,11 +81,11 @@ const ProfileDisplay: React.FC<ProfileDisplayProps> = ({
     }
   };
 
-  // Create a profile with fallback images
+  // Create a profile with the loaded images or fallback
   const profileWithImages = {
     ...profile,
-    images: profile.images && profile.images.length > 0 
-      ? profile.images 
+    images: profileImages.length > 0 
+      ? profileImages 
       : ['https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?q=80&w=1964&auto=format&fit=crop', 'https://images.unsplash.com/photo-1604072366595-e75dc92d6bdc?q=80&w=1964&auto=format&fit=crop']
   };
 

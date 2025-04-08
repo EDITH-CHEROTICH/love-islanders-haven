@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -42,7 +41,7 @@ const Profile = () => {
     try {
       const userData = await fetchUserProfile();
       if (userData) {
-        // Update profile with real user data
+        // Update profile with real user data, including images
         setProfile(prev => ({
           ...prev,
           name: userData.name || prev.name,
@@ -57,6 +56,8 @@ const Profile = () => {
           relationshipGoal: userData.relationship_goal,
           genderPreference: userData.gender_preference
         }));
+
+        console.log("Loaded profile with images:", userData.images);
       }
     } catch (error) {
       console.error('Error loading profile:', error);
