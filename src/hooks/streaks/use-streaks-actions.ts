@@ -1,3 +1,4 @@
+
 import { useToast } from "@/hooks/use-toast";
 import { createStreakPost } from "./api/streak-posts";
 import { likeStreakPost } from "./api";
@@ -42,7 +43,9 @@ export const useStreaksActions = (
     try {
       console.log("Submitting post with data:", {
         contentLength: postData.content.length,
-        duration: postData.duration
+        duration: postData.duration,
+        userId: user.id,
+        currentStreakCount: userStreakCount
       });
       
       // Calculate the new streak count
@@ -67,7 +70,13 @@ export const useStreaksActions = (
       );
       
       if (!streakData) {
-        throw new Error("Failed to create streak post - no data returned");
+        console.error("Failed to create streak post - no data returned");
+        toast({
+          title: "Error",
+          description: "Failed to create your streak post. Please try again.",
+          variant: "destructive",
+        });
+        return false;
       }
       
       toast({
@@ -82,7 +91,9 @@ export const useStreaksActions = (
       // Parse the content string back to an array for the UI
       let parsedContent;
       try {
-        parsedContent = JSON.parse(streakData.content);
+        parsedContent = typeof streakData.content === 'string' 
+          ? JSON.parse(streakData.content)
+          : streakData.content;
       } catch (e) {
         console.error("Error parsing content:", e);
         parsedContent = []; // Fallback to empty array
@@ -93,7 +104,7 @@ export const useStreaksActions = (
         id: streakData.id,
         user_id: streakData.user_id,
         content: parsedContent,
-        created_at: streakData.created_at,
+        created_at: streakData.created_at || new Date().toISOString(),
         streak_count: streakData.streak_count,
         likes_count: 0,
         comments_count: 0,
