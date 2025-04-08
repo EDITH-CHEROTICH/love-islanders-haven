@@ -1,147 +1,72 @@
 
 import { supabase } from "@/integrations/supabase/client";
+import { v4 as uuidv4 } from 'uuid';
 
-export const saveProfileImage = async (imageUrl: string, position: number, isVisible = true) => {
-  const user = supabase.auth.getUser();
-  const userId = (await user).data.user?.id;
+/**
+ * Save an image URL to a user's profile
+ */
+export const saveProfileImage = async (
+  imageUrl: string, 
+  position: number,
+  isVisible = true
+) => {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('User not authenticated');
 
-  if (!userId) {
-    throw new Error('User not authenticated');
-  }
-
-  // Check if position already exists for this user
-  const { data: existingImage } = await supabase
+  const { error } = await supabase
     .from('profile_images')
-    .select('id')
-    .eq('profile_id', userId)
-    .eq('position', position)
-    .single();
+    .insert({
+      profile_id: user.id,
+      url: imageUrl,
+      position,
+      is_visible: isVisible
+    });
 
-  if (existingImage) {
-    // Update existing image
-    const { error } = await supabase
-      .from('profile_images')
-      .update({ 
-        url: imageUrl,
-        is_visible: isVisible 
-      })
-      .eq('id', existingImage.id);
-
-    if (error) {
-      console.error('Error updating image:', error);
-      throw error;
-    }
-  } else {
-    // Insert new image
-    const { error } = await supabase
-      .from('profile_images')
-      .insert({
-        profile_id: userId,
-        url: imageUrl,
-        position,
-        is_visible: isVisible
-      });
-
-    if (error) {
-      console.error('Error saving image:', error);
-      throw error;
-    }
-  }
-
+  if (error) throw error;
   return true;
 };
 
+/**
+ * Save a video URL to a user's profile
+ */
 export const saveProfileVideo = async (videoUrl: string) => {
-  const user = supabase.auth.getUser();
-  const userId = (await user).data.user?.id;
-
-  if (!userId) {
-    throw new Error('User not authenticated');
-  }
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('User not authenticated');
 
   const { error } = await supabase
     .from('profile_videos')
     .insert({
-      profile_id: userId,
+      profile_id: user.id,
       url: videoUrl
     });
 
-  if (error) {
-    console.error('Error saving video:', error);
-    throw error;
-  }
-
+  if (error) throw error;
   return true;
 };
 
-export const fetchProfileImages = async (profileId?: string) => {
-  const user = supabase.auth.getUser();
-  const userId = profileId || (await user).data.user?.id;
-
-  if (!userId) {
-    throw new Error('User not authenticated');
-  }
-
-  const { data, error } = await supabase
-    .from('profile_images')
-    .select('*')
-    .eq('profile_id', userId)
-    .order('position', { ascending: true });
-
-  if (error) {
-    console.error('Error fetching images:', error);
-    throw error;
-  }
-
-  return data.map(image => image.url);
-};
-
-export const fetchVisibleProfileImages = async (profileId?: string) => {
-  const user = supabase.auth.getUser();
-  const userId = profileId || (await user).data.user?.id;
-
-  if (!userId) {
-    throw new Error('User not authenticated');
-  }
-
-  try {
-    const { data, error } = await supabase
-      .from('profile_images')
-      .select('*')
-      .eq('profile_id', userId)
-      .eq('is_visible', true)
-      .order('position', { ascending: true });
-
-    if (error) {
-      console.error('Error fetching visible images:', error);
-      throw error;
-    }
-
-    return data.map(image => image.url);
-  } catch (error) {
-    console.error('Error in fetchVisibleProfileImages:', error);
-    // Return empty array in case of error
-    return [];
-  }
-};
-
-export const fetchProfileVideos = async (profileId?: string) => {
-  const user = supabase.auth.getUser();
-  const userId = profileId || (await user).data.user?.id;
-
-  if (!userId) {
-    throw new Error('User not authenticated');
-  }
-
-  const { data, error } = await supabase
-    .from('profile_videos')
-    .select('*')
-    .eq('profile_id', userId);
-
-  if (error) {
-    console.error('Error fetching videos:', error);
-    throw error;
-  }
-
-  return data.map(video => video.url);
+/**
+ * Upload a profile image to Supabase storage and return the URL
+ */
+export const uploadProfileImage = async (file: File): Promise<string> => {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('User not authenticated');
+  
+  // Create a unique file name
+  const fileExt = file.name.split('.').pop();
+  const fileName = `${uuidv4()}.${fileExt}`;
+  const filePath = `${user.id}/${fileName}`;
+  
+  // Upload to storage
+  const { error: uploadError, data } = await supabase.storage
+    .from('profile-images')
+    .upload(filePath, file);
+    
+  if (uploadError) throw uploadError;
+  
+  // Get public URL
+  const { data: { publicUrl } } = supabase.storage
+    .from('profile-images')
+    .getPublicUrl(filePath);
+    
+  return publicUrl;
 };

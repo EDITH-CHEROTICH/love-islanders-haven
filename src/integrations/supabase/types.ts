@@ -123,7 +123,7 @@ export type Database = {
         Row: {
           alert_type: string
           contact_id: string
-          delivered: boolean
+          delivered: boolean | null
           error_message: string | null
           id: string
           message: string
@@ -132,7 +132,7 @@ export type Database = {
         Insert: {
           alert_type: string
           contact_id: string
-          delivered?: boolean
+          delivered?: boolean | null
           error_message?: string | null
           id?: string
           message: string
@@ -141,7 +141,7 @@ export type Database = {
         Update: {
           alert_type?: string
           contact_id?: string
-          delivered?: boolean
+          delivered?: boolean | null
           error_message?: string | null
           id?: string
           message?: string
@@ -149,7 +149,7 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "fk_contact_id"
+            foreignKeyName: "contact_notifications_contact_id_fkey"
             columns: ["contact_id"]
             isOneToOne: false
             referencedRelation: "safety_contacts"
@@ -164,7 +164,7 @@ export type Database = {
           date_time: string
           id: string
           location: string
-          location_sharing_enabled: boolean
+          location_sharing_enabled: boolean | null
           notes: string | null
           user_id: string
         }
@@ -174,7 +174,7 @@ export type Database = {
           date_time: string
           id?: string
           location: string
-          location_sharing_enabled?: boolean
+          location_sharing_enabled?: boolean | null
           notes?: string | null
           user_id: string
         }
@@ -184,7 +184,7 @@ export type Database = {
           date_time?: string
           id?: string
           location?: string
-          location_sharing_enabled?: boolean
+          location_sharing_enabled?: boolean | null
           notes?: string | null
           user_id?: string
         }
@@ -274,103 +274,79 @@ export type Database = {
         Row: {
           created_at: string
           id: string
-          liked_id: string | null
-          liker_id: string | null
+          is_like: boolean | null
+          is_super: boolean | null
+          liked_id: string
+          liker_id: string
         }
         Insert: {
           created_at?: string
           id?: string
-          liked_id?: string | null
-          liker_id?: string | null
+          is_like?: boolean | null
+          is_super?: boolean | null
+          liked_id: string
+          liker_id: string
         }
         Update: {
           created_at?: string
           id?: string
-          liked_id?: string | null
-          liker_id?: string | null
+          is_like?: boolean | null
+          is_super?: boolean | null
+          liked_id?: string
+          liker_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "likes_liked_id_fkey"
-            columns: ["liked_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "likes_liker_id_fkey"
-            columns: ["liker_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       matches: {
         Row: {
           id: string
           matched_at: string
-          user1_id: string | null
-          user2_id: string | null
+          user1_id: string
+          user2_id: string
         }
         Insert: {
           id?: string
           matched_at?: string
-          user1_id?: string | null
-          user2_id?: string | null
+          user1_id: string
+          user2_id: string
         }
         Update: {
           id?: string
           matched_at?: string
-          user1_id?: string | null
-          user2_id?: string | null
+          user1_id?: string
+          user2_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "matches_user1_id_fkey"
-            columns: ["user1_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "matches_user2_id_fkey"
-            columns: ["user2_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       messages: {
         Row: {
           content: string
           content_type: string | null
           id: string
-          match_id: string | null
+          match_id: string
           media_url: string | null
           read: boolean | null
-          sender_id: string | null
+          sender_id: string
           sent_at: string
         }
         Insert: {
           content: string
           content_type?: string | null
           id?: string
-          match_id?: string | null
+          match_id: string
           media_url?: string | null
           read?: boolean | null
-          sender_id?: string | null
+          sender_id: string
           sent_at?: string
         }
         Update: {
           content?: string
           content_type?: string | null
           id?: string
-          match_id?: string | null
+          match_id?: string
           media_url?: string | null
           read?: boolean | null
-          sender_id?: string | null
+          sender_id?: string
           sent_at?: string
         }
         Relationships: [
@@ -381,13 +357,6 @@ export type Database = {
             referencedRelation: "matches"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "messages_sender_id_fkey"
-            columns: ["sender_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
         ]
       }
       notifications: {
@@ -395,7 +364,7 @@ export type Database = {
           content: string
           created_at: string
           id: string
-          is_read: boolean
+          is_read: boolean | null
           related_entity_id: string | null
           related_user_id: string | null
           type: string
@@ -405,7 +374,7 @@ export type Database = {
           content: string
           created_at?: string
           id?: string
-          is_read?: boolean
+          is_read?: boolean | null
           related_entity_id?: string | null
           related_user_id?: string | null
           type: string
@@ -415,7 +384,7 @@ export type Database = {
           content?: string
           created_at?: string
           id?: string
-          is_read?: boolean
+          is_read?: boolean | null
           related_entity_id?: string | null
           related_user_id?: string | null
           type?: string
@@ -429,7 +398,7 @@ export type Database = {
           id: string
           is_visible: boolean | null
           position: number
-          profile_id: string | null
+          profile_id: string
           url: string
         }
         Insert: {
@@ -437,7 +406,7 @@ export type Database = {
           id?: string
           is_visible?: boolean | null
           position: number
-          profile_id?: string | null
+          profile_id: string
           url: string
         }
         Update: {
@@ -445,7 +414,7 @@ export type Database = {
           id?: string
           is_visible?: boolean | null
           position?: number
-          profile_id?: string | null
+          profile_id?: string
           url?: string
         }
         Relationships: [
@@ -492,19 +461,19 @@ export type Database = {
         Row: {
           created_at: string
           id: string
-          profile_id: string | null
+          profile_id: string
           url: string
         }
         Insert: {
           created_at?: string
           id?: string
-          profile_id?: string | null
+          profile_id: string
           url: string
         }
         Update: {
           created_at?: string
           id?: string
-          profile_id?: string | null
+          profile_id?: string
           url?: string
         }
         Relationships: [
@@ -530,7 +499,6 @@ export type Database = {
           gender_preference: string | null
           has_children: boolean | null
           has_pets: boolean | null
-          height: number | null
           height_cm: number | null
           height_unit: string | null
           id: string
@@ -559,7 +527,6 @@ export type Database = {
           gender_preference?: string | null
           has_children?: boolean | null
           has_pets?: boolean | null
-          height?: number | null
           height_cm?: number | null
           height_unit?: string | null
           id: string
@@ -588,7 +555,6 @@ export type Database = {
           gender_preference?: string | null
           has_children?: boolean | null
           has_pets?: boolean | null
-          height?: number | null
           height_cm?: number | null
           height_unit?: string | null
           id?: string

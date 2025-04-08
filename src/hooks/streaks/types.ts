@@ -2,25 +2,34 @@
 export interface StreakData {
   id: string;
   user_id: string;
-  content: string[] | string | any; // Updated to handle JSONB format from database
-  caption?: string | null;
+  content: string;
+  caption?: string;
   created_at: string;
   streak_count: number;
   likes_count: number;
   comments_count: number;
-  profiles?: {
+  expires_at?: string;
+  profiles: {
     name: string;
-  } | null;
-  song_title?: string | null;
-  song_artist?: string | null;
-  song_album_art?: string | null;
-  song_preview_url?: string | null;
-  expires_at?: string | null;
+  };
 }
 
-export interface ProfileWithStreak {
+export interface CreateStreakParams {
+  userId: string;
+  content: string[];
+  streakCount: number;
+  expiresAt: string;
+  caption?: string;
+}
+
+export interface UserStreakStatus {
+  hasPostedToday: boolean;
+  streakCount: number;
+}
+
+export interface TopStreakUser {
   id: string;
   name: string;
-  count?: number;
+  count: number;
   streak_count: { streak_count: number }[];
 }
