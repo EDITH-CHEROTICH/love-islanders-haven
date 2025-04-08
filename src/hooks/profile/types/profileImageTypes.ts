@@ -16,6 +16,15 @@ export interface UseProfileImagesState {
   setIsSubmitting: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
+export interface ProfileImageAction {
+  handleRemoveImage: (index: number) => void;
+  handleAddImage: (imageUrl: string) => Promise<void>;
+  handleImageUploaded: (imageUrl: string) => void;
+  toggleImageVisibility: (index: number) => Promise<void>;
+  moveImageUp: (index: number) => Promise<void>;
+  moveImageDown: (index: number) => Promise<void>;
+}
+
 export interface UseProfileImagesActions {
   handleRemoveImage: (index: number) => void;
   handleAddImage: (imageUrl: string) => Promise<void>;
