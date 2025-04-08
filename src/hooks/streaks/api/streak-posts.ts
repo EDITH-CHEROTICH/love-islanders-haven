@@ -40,7 +40,7 @@ export const fetchStreakPosts = async () => {
           .from('profiles')
           .select('name')
           .eq('id', streak.user_id)
-          .single();
+          .maybeSingle();
         
         return {
           ...streak,
@@ -93,7 +93,7 @@ export const createStreakPost = async (
       expires_at: expiresAt,
       likes_count: 0, 
       comments_count: 0,
-      created_at: new Date().toISOString() // Add created_at here
+      created_at: new Date().toISOString() // Add created_at field
     };
     
     console.log("Inserting streak post with ID:", postId);
@@ -117,7 +117,8 @@ export const createStreakPost = async (
       
     if (fetchError) {
       console.error("Error fetching created post:", fetchError);
-      throw fetchError;
+      // Return the post data as fallback if we couldn't fetch it
+      return postData;
     }
       
     if (!createdPost) {
