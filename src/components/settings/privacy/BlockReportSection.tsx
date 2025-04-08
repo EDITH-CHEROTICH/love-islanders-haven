@@ -29,8 +29,8 @@ const BlockReportSection = () => {
     
     setIsLoading(true);
     try {
-      const data = await getBlockedUsers(userId);
-      setBlockedUsers(data);
+      const blockedUsersData = await getBlockedUsers();
+      setBlockedUsers(blockedUsersData);
     } catch (error) {
       console.error('Error fetching blocked users:', error);
       toast.error('Failed to load blocked users');
@@ -50,7 +50,7 @@ const BlockReportSection = () => {
     setUnblockingId(blockedUserId);
     
     try {
-      const { data, error } = await unblockUser(userId, blockedUserId);
+      const { error } = await unblockUser(blockedUserId);
       
       if (error) {
         throw error;

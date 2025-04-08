@@ -54,7 +54,12 @@ export const getBlockedUsers = async () => {
     `)
     .eq('user_id', user.id);
     
-  return { data, error };
+  if (error) {
+    console.error('Error fetching blocked users:', error);
+    return [];
+  }
+  
+  return data || [];
 };
 
 /**

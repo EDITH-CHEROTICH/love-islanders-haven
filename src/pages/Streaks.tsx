@@ -14,7 +14,8 @@ import { AudioPlayerProvider } from "@/hooks/use-audio-player";
 import { useToast } from "@/hooks/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
-import { fetchStreakPosts, checkUserDailyPost, getTopStreaks } from "@/hooks/streaks/api/streak-posts";
+import { fetchStreakPosts } from "@/hooks/streaks/api/streak-posts";
+import { checkUserDailyPost, getTopStreaks } from "@/hooks/streaks/api/streak-interactions";
 import useStreaksActions from "@/hooks/streaks/use-streaks-actions";
 
 const Streaks = () => {

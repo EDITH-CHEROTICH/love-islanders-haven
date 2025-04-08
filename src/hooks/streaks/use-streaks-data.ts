@@ -1,12 +1,8 @@
 
 import { useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { 
-  fetchStreakPosts, 
-  getTopStreaks, 
-  checkUserDailyPost, 
-  getUserLatestStreakCount
-} from "./api/streak-posts";
+import { fetchStreakPosts } from "./api/streak-posts";
+import { getTopStreaks, checkUserDailyPost, getUserLatestStreakCount } from "./api/streak-interactions";
 import { transformStreakData, transformTopStreaksData } from "./mock-data";
 
 /**

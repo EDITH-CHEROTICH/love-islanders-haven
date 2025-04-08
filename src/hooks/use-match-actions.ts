@@ -15,7 +15,7 @@ export const useMatchActions = () => {
     const matchUserId = match.profile.id;
     
     try {
-      const { error } = await blockUser(user.id, matchUserId);
+      const { error } = await blockUser(matchUserId);
       
       if (error) {
         throw error;
@@ -45,7 +45,7 @@ export const useMatchActions = () => {
     const matchUserId = match.profile.id;
     
     try {
-      const { error } = await unblockUser(user.id, matchUserId);
+      const { error } = await unblockUser(matchUserId);
       
       if (error) {
         throw error;

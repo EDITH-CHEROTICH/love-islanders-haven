@@ -2,7 +2,8 @@
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { createStreakPost, likeStreakPost } from "./api/streak-posts";
+import { createStreakPost } from "./api/streak-posts";
+import { likeStreakPost } from "./api/streak-interactions";
 
 /**
  * Simplified hook for streak post actions (create, like)
@@ -51,12 +52,12 @@ export const useStreaksActions = (user: any, refreshPosts: () => void) => {
       expiresAt.setHours(expiresAt.getHours() + (postData.duration || 24));
       
       // Create the post
-      await createStreakPost(
-        user.id,
-        postData.content,
-        newStreakCount,
-        expiresAt.toISOString()
-      );
+      await createStreakPost({
+        userId: user.id,
+        content: postData.content,
+        streakCount: newStreakCount,
+        expiresAt: expiresAt.toISOString(),
+      });
       
       // Refresh the posts list
       refreshPosts();
