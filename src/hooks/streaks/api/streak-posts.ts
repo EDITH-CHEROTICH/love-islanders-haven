@@ -37,9 +37,7 @@ export const fetchStreakPosts = async (): Promise<StreakData[]> => {
       
       // Only try to access properties if profiles exists and is not null
       if (item.profiles !== null && item.profiles !== undefined) {
-        if (typeof item.profiles === 'object' && !('error' in item.profiles)) {
-          profileData = item.profiles;
-        }
+        profileData = item.profiles;
       }
       
       return {
