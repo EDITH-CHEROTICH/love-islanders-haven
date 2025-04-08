@@ -93,7 +93,7 @@ export const createStreakPost = async (
       expires_at: expiresAt,
       likes_count: 0, 
       comments_count: 0,
-      created_at: new Date().toISOString() // Add created_at field
+      created_at: new Date().toISOString() // Ensure created_at is included
     };
     
     console.log("Inserting streak post with ID:", postId);
