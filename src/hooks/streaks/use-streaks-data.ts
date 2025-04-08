@@ -50,7 +50,7 @@ export const useStreaksData = (
       const topStreaksData = await getTopStreaks();
       
       if (topStreaksData && topStreaksData.length > 0) {
-        // Transform the top streaks data
+        // Now the top streaks data already matches our ProfileWithStreak type
         const transformedTopStreaks = transformTopStreaksData(topStreaksData);
         setTopStreaks(transformedTopStreaks);
       } else {

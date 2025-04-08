@@ -31,8 +31,8 @@ export const fetchStreakPosts = async (): Promise<StreakData[]> => {
     // Handle possible error with profiles relation by providing a default
     return data.map(item => {
       // Ensure proper profile data or use a default
-      const profileData = item.profiles && typeof item.profiles === 'object' && !('error' in item.profiles)
-        ? item.profiles
+      const profileData = item.profiles && typeof item.profiles === 'object' && !('error' in item.profiles) 
+        ? item.profiles 
         : { name: 'Unknown User' };
       
       return {
@@ -174,8 +174,10 @@ export const getTopStreaks = async (limit = 3) => {
   }
   
   return data.map(profile => ({
+    id: profile.id, // Adding id property to match the ProfileWithStreak type
     name: profile.name || 'Anonymous',
-    count: profile.streak_count
+    count: profile.streak_count,
+    streak_count: [{ streak_count: profile.streak_count }] // Adding required streak_count property
   }));
 };
 
