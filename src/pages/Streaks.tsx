@@ -76,6 +76,9 @@ const Streaks = () => {
         setIsSubmitting(false);
         return false;
       }
+
+      // Log what we're submitting
+      console.log("Image data being submitted:", postData.content.length, "images");
       
       // Submit post
       const success = await handlePostSubmit(postData);
@@ -83,9 +86,10 @@ const Streaks = () => {
       if (success) {
         // Update UI on success
         setShowPostForm(false);
+        
         // Refresh posts and user streak data
-        fetchPosts();
-        checkUserStreak();
+        await fetchPosts();
+        await checkUserStreak();
         
         toast({
           title: "Success!",

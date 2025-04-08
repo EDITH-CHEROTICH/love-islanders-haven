@@ -107,6 +107,8 @@ export const createStreakPost = async (
       throw error;
     }
 
+    console.log("Streak post created successfully, returning data:", data);
+
     if (!data || data.length === 0) {
       console.error("No data returned after creating streak post");
       throw new Error("Failed to create streak post");

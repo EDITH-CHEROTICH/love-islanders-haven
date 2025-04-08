@@ -68,7 +68,6 @@ const useImageUpload = ({ toast }: UseImageUploadProps): UseImageUploadReturn =>
           // When all files are processed, update state
           if (processed === fileCount) {
             console.log("All images processed, updating state with", newImages.length, "new images");
-            // Update both states in one go to ensure consistency
             setPreviewUrls(prev => {
               const updatedPreviews = [...prev, ...newImages];
               setContent(updatedPreviews); // Ensure content and previewUrls stay in sync
