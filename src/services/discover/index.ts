@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
 /**
@@ -32,6 +33,59 @@ export const fetchProfileById = async (id: string) => {
   }
   
   return data || null;
+};
+
+/**
+ * Fetch profiles for discover page with filtering
+ */
+export const fetchDiscoverProfiles = async (filters: any = {}) => {
+  let query = supabase
+    .from('profiles')
+    .select('*');
+  
+  // Apply filters if provided
+  if (filters.gender) {
+    query = query.eq('gender', filters.gender);
+  }
+  
+  if (filters.minAge && filters.maxAge) {
+    query = query.gte('age', filters.minAge).lte('age', filters.maxAge);
+  }
+  
+  const { data, error } = await query;
+  
+  if (error) {
+    console.error('Error fetching discover profiles:', error);
+    return [];
+  }
+  
+  return data || [];
+};
+
+/**
+ * Record user's swipe action
+ */
+export const recordSwipeAction = async (userId: string, profileId: string, action: 'like' | 'pass') => {
+  try {
+    if (action === 'like') {
+      const { error } = await supabase
+        .from('likes')
+        .insert({
+          liker_id: userId,
+          liked_id: profileId,
+          is_like: true
+        });
+      
+      if (error) throw error;
+    }
+    
+    // Could implement 'pass' logic here if needed
+    
+    return true;
+  } catch (error) {
+    console.error('Error recording swipe action:', error);
+    return false;
+  }
 };
 
 /**
@@ -97,3 +151,11 @@ export const formatProfileForDisplay = (profile: any) => {
     height: profile.height_cm ? `${profile.height_cm} cm` : undefined,
   };
 };
+
+// Define types for discover filters
+export interface DiscoverFilters {
+  gender?: string;
+  minAge?: number;
+  maxAge?: number;
+  maxDistance?: number;
+}

@@ -1,104 +1,94 @@
-import { useState, useEffect } from 'react';
-import { useToast } from '@/hooks/use-toast';
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Button } from '@/components/ui/button';
-import { getBlockedUsers, unblockUser } from '@/services/profiles/blocking';
-import { ScrollArea } from "@/components/ui/scroll-area"
+
+import { useState, useEffect } from "react";
+import { useAuth } from "@/context/auth";
+import { Button } from "@/components/ui/button";
+import { TrashIcon } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { supabase } from "@/integrations/supabase/client";
 
 const BlockReportSection = () => {
+  const { user } = useAuth();
   const [blockedUsers, setBlockedUsers] = useState<any[]>([]);
-  const { toast } = useToast();
-  
+
+  // Fetch blocked users on component mount
   useEffect(() => {
-    fetchBlockedUsers();
-  }, []);
-  
-  const fetchBlockedUsers = async () => {
+    if (user?.id) {
+      fetchBlockedUsers(user.id);
+    }
+  }, [user?.id]);
+
+  const fetchBlockedUsers = async (userId: string) => {
     try {
-      const { data, error } = await getBlockedUsers();
-      
-      // Use the correctly typed data
-      if (error) {
-        toast({
-          title: "Error",
-          description: "Failed to load blocked users",
-          variant: "destructive",
-        });
-        return;
-      }
+      const { data, error } = await supabase
+        .from('blocked_users')
+        .select(`
+          blocked_user_id,
+          profiles!inner (
+            id,
+            name
+          )
+        `)
+        .eq('user_id', userId);
+
+      if (error) throw error;
       
       setBlockedUsers(data || []);
     } catch (error) {
       console.error("Error fetching blocked users:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load blocked users",
-        variant: "destructive",
-      });
     }
   };
-  
-  const handleUnblockUser = async (userId: string) => {
+
+  const unblockUser = async (blockedUserId: string) => {
     try {
-      const { error } = await unblockUser(userId);
+      if (!user?.id) return;
       
-      if (error) {
-        throw error;
-      }
+      const { error } = await supabase
+        .from('blocked_users')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('blocked_user_id', blockedUserId);
+
+      if (error) throw error;
       
-      // Refresh the blocked users list
-      fetchBlockedUsers();
-      
-      toast({
-        title: "User unblocked",
-        description: "You've successfully unblocked this user",
-      });
+      // Refresh blocked users list
+      fetchBlockedUsers(user.id);
     } catch (error) {
       console.error("Error unblocking user:", error);
-      toast({
-        title: "Error",
-        description: "Failed to unblock user. Please try again.",
-        variant: "destructive",
-      });
     }
   };
-  
-  if (!blockedUsers || blockedUsers.length === 0) {
-    return (
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold">Blocked Accounts</h3>
-        <p className="text-sm text-muted-foreground">
-          You haven't blocked any accounts yet.
-        </p>
-      </div>
-    );
-  }
-  
+
   return (
-    <div className="space-y-4">
-      <h3 className="text-lg font-semibold">Blocked Accounts</h3>
-      <ScrollArea className="h-[200px] w-full rounded-md border">
-        <div className="divide-y divide-border">
-          {blockedUsers.map((blockedUser) => (
-            <div key={blockedUser.blocked_user_id} className="flex items-center justify-between p-4">
-              <div className="flex items-center space-x-4">
-                <Avatar>
-                  <AvatarImage src={blockedUser.profiles?.avatar_url} />
-                  <AvatarFallback>{blockedUser.profiles?.name?.charAt(0)}</AvatarFallback>
-                </Avatar>
-                <div>
-                  <p className="text-sm font-medium leading-none">{blockedUser.profiles?.name}</p>
-                  <p className="text-sm text-muted-foreground">@{blockedUser.profiles?.name}</p>
+    <Card>
+      <CardHeader>
+        <CardTitle>Blocked Users</CardTitle>
+        <CardDescription>
+          Manage the users you've blocked
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          {blockedUsers.length === 0 ? (
+            <p className="text-sm text-muted-foreground">You haven't blocked any users.</p>
+          ) : (
+            <div className="space-y-2">
+              {blockedUsers.map((blockedUser) => (
+                <div key={blockedUser.blocked_user_id} className="flex items-center justify-between p-2 bg-muted/50 rounded">
+                  <span>{blockedUser.profiles?.name || 'Unknown User'}</span>
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => unblockUser(blockedUser.blocked_user_id)}
+                  >
+                    <TrashIcon className="h-4 w-4 mr-1" />
+                    Unblock
+                  </Button>
                 </div>
-              </div>
-              <Button size="sm" onClick={() => handleUnblockUser(blockedUser.blocked_user_id)}>
-                Unblock
-              </Button>
+              ))}
             </div>
-          ))}
+          )}
         </div>
-      </ScrollArea>
-    </div>
+      </CardContent>
+    </Card>
   );
 };
 
