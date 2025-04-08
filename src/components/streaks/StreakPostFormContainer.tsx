@@ -64,7 +64,7 @@ const StreakPostFormContainer = ({
       console.log("Form submission started with content length:", content.length);
       setLocalSubmitting(true);
       
-      // Prepare submission data - make sure it's a deep copy
+      // Create a deep copy of the content to prevent any reference issues
       const submissionData = { 
         content: [...content],
         duration: duration
@@ -75,8 +75,8 @@ const StreakPostFormContainer = ({
         duration: submissionData.duration
       });
       
+      // Call the onSubmit function passed from parent component
       try {
-        // Call the onSubmit function passed from parent component
         const success = await onSubmit(submissionData);
         
         if (success) {

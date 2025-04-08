@@ -55,6 +55,19 @@ const useImageUpload = ({ toast }: UseImageUploadProps): UseImageUploadReturn =>
     let processed = 0;
     
     Array.from(files).forEach(file => {
+      // Validate file is an image
+      if (!file.type.startsWith('image/')) {
+        console.error("File is not an image:", file.name, file.type);
+        toast({
+          title: "Invalid file type",
+          description: `${file.name} is not an image file.`,
+          variant: "destructive",
+        });
+        processed++;
+        checkAllProcessed();
+        return;
+      }
+      
       const reader = new FileReader();
       
       reader.onload = () => {

@@ -1,3 +1,4 @@
+
 import { useToast } from "@/hooks/use-toast";
 import { createStreakPost } from "./api/streak-posts";
 import { likeStreakPost } from "./api";
@@ -42,7 +43,7 @@ export const useStreaksActions = (
     try {
       console.log("Submitting post with data:", {
         contentLength: postData.content.length,
-        content: postData.content.length > 0 ? postData.content[0].substring(0, 50) + "..." : "empty",
+        content: postData.content.length > 0 ? "data:image..." : "empty", // Truncated for log readability
         duration: postData.duration
       });
       

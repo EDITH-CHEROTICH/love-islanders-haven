@@ -81,8 +81,16 @@ export const createStreakPost = async (
     const postId = uuidv4();
     
     // Convert content to string for storage
-    // Make sure content array is serializable
-    const safeContent = content.map(item => String(item));
+    // Make sure content array is serializable and handle any non-string items
+    const safeContent = content.map(item => {
+      if (typeof item === 'string') {
+        return item;
+      } else {
+        console.warn("Non-string item found in content array:", item);
+        return String(item);
+      }
+    });
+    
     const contentForDb = JSON.stringify(safeContent);
     
     console.log("Content prepared for storage, length:", contentForDb.length);

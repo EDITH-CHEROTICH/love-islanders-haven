@@ -62,8 +62,7 @@ const Streaks = () => {
       setIsSubmitting(true);
       console.log("Streak form submitted with data:", {
         contentLength: postData.content.length,
-        duration: postData.duration,
-        sampleContent: postData.content.length > 0 ? postData.content[0].substring(0, 50) + "..." : "empty"
+        duration: postData.duration
       });
       
       // Validate content data before sending
@@ -81,38 +80,22 @@ const Streaks = () => {
       // Log what we're submitting
       console.log("Image data being submitted:", postData.content.length, "images");
       
-      try {
-        // Submit post
-        const success = await handlePostSubmit(postData);
+      const success = await handlePostSubmit(postData);
+      
+      if (success) {
+        // Update UI on success
+        setShowPostForm(false);
         
-        if (success) {
-          // Update UI on success
-          setShowPostForm(false);
-          
-          // Refresh posts and user streak data
-          await fetchPosts();
-          await checkUserStreak();
-          
-          toast({
-            title: "Success!",
-            description: "Your streak has been posted successfully!",
-          });
-          
-          return true;
-        } else {
-          console.log("Post submission failed");
-          toast({
-            title: "Error",
-            description: "Something went wrong while posting your streak. Please try again.",
-            variant: "destructive",
-          });
-          return false;
-        }
-      } catch (error) {
-        console.error("Error from handlePostSubmit:", error);
+        // Refresh posts and user streak data
+        await fetchPosts();
+        await checkUserStreak();
+        
+        return true;
+      } else {
+        console.log("Post submission failed");
         toast({
           title: "Error",
-          description: "Failed to post your streak. Please try again.",
+          description: "Something went wrong while posting your streak. Please try again.",
           variant: "destructive",
         });
         return false;
