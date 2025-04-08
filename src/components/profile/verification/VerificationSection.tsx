@@ -6,10 +6,7 @@ interface VerificationSectionProps {
   onVerificationRequest: () => void;
 }
 
-const VerificationSection = ({ 
-  verified, 
-  onVerificationRequest 
-}: VerificationSectionProps) => {
+const VerificationSection = ({ verified, onVerificationRequest }: VerificationSectionProps) => {
   return (
     <div className="flex items-center justify-between">
       <div>

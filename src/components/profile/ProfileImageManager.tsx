@@ -4,7 +4,7 @@ import { useAuth } from '@/context/auth';
 import VerificationPopup from '../verification/VerificationPopup';
 import ProfileImageGrid from './image-controls/ProfileImageGrid';
 import ImageUrlInput from './image-controls/ImageUrlInput';
-import VerificationSection from '../profile/verification/VerificationSection';
+import VerificationSection from './verification/VerificationSection';
 import { useProfileImages } from '@/hooks/profile/useProfileImages';
 
 interface ProfileImageManagerProps {
