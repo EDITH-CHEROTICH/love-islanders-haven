@@ -43,9 +43,10 @@ const StreakPostFormContainer = ({
       contentLength: content.length, 
       isUploading,
       localSubmitting,
-      parentIsSubmitting: isSubmitting
+      parentIsSubmitting: isSubmitting,
+      previewUrlsLength: previewUrls.length
     });
-  }, [content, isUploading, localSubmitting, isSubmitting]);
+  }, [content, isUploading, localSubmitting, isSubmitting, previewUrls]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,9 +64,9 @@ const StreakPostFormContainer = ({
       console.log("Form submission started with content length:", content.length);
       setLocalSubmitting(true);
       
-      // Prepare submission data
+      // Prepare submission data - make sure it's a deep copy
       const submissionData = { 
-        content,
+        content: [...content],
         duration: duration
       };
       

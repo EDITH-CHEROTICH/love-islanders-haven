@@ -62,7 +62,8 @@ const Streaks = () => {
       setIsSubmitting(true);
       console.log("Streak form submitted with data:", {
         contentLength: postData.content.length,
-        duration: postData.duration
+        duration: postData.duration,
+        sampleContent: postData.content.length > 0 ? postData.content[0].substring(0, 50) + "..." : "empty"
       });
       
       // Validate content data before sending
@@ -79,10 +80,6 @@ const Streaks = () => {
 
       // Log what we're submitting
       console.log("Image data being submitted:", postData.content.length, "images");
-      
-      if (postData.content.length > 0) {
-        console.log("First image data prefix:", postData.content[0].substring(0, 50) + "...");
-      }
       
       try {
         // Submit post

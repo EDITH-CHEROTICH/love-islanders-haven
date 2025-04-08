@@ -21,7 +21,7 @@ export const fetchStreakPosts = async () => {
         expires_at
       `)
       .order('created_at', { ascending: false })
-      .limit(20); // Increased limit to show more posts
+      .limit(20);
 
     if (error) {
       console.error("Error fetching streak posts:", error);

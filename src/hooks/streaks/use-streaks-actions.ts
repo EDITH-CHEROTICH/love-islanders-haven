@@ -20,6 +20,7 @@ export const useStreaksActions = (
     duration?: number 
   }) => {
     if (!user?.id) {
+      console.error("No user ID available");
       toast({
         title: "Authentication required",
         description: "Please log in to post streaks",
@@ -29,6 +30,7 @@ export const useStreaksActions = (
     }
     
     if (!postData.content || postData.content.length === 0) {
+      console.error("No content provided for streak post");
       toast({
         title: "Missing image",
         description: "Please select at least one image for your streak post",
@@ -40,7 +42,7 @@ export const useStreaksActions = (
     try {
       console.log("Submitting post with data:", {
         contentLength: postData.content.length,
-        content: postData.content[0].substring(0, 50) + "...", // Log partial content for debugging
+        content: postData.content.length > 0 ? postData.content[0].substring(0, 50) + "..." : "empty",
         duration: postData.duration
       });
       
