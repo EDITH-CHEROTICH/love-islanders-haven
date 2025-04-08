@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -28,7 +27,10 @@ export const useAuthState = () => {
         if (session) {
           localStorage.setItem('isAuthenticated', 'true');
         } else if (event === 'SIGNED_OUT') {
-          localStorage.removeItem('isAuthenticated');
+          // Don't remove isAuthenticated in development mode to keep features working
+          if (process.env.NODE_ENV !== 'development') {
+            localStorage.removeItem('isAuthenticated');
+          }
           localStorage.removeItem('emailVerificationCompleted');
         }
         
@@ -45,10 +47,6 @@ export const useAuthState = () => {
       // Update localStorage to reflect current auth state
       if (session) {
         localStorage.setItem('isAuthenticated', 'true');
-      } else if (!session && !localStorageAuth) {
-        // Only remove if we don't have a session AND localStorage isn't saying we're authenticated
-        // This allows the localStorage auth to take precedence
-        // localStorage.removeItem('isAuthenticated');
       }
       
       setLoading(false);

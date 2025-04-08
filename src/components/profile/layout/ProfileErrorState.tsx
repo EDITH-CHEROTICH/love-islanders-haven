@@ -5,9 +5,10 @@ import { Button } from '@/components/ui/button';
 
 interface ProfileErrorStateProps {
   onRetry: () => void;
+  errorMessage?: string;
 }
 
-const ProfileErrorState = ({ onRetry }: ProfileErrorStateProps) => {
+const ProfileErrorState = ({ onRetry, errorMessage }: ProfileErrorStateProps) => {
   // Attempt auth refresh - this is a non-blocking action
   const attemptAuthRefresh = () => {
     // Try to refresh auth state from localStorage
@@ -26,7 +27,7 @@ const ProfileErrorState = ({ onRetry }: ProfileErrorStateProps) => {
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Error</AlertTitle>
           <AlertDescription>
-            Unable to load profile data. Please try again later.
+            {errorMessage || "Unable to load profile data. Please try again later."}
           </AlertDescription>
         </Alert>
         <div className="text-center text-sm text-muted-foreground mt-2">
@@ -36,6 +37,9 @@ const ProfileErrorState = ({ onRetry }: ProfileErrorStateProps) => {
             <li>Your session may have expired</li>
             <li>The server might be experiencing problems</li>
           </ul>
+          <p className="text-xs text-love mt-2">
+            For development purposes, data will be loaded from default values.
+          </p>
         </div>
         <Button 
           onClick={attemptAuthRefresh}
