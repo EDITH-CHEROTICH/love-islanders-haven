@@ -6,6 +6,7 @@ export interface AuthContextType {
   user: User | null;
   loading: boolean;
   isAuthenticated: boolean;
+  networkError: boolean;
   signIn: (email: string, password: string) => Promise<{ error: any; data: any }>;
   signInWithGoogle: () => Promise<void>;
   signUp: (email: string, password: string, options?: any) => Promise<{ error: any; data: any }>;

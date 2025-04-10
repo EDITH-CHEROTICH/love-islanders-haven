@@ -52,7 +52,7 @@ export const fetchUserProfile = async () => {
     console.log('fetchUserProfile: User authenticated, id:', userId);
 
     // Fetch the user's profile data with a timeout for mobile networks
-    const profilePromise = new Promise(async (resolve, reject) => {
+    const profilePromise = new Promise<SupabaseProfile | null>(async (resolve, reject) => {
       try {
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
@@ -69,19 +69,19 @@ export const fetchUserProfile = async () => {
           return;
         }
         
-        resolve(profileData);
+        resolve(profileData as SupabaseProfile | null);
       } catch (err) {
         reject(err);
       }
     });
     
     // Set a timeout to handle slow connections on mobile
-    const timeoutPromise = new Promise((_, reject) => {
+    const timeoutPromise = new Promise<never>((_, reject) => {
       setTimeout(() => reject(new Error('Profile fetch timeout')), 10000);
     });
     
     // Race the profile fetch against a timeout
-    const profileData = await Promise.race([profilePromise, timeoutPromise])
+    const profileData = await Promise.race<SupabaseProfile | null>([profilePromise, timeoutPromise])
       .catch(error => {
         console.error('Profile fetch failed or timed out:', error);
         return null;
@@ -123,8 +123,8 @@ export const fetchUserProfile = async () => {
     const dob = profileData.dob ? new Date(profileData.dob) : undefined;
 
     // Transform the data to match our SupabaseProfile type
-    const profile = {
-      ...profileData,
+    const profile: SupabaseProfile = {
+      ...profileData as SupabaseProfile,
       dob, // Use the converted Date object or undefined
       gender: gender || undefined, // Use undefined if gender is not set
       gender_preference: genderPreference || 'both', // Use 'both' as a default value
@@ -168,6 +168,8 @@ function createFallbackProfile(userId = 'dev-user-123', email?: string | null): 
     bio: 'This is a fallback profile for development and offline use.',
     verified: false,
     gender_preference: 'both' as 'male' | 'female' | 'both',
-    relationship_goal: 'both' as 'long-term' | 'casual' | 'both'
+    relationship_goal: 'both' as 'long-term' | 'casual' | 'both',
+    age: 25, // Adding required age property
+    location: 'Unknown' // Adding required location property
   };
 }
