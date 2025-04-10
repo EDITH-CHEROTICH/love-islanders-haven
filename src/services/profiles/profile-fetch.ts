@@ -69,7 +69,12 @@ export const fetchUserProfile = async () => {
           return;
         }
         
-        resolve(profileData as SupabaseProfile | null);
+        // Explicitly cast to SupabaseProfile and handle it correctly
+        if (profileData) {
+          resolve(profileData as SupabaseProfile);
+        } else {
+          resolve(null);
+        }
       } catch (err) {
         reject(err);
       }
@@ -107,38 +112,47 @@ export const fetchUserProfile = async () => {
       console.log('fetchUserProfile: Found image data:', imageData?.length || 0, 'images');
     }
 
+    // Type safe casting for specific properties
+    const typedProfileData = profileData as SupabaseProfile;
+
     // Cast relationship_goal to the allowed type values or use a default
-    const relationshipGoal = profileData.relationship_goal as 'long-term' | 'casual' | 'both' | undefined;
+    const relationshipGoal = typedProfileData.relationship_goal as 'long-term' | 'casual' | 'both' | undefined;
     
     // Cast gender to the allowed type values or use a default
-    const gender = profileData.gender as 'male' | 'female' | 'other' | undefined;
+    const gender = typedProfileData.gender as 'male' | 'female' | 'other' | undefined;
     
     // Cast gender_preference to match the expected literal types
-    const genderPreference = profileData.gender_preference as 'male' | 'female' | 'both' | undefined;
+    const genderPreference = typedProfileData.gender_preference as 'male' | 'female' | 'both' | undefined;
 
     // Cast height_unit to the allowed type values or default to undefined
-    const heightUnit = profileData.height_unit as 'ft' | 'm' | undefined;
+    const heightUnit = typedProfileData.height_unit as 'ft' | 'm' | undefined;
 
     // Convert dob string to Date object if it exists
-    const dob = profileData.dob ? new Date(profileData.dob) : undefined;
+    const dob = typedProfileData.dob ? new Date(typedProfileData.dob) : undefined;
 
     // Transform the data to match our SupabaseProfile type
     const profile: SupabaseProfile = {
-      ...profileData as SupabaseProfile,
+      id: typedProfileData.id,
+      name: typedProfileData.name,
+      age: typedProfileData.age || 0,
+      location: typedProfileData.location || '',
+      bio: typedProfileData.bio || '',
+      verified: typedProfileData.verified || false,
       dob, // Use the converted Date object or undefined
       gender: gender || undefined, // Use undefined if gender is not set
       gender_preference: genderPreference || 'both', // Use 'both' as a default value
       relationship_goal: relationshipGoal || 'both', // Ensure it matches our type
       height_unit: heightUnit, // Use the properly cast height_unit value
-      show_age: profileData.show_age !== undefined ? profileData.show_age : true, // Make sure show_age is included
+      show_age: typedProfileData.show_age !== undefined ? typedProfileData.show_age : true, // Make sure show_age is included
       images: imageData 
         ? imageData
             .filter(img => img.is_visible)
             .sort((a, b) => a.position - b.position)
             .map(img => img.url) 
         : [],
-      interests: profileData.profile_interests
-        ? profileData.profile_interests.map(pi => pi.interests.name)
+      interests: typedProfileData.profile_interests
+        ? typedProfileData.profile_interests.map(pi => pi.interests?.name)
+            .filter(Boolean) // Filter out any undefined/null values
         : []
     };
 
