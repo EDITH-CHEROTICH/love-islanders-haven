@@ -16,8 +16,9 @@ const Profile = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
   const { toast } = useToast();
-  const { isAuthenticated, user, loading } = useAuth();
+  const { isAuthenticated, user, loading, networkError } = useAuth();
   
   // Load user profile when component mounts or when auth state changes
   useEffect(() => {
@@ -38,7 +39,7 @@ const Profile = () => {
       });
       setIsLoading(false);
     }
-  }, [isAuthenticated, loading]);
+  }, [isAuthenticated, loading, retryCount]);
   
   const loadUserProfile = async () => {
     setIsLoading(true);
@@ -65,7 +66,7 @@ const Profile = () => {
         // Create a default profile if none exists
         console.log('No profile found, creating default');
         setProfile({
-          name: 'New User',
+          name: user?.email?.split('@')[0] || 'New User',
           images: [],
           verified: false,
           gender_preference: 'both',
@@ -82,10 +83,10 @@ const Profile = () => {
       setError(error?.message || 'Failed to load profile data');
       
       // For development purposes, provide a default profile even on error
-      if (localStorage.getItem('isAuthenticated') === 'true') {
+      if (localStorage.getItem('isAuthenticated') === 'true' || process.env.NODE_ENV === 'development') {
         console.log('Creating default profile due to error');
         setProfile({
-          name: 'Development User',
+          name: user?.email?.split('@')[0] || 'Development User',
           images: [],
           verified: false,
           gender_preference: 'both',
@@ -103,6 +104,14 @@ const Profile = () => {
       // Reload profile when exiting edit mode to reflect changes
       loadUserProfile();
     }
+  };
+  
+  const handleRetry = () => {
+    // Initialize Supabase session if needed
+    if (networkError) {
+      supabase.auth.refreshSession();
+    }
+    setRetryCount(prev => prev + 1);
   };
 
   const handleImagesChange = (newImages: string[]) => {
@@ -137,7 +146,10 @@ const Profile = () => {
   }
 
   // Check authentication status from both supabase and localStorage
-  const effectivelyAuthenticated = isAuthenticated || localStorage.getItem('isAuthenticated') === 'true';
+  // Always consider authenticated in development mode
+  const effectivelyAuthenticated = isAuthenticated || 
+    localStorage.getItem('isAuthenticated') === 'true' || 
+    process.env.NODE_ENV === 'development';
 
   if (!effectivelyAuthenticated) {
     return (
@@ -154,7 +166,7 @@ const Profile = () => {
 
   // Show error state only if we have an error AND no profile data
   if (error && !profile) {
-    return <ProfileErrorState onRetry={loadUserProfile} errorMessage={error} />;
+    return <ProfileErrorState onRetry={handleRetry} errorMessage={error} />;
   }
   
   // If we have profile data, show it even if there was an error
@@ -186,7 +198,7 @@ const Profile = () => {
   }
   
   // Fallback error state
-  return <ProfileErrorState onRetry={loadUserProfile} errorMessage="Unable to load profile" />;
+  return <ProfileErrorState onRetry={handleRetry} errorMessage="Unable to load profile" />;
 };
 
 export default Profile;

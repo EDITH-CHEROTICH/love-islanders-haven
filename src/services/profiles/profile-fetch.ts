@@ -9,14 +9,27 @@ export const fetchUserProfile = async () => {
   try {
     console.log('fetchUserProfile: Starting to fetch user profile');
     
+    // Add network connection check - important for mobile
+    if (!navigator.onLine) {
+      console.log('Device appears to be offline');
+      // For development and mobile testing, use fallback approach
+      if (localStorage.getItem('isAuthenticated') === 'true') {
+        console.log('Using offline fallback authentication');
+        return createFallbackProfile();
+      } else {
+        throw new Error('No internet connection');
+      }
+    }
+    
     // Check for auth in multiple ways - both Supabase session and localStorage
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     
     if (authError) {
       console.log('Authentication error in fetchUserProfile:', authError.message);
-      // For development, continue if localStorage shows authenticated
+      // For development and testing, continue if localStorage shows authenticated
       if (localStorage.getItem('isAuthenticated') === 'true') {
         console.log('Using development authentication from localStorage');
+        return createFallbackProfile();
       } else {
         throw new Error('Authentication error');
       }
@@ -28,8 +41,6 @@ export const fetchUserProfile = async () => {
     // If no userId but localStorage shows authenticated, create a development user ID
     if (!userId && localStorage.getItem('isAuthenticated') === 'true') {
       console.log('No authenticated user in Supabase but localStorage authenticated');
-      
-      // Use a consistent ID for development so the same profile is loaded each time
       userId = 'dev-user-123';
     }
     
@@ -40,30 +51,45 @@ export const fetchUserProfile = async () => {
     
     console.log('fetchUserProfile: User authenticated, id:', userId);
 
-    // Fetch the user's profile data
-    const { data: profileData, error: profileError } = await supabase
-      .from('profiles')
-      .select(`
-        *,
-        profile_interests (interests(name))
-      `)
-      .eq('id', userId)
-      .maybeSingle(); // Using maybeSingle instead of single to avoid errors if no profile exists
-
-    if (profileError) {
-      console.error('Error fetching profile:', profileError);
-      throw profileError;
-    }
+    // Fetch the user's profile data with a timeout for mobile networks
+    const profilePromise = new Promise(async (resolve, reject) => {
+      try {
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select(`
+            *,
+            profile_interests (interests(name))
+          `)
+          .eq('id', userId)
+          .maybeSingle();
+  
+        if (profileError) {
+          console.error('Error fetching profile:', profileError);
+          reject(profileError);
+          return;
+        }
+        
+        resolve(profileData);
+      } catch (err) {
+        reject(err);
+      }
+    });
+    
+    // Set a timeout to handle slow connections on mobile
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Profile fetch timeout')), 10000);
+    });
+    
+    // Race the profile fetch against a timeout
+    const profileData = await Promise.race([profilePromise, timeoutPromise])
+      .catch(error => {
+        console.error('Profile fetch failed or timed out:', error);
+        return null;
+      });
     
     if (!profileData) {
       console.warn('No profile found for user:', userId);
-      return {
-        id: userId,
-        name: user?.email?.split('@')[0] || 'User',
-        images: [],
-        bio: '',
-        verified: false
-      };
+      return createFallbackProfile(userId, user?.email);
     }
     
     console.log('fetchUserProfile: Found profile data');
@@ -121,20 +147,27 @@ export const fetchUserProfile = async () => {
   } catch (error) {
     console.error("Error in fetchUserProfile:", error);
     
-    // For development, return a minimal profile to avoid breaking the UI
+    // For development and mobile testing, return a fallback profile
     if (localStorage.getItem('isAuthenticated') === 'true') {
       console.log('Creating fallback development profile due to error');
-      return {
-        id: 'dev-user-123',
-        name: 'Development User',
-        images: [],
-        bio: 'This is a fallback profile for development.',
-        verified: false,
-        gender_preference: 'both' as 'male' | 'female' | 'both',
-        relationship_goal: 'both' as 'long-term' | 'casual' | 'both'
-      };
+      return createFallbackProfile();
     }
     
     throw error;
   }
 };
+
+/**
+ * Creates a fallback profile for development and offline scenarios
+ */
+function createFallbackProfile(userId = 'dev-user-123', email?: string | null): SupabaseProfile {
+  return {
+    id: userId,
+    name: email?.split('@')[0] || 'Development User',
+    images: [],
+    bio: 'This is a fallback profile for development and offline use.',
+    verified: false,
+    gender_preference: 'both' as 'male' | 'female' | 'both',
+    relationship_goal: 'both' as 'long-term' | 'casual' | 'both'
+  };
+}
