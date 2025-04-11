@@ -101,6 +101,11 @@ export const useDiscoverProfiles = (initialFilters: DiscoverFilters = {}) => {
     }
   };
 
+  // Get the current profile based on currentProfileIndex
+  const currentProfile = profiles.length > 0 && currentProfileIndex < profiles.length 
+    ? profiles[currentProfileIndex] 
+    : null;
+
   return {
     profiles,
     currentProfile,
@@ -108,7 +113,7 @@ export const useDiscoverProfiles = (initialFilters: DiscoverFilters = {}) => {
     isLoading: loading,
     error,
     filters,
-    setFilters: updateFilters, // Replace with the enhanced function
+    setFilters: updateFilters,
     refreshProfiles: fetchProfiles,
     handleSwipe
   };

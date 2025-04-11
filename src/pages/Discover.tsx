@@ -8,6 +8,7 @@ import { useEmailVerification } from '@/hooks/discover/useEmailVerification';
 import DiscoverFilters from '@/components/discover/DiscoverFilters';
 import ProfileDisplay from '@/components/discover/ProfileDisplay';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { DiscoverFilters as DiscoverFiltersType } from '@/services/discover';
 
 // Default filter state
 const DEFAULT_FILTERS: AdvancedFilterOptions = {
@@ -82,7 +83,16 @@ const Discover: React.FC = () => {
   
   const handleFilterChange = (newFilters: AdvancedFilterOptions, savePreference: boolean = false) => {
     setFilters(newFilters);
-    updateDiscoverFilters(newFilters, savePreference);
+    
+    // Convert AdvancedFilterOptions to DiscoverFilters format
+    const discoverFilters: DiscoverFiltersType = {
+      minAge: newFilters.ageRange[0],
+      maxAge: newFilters.ageRange[1],
+      maxDistance: newFilters.distance,
+      // Add other filter properties as needed
+    };
+    
+    updateDiscoverFilters(discoverFilters, savePreference);
   };
 
   return (

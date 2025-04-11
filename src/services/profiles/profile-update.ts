@@ -1,6 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { SupabaseProfile } from "./types";
+import { DiscoverFilters } from "@/services/discover";
 
 /**
  * Updates a user's profile information in Supabase
@@ -13,9 +14,15 @@ export const updateUserProfile = async (profileData: Partial<SupabaseProfile>) =
       throw new Error('Authentication required to update profile');
     }
     
+    // Convert Date object to ISO string for database storage if present
+    const formattedProfileData = {
+      ...profileData,
+      dob: profileData.dob instanceof Date ? profileData.dob.toISOString() : profileData.dob
+    };
+    
     const { data, error } = await supabase
       .from('profiles')
-      .update(profileData)
+      .update(formattedProfileData)
       .eq('id', user.id)
       .select();
     
@@ -37,16 +44,12 @@ export const updateUserProfile = async (profileData: Partial<SupabaseProfile>) =
  */
 export const updateDisplayPreferences = async (name: string, showAge: boolean) => {
   try {
-    const { data, error } = await updateUserProfile({
+    const result = await updateUserProfile({
       name,
       show_age: showAge
     });
     
-    if (error) {
-      throw error;
-    }
-    
-    return data;
+    return result;
   } catch (error) {
     console.error('Error updating display preferences:', error);
     throw error;
@@ -61,16 +64,12 @@ export const updateRelationshipPreferences = async (
   genderPreference: 'male' | 'female' | 'both'
 ) => {
   try {
-    const { data, error } = await updateUserProfile({
+    const result = await updateUserProfile({
       relationship_goal: relationshipGoal,
       gender_preference: genderPreference
     });
     
-    if (error) {
-      throw error;
-    }
-    
-    return data;
+    return result;
   } catch (error) {
     console.error('Error updating relationship preferences:', error);
     throw error;
@@ -82,13 +81,9 @@ export const updateRelationshipPreferences = async (
  */
 export const updateUserBio = async (bio: string) => {
   try {
-    const { data, error } = await updateUserProfile({ bio });
+    const result = await updateUserProfile({ bio });
     
-    if (error) {
-      throw error;
-    }
-    
-    return data;
+    return result;
   } catch (error) {
     console.error('Error updating bio:', error);
     throw error;
@@ -98,7 +93,7 @@ export const updateUserBio = async (bio: string) => {
 /**
  * Saves discover page filter preferences to the user's settings
  */
-export const saveDiscoverFilters = async (filters: any) => {
+export const saveDiscoverFilters = async (filters: DiscoverFilters) => {
   try {
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     
@@ -131,7 +126,7 @@ export const saveDiscoverFilters = async (filters: any) => {
 /**
  * Retrieves saved discover filters from user settings
  */
-export const getDiscoverFilters = async () => {
+export const getDiscoverFilters = async (): Promise<DiscoverFilters | null> => {
   try {
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     
@@ -150,7 +145,8 @@ export const getDiscoverFilters = async () => {
       return null;
     }
     
-    return data.match_preferences?.discoverFilters || null;
+    const matchPreferences = data.match_preferences as { discoverFilters?: DiscoverFilters };
+    return matchPreferences?.discoverFilters || null;
   } catch (error) {
     console.error('Error in getDiscoverFilters:', error);
     return null;
