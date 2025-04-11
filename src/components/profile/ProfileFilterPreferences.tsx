@@ -88,14 +88,14 @@ const ProfileFilterPreferences = ({ onPreferencesUpdated }: ProfileFilterPrefere
   };
 
   const handleAgeRangeChange = (value: number[]) => {
-    setFilters(prev => ({
+    setFilters((prev) => ({
       ...prev,
-      ageRange: value
+      ageRange: value as [number, number]
     }));
   };
 
   const handleDistanceChange = (value: number[]) => {
-    setFilters(prev => ({
+    setFilters((prev) => ({
       ...prev,
       distance: value[0]
     }));
