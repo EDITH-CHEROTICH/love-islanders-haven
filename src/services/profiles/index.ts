@@ -11,3 +11,5 @@ export * from './profile-creation';
 // Remove the duplicate export to avoid ambiguity
 // export * from './profile-fetch';
 export * from './profile-preferences';
+export * from './profile-update';
+

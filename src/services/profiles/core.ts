@@ -3,4 +3,5 @@
 export * from './profile-creation';
 export * from './fetch/fetch-user-profile';
 export * from './profile-preferences';
+export * from './profile-update';
 
