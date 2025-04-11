@@ -1,74 +1,70 @@
-
 import { SupabaseProfile } from "../types";
 
 /**
- * Transforms raw database data into a typed SupabaseProfile
+ * Create a fallback profile for development/testing
  */
-export function transformProfileData(rawData: any): SupabaseProfile {
-  // Handle profile interests
-  const interests = rawData.profile_interests 
-    ? rawData.profile_interests
-        .map((pi: any) => pi.interests?.name)
-        .filter(Boolean) 
-    : [];
+export function createFallbackProfile(userId: string = 'dev-user-123', email?: string | null): SupabaseProfile {
+  const developmentProfile: SupabaseProfile = {
+    id: userId,
+    name: email ? email.split('@')[0] : 'Test User',
+    bio: 'This is a fallback profile for development.',
+    gender: null,
+    gender_preference: 'both',
+    location: 'Test Location',
+    education: null,
+    occupation: null,
+    relationship_goal: 'both',
+    verified: false,
+    email_verified: true,
+    images: [],
+    show_age: true,
+    age: 25,
+    dob: new Date().toISOString(),
+    streak_count: 0,
+    videos: []
+  };
 
-  // Convert string date to Date object if exists
-  const dob = rawData.dob ? new Date(rawData.dob) : undefined;
+  console.log("Created fallback profile for development:", developmentProfile);
+  return developmentProfile;
+}
+
+/**
+ * Transform profile data from Supabase to our SupabaseProfile type
+ */
+export function transformProfileData(data: any): SupabaseProfile {
+  // Extract interests if they exist
+  const interests = data.profile_interests?.map((item: any) => item.interests?.name).filter(Boolean) || [];
   
-  // Cast enums to their proper types
-  const relationshipGoal = rawData.relationship_goal as 'long-term' | 'casual' | 'both' | undefined;
-  const gender = rawData.gender as 'male' | 'female' | 'other' | undefined;
-  const genderPreference = rawData.gender_preference as 'male' | 'female' | 'both' | undefined;
-  const heightUnit = rawData.height_unit as 'ft' | 'm' | undefined;
-  
+  // Transform the data to match our SupabaseProfile type
   return {
-    id: rawData.id,
-    name: rawData.name || '',
-    age: rawData.age || 0,
-    location: rawData.location || '',
-    bio: rawData.bio || '',
-    verified: rawData.verified || false,
-    dob,
-    gender,
-    gender_preference: genderPreference || 'both',
-    relationship_goal: relationshipGoal || 'both',
-    height_unit: heightUnit,
-    show_age: rawData.show_age !== undefined ? rawData.show_age : true,
+    id: data.id,
+    name: data.name,
+    bio: data.bio,
+    gender: data.gender,
+    gender_preference: data.gender_preference,
+    age: data.age,
+    dob: data.dob,
+    show_age: data.show_age,
+    location: data.location,
+    education: data.education,
+    occupation: data.occupation,
+    relationship_goal: data.relationship_goal,
+    verified: data.verified || false,
+    email_verified: data.email_verified || false,
+    streak_count: data.streak_count || 0,
     interests,
-    // Include other fields from SupabaseProfile as needed
-    email_verified: rawData.email_verified || false,
-    education: rawData.education,
-    height: rawData.height,
-    height_cm: rawData.height_cm,
-    has_pets: rawData.has_pets || false,
-    pet_type: rawData.pet_type,
-    has_children: rawData.has_children || false,
-    children_count: rawData.children_count || 0,
-    occupation: rawData.occupation,
-    activity_status: rawData.activity_status,
-    // Add empty images array (will be populated later)
-    images: []
+    images: [], // Images are loaded separately
+    videos: data.videos || []
   };
 }
 
 /**
- * Creates a fallback profile for development and offline scenarios
+ * Transform profile data for display
  */
-export function createFallbackProfile(userId = 'dev-user-123', email?: string | null): SupabaseProfile {
+export function transformProfileForDisplay(profile: SupabaseProfile) {
   return {
-    id: userId,
-    name: email?.split('@')[0] || 'Development User',
-    images: [],
-    bio: 'This is a fallback profile for development and offline use.',
-    verified: false,
-    gender_preference: 'both' as 'male' | 'female' | 'both',
-    relationship_goal: 'both' as 'long-term' | 'casual' | 'both',
-    age: 25, // Adding required age property
-    location: 'Unknown', // Adding required location property
-    has_pets: false,
-    has_children: false,
-    children_count: 0,
-    email_verified: false,
-    show_age: true
+    ...profile,
+    // Additional transformations as needed
+    dob: profile.dob ? new Date(profile.dob) : undefined,
   };
 }

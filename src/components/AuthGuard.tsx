@@ -1,18 +1,53 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/auth';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AuthGuardProps {
   children: React.ReactNode;
 }
 
 const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading, user } = useAuth();
   const { toast } = useToast();
   const location = useLocation();
   const navigate = useNavigate();
+  const [isEmailVerified, setIsEmailVerified] = useState<boolean | null>(null);
+  const [isVerifying, setIsVerifying] = useState(true);
+  
+  // Check if the user has verified their email
+  useEffect(() => {
+    const checkEmailVerification = async () => {
+      if (isAuthenticated && user?.id) {
+        try {
+          const { data, error } = await supabase
+            .from('profiles')
+            .select('email_verified')
+            .eq('id', user.id)
+            .single();
+            
+          if (!error && data) {
+            setIsEmailVerified(data.email_verified === true);
+          } else {
+            // Default to localStorage flag if query fails
+            setIsEmailVerified(localStorage.getItem('emailVerificationCompleted') === 'true');
+          }
+        } catch (err) {
+          console.error("Error checking email verification:", err);
+          // Default to localStorage flag if query fails
+          setIsEmailVerified(localStorage.getItem('emailVerificationCompleted') === 'true');
+        } finally {
+          setIsVerifying(false);
+        }
+      } else if (!loading) {
+        setIsVerifying(false);
+      }
+    };
+    
+    checkEmailVerification();
+  }, [isAuthenticated, user?.id, loading]);
   
   // Handle the redirect from OAuth providers
   useEffect(() => {
@@ -55,7 +90,7 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
     }
   }, [isAuthenticated, navigate, location.pathname, toast]);
 
-  if (loading) {
+  if (loading || isVerifying) {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-love"></div>
@@ -74,6 +109,20 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
     }
     
     return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  // Check if email is verified
+  if (isAuthenticated && isEmailVerified === false) {
+    // Only show toast on non-verify pages
+    if (!location.pathname.includes('/verify') && location.pathname !== '/login') {
+      toast({
+        title: "Email verification required",
+        description: "Please verify your email before accessing this page",
+        variant: "destructive",
+      });
+    }
+    
+    return <Navigate to="/verify" state={{ from: location }} replace />;
   }
 
   return <>{children}</>;

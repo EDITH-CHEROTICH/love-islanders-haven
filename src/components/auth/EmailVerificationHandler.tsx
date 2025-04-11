@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import VerificationDialog from "./VerificationDialog";
 import { useNavigate } from "react-router-dom";
+import { updateEmailVerificationStatus } from "@/services/profiles/verification";
 
 interface EmailVerificationHandlerProps {
   email: string;
@@ -57,18 +58,24 @@ const EmailVerificationHandler = ({
       console.log("EmailVerificationHandler: onCompleteSignUp result:", success);
       
       if (success) {
-        // Ensure we have a profile for this user
+        // Ensure we have a profile for this user with verified email status
         try {
           const { data: { user } } = await supabase.auth.getUser();
           if (user) {
             console.log("EmailVerificationHandler: Creating/updating profile for user:", user.id);
-            // Try to upsert the profile
+            
+            // Update email verification status
+            await updateEmailVerificationStatus(user.id, true);
+            
+            // Try to upsert the profile with additional details
             const { error } = await supabase
               .from('profiles')
               .upsert({
                 id: user.id,
                 name: email.split('@')[0], // Default name from email
-                email_verified: true // Mark email as verified
+                email_verified: true,
+                gender_preference: 'both',
+                relationship_goal: 'both'
               }, {
                 onConflict: 'id'
               });
@@ -76,7 +83,7 @@ const EmailVerificationHandler = ({
             if (error) {
               console.error("Error creating profile:", error);
             } else {
-              console.log("Profile created/updated for new user");
+              console.log("Profile created/updated for new user with verified email");
             }
           }
         } catch (profileError) {
@@ -85,17 +92,18 @@ const EmailVerificationHandler = ({
         
         setShowVerification(false);
         
-        console.log("EmailVerificationHandler: Navigating to discover page after verification");
+        console.log("EmailVerificationHandler: Navigating to profile page after verification");
         
         // Set auth state in localStorage first
         localStorage.setItem('isAuthenticated', 'true');
         localStorage.setItem('authMethod', 'email');
         localStorage.setItem('authContact', email);
+        localStorage.setItem('emailVerificationCompleted', 'true');
         
         // Use navigate with replace and delay to ensure state updates complete
         setTimeout(() => {
-          console.log("EmailVerificationHandler: Executing delayed navigation to /discover");
-          navigate('/discover', { replace: true });
+          console.log("EmailVerificationHandler: Executing delayed navigation to /profile");
+          navigate('/profile', { replace: true });
         }, 300);
         
         return true;

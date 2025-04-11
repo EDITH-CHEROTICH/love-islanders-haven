@@ -46,7 +46,7 @@ const VerificationForm = ({
           email,
           password: crypto.randomUUID(), // Generate a random password
           options: {
-            emailRedirectTo: window.location.origin + '/discover',
+            emailRedirectTo: window.location.origin + '/profile',
             data: {
               email_verified: true
             }
@@ -61,7 +61,7 @@ const VerificationForm = ({
             const { data: signInData, error: signInError } = await supabase.auth.signInWithOtp({
               email,
               options: {
-                emailRedirectTo: window.location.origin + '/discover'
+                emailRedirectTo: window.location.origin + '/profile'
               }
             });
             
@@ -78,18 +78,22 @@ const VerificationForm = ({
         
         if (user) {
           try {
-            // Use RLS bypass with service role to insert/update profile
-            const serviceClient = supabase.auth.admin;
-            
-            // Check if profile already exists
-            const { data: existingProfile } = await supabase
+            // Create/update profile with email verification status
+            const { error } = await supabase
               .from('profiles')
-              .select('id')
-              .eq('id', user.id)
-              .single();
+              .upsert({
+                id: user.id,
+                name: email.split('@')[0], // Default name from email
+                email_verified: true,
+                gender_preference: 'both',
+                relationship_goal: 'both'
+              }, {
+                onConflict: 'id'
+              });
 
-            if (!existingProfile) {
-              // Create profile using an admin function (bypassing RLS)
+            if (error) {
+              console.error("Error updating profile:", error);
+              // Try admin function approach if direct update fails
               await supabase.functions.invoke('create-user-profile', {
                 body: { 
                   userId: user.id,
@@ -97,13 +101,11 @@ const VerificationForm = ({
                   emailVerified: true
                 }
               });
-              console.log("Profile created for user");
-            } else {
-              console.log("Profile already exists for user");
             }
+            
+            console.log("Profile created/updated with verified status");
           } catch (profileError) {
             console.error("Error handling profile:", profileError);
-            // Continue even if profile creation fails - we can try again later
           }
         }
         
@@ -123,10 +125,10 @@ const VerificationForm = ({
           onClose();
         }
         
-        // Then navigate to discover page with a small delay to ensure state updates
+        // Then navigate to profile page with a small delay to ensure state updates
         setTimeout(() => {
-          console.log("Navigating to discover page");
-          navigate('/discover', { replace: true });
+          console.log("Navigating to profile page");
+          navigate('/profile', { replace: true });
         }, 300);
       } else {
         toast.error("The code you entered is incorrect. Please try again.");
