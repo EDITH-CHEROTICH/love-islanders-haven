@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { fetchDiscoverProfiles, recordSwipeAction, DiscoverFilters } from "@/services/discover";
 import { useAuth } from "@/context/auth";
-import { saveDiscoverFilters, getDiscoverFilters } from "@/services/profiles/profile-update";
+import { saveDiscoverFilters, getDiscoverFilters } from "@/services/profiles/profile-preferences"; // Updated import path
 import { useToast } from "@/hooks/use-toast";
 
 export const useDiscoverProfiles = (initialFilters: DiscoverFilters = {}) => {
