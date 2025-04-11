@@ -1,11 +1,11 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
+import { updateDisplayPreferences } from '@/services/profiles/profile-update';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
 
 interface ProfileDisplayPreferencesProps {
   initialDisplayName: string;
@@ -14,86 +14,68 @@ interface ProfileDisplayPreferencesProps {
 }
 
 const ProfileDisplayPreferences = ({ 
-  initialDisplayName, 
+  initialDisplayName,
   initialShowAge,
   onPreferencesUpdated
 }: ProfileDisplayPreferencesProps) => {
   const [displayName, setDisplayName] = useState(initialDisplayName);
   const [showAge, setShowAge] = useState(initialShowAge);
-  const [isSaving, setIsSaving] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
   const handleSavePreferences = async () => {
-    setIsSaving(true);
-    
+    if (!displayName.trim()) {
+      toast({
+        title: "Name Required",
+        description: "Please enter a display name.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
     try {
-      // First check authentication
-      const { data: authData, error: authError } = await supabase.auth.getSession();
-      
-      if (authError || !authData.session) {
-        toast({
-          title: 'Authentication required',
-          description: 'Please log in to update your preferences',
-          variant: 'destructive'
-        });
-        setIsSaving(false);
-        return;
-      }
-      
-      const userId = authData.session.user.id;
-      
-      // Update profile preferences
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          name: displayName,
-          show_age: showAge
-        })
-        .eq('id', userId);
-        
-      if (error) {
-        console.error('Error updating preferences:', error);
-        throw error;
-      }
+      await updateDisplayPreferences(displayName, showAge);
       
       toast({
-        title: 'Preferences updated',
-        description: 'Your display preferences have been saved'
+        title: "Preferences Saved",
+        description: "Your display preferences have been updated.",
       });
       
-      // Notify parent component
+      // Notify parent component that preferences have been updated
       onPreferencesUpdated();
     } catch (error) {
-      console.error('Error updating preferences:', error);
+      console.error('Error saving display preferences:', error);
       toast({
-        title: 'Update failed',
-        description: 'There was a problem saving your preferences',
-        variant: 'destructive'
+        title: "Save Failed",
+        description: "There was an error saving your preferences. Please try again.",
+        variant: "destructive"
       });
     } finally {
-      setIsSaving(false);
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="space-y-4">
-      <h3 className="text-sm font-medium text-love">Display Preferences</h3>
+    <div className="space-y-6">
+      <h3 className="text-sm font-medium text-white">Display Preferences</h3>
       
       <div className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="displayName">Display Name</Label>
-          <Input 
-            id="displayName" 
+          <Label htmlFor="display-name">Display Name</Label>
+          <Input
+            id="display-name"
             value={displayName}
             onChange={(e) => setDisplayName(e.target.value)}
-            className="bg-island-dark border-island-light"
+            placeholder="Your display name"
+            className="bg-island-dark border-island-light text-white"
           />
         </div>
         
         <div className="flex items-center justify-between">
-          <Label htmlFor="showAge" className="text-sm">Show Age on Profile</Label>
-          <Switch 
-            id="showAge"
+          <Label htmlFor="show-age" className="flex-1">Show age on profile</Label>
+          <Switch
+            id="show-age"
             checked={showAge}
             onCheckedChange={setShowAge}
           />
@@ -101,11 +83,11 @@ const ProfileDisplayPreferences = ({
       </div>
       
       <Button 
-        onClick={handleSavePreferences} 
-        disabled={isSaving}
-        className="w-full mt-4"
+        onClick={handleSavePreferences}
+        disabled={isSubmitting}
+        className="w-full"
       >
-        {isSaving ? 'Saving...' : 'Save Preferences'}
+        {isSubmitting ? "Saving..." : "Save Preferences"}
       </Button>
     </div>
   );

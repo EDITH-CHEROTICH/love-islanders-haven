@@ -69,9 +69,10 @@ export const fetchUserProfile = async () => {
           return;
         }
         
-        // Explicitly cast to SupabaseProfile and handle it correctly
+        // If we have profile data, transform it to match our SupabaseProfile type
         if (profileData) {
-          resolve(profileData as SupabaseProfile);
+          // First cast to unknown to avoid type issues, then cast to SupabaseProfile
+          resolve(transformProfileData(profileData));
         } else {
           resolve(null);
         }
@@ -112,47 +113,14 @@ export const fetchUserProfile = async () => {
       console.log('fetchUserProfile: Found image data:', imageData?.length || 0, 'images');
     }
 
-    // Type safe casting for specific properties
-    const typedProfileData = profileData as SupabaseProfile;
-
-    // Cast relationship_goal to the allowed type values or use a default
-    const relationshipGoal = typedProfileData.relationship_goal as 'long-term' | 'casual' | 'both' | undefined;
-    
-    // Cast gender to the allowed type values or use a default
-    const gender = typedProfileData.gender as 'male' | 'female' | 'other' | undefined;
-    
-    // Cast gender_preference to match the expected literal types
-    const genderPreference = typedProfileData.gender_preference as 'male' | 'female' | 'both' | undefined;
-
-    // Cast height_unit to the allowed type values or default to undefined
-    const heightUnit = typedProfileData.height_unit as 'ft' | 'm' | undefined;
-
-    // Convert dob string to Date object if it exists
-    const dob = typedProfileData.dob ? new Date(typedProfileData.dob) : undefined;
-
-    // Transform the data to match our SupabaseProfile type
-    const profile: SupabaseProfile = {
-      id: typedProfileData.id,
-      name: typedProfileData.name,
-      age: typedProfileData.age || 0,
-      location: typedProfileData.location || '',
-      bio: typedProfileData.bio || '',
-      verified: typedProfileData.verified || false,
-      dob, // Use the converted Date object or undefined
-      gender: gender || undefined, // Use undefined if gender is not set
-      gender_preference: genderPreference || 'both', // Use 'both' as a default value
-      relationship_goal: relationshipGoal || 'both', // Ensure it matches our type
-      height_unit: heightUnit, // Use the properly cast height_unit value
-      show_age: typedProfileData.show_age !== undefined ? typedProfileData.show_age : true, // Make sure show_age is included
+    // Create a profile object with image data
+    const profile = {
+      ...profileData,
       images: imageData 
         ? imageData
             .filter(img => img.is_visible)
             .sort((a, b) => a.position - b.position)
             .map(img => img.url) 
-        : [],
-      interests: typedProfileData.profile_interests
-        ? typedProfileData.profile_interests.map(pi => pi.interests?.name)
-            .filter(Boolean) // Filter out any undefined/null values
         : []
     };
 
@@ -172,6 +140,56 @@ export const fetchUserProfile = async () => {
 };
 
 /**
+ * Transforms raw database data into a typed SupabaseProfile
+ */
+function transformProfileData(rawData: any): SupabaseProfile {
+  // Handle profile interests
+  const interests = rawData.profile_interests 
+    ? rawData.profile_interests
+        .map((pi: any) => pi.interests?.name)
+        .filter(Boolean) 
+    : [];
+
+  // Convert string date to Date object if exists
+  const dob = rawData.dob ? new Date(rawData.dob) : undefined;
+  
+  // Cast enums to their proper types
+  const relationshipGoal = rawData.relationship_goal as 'long-term' | 'casual' | 'both' | undefined;
+  const gender = rawData.gender as 'male' | 'female' | 'other' | undefined;
+  const genderPreference = rawData.gender_preference as 'male' | 'female' | 'both' | undefined;
+  const heightUnit = rawData.height_unit as 'ft' | 'm' | undefined;
+  
+  return {
+    id: rawData.id,
+    name: rawData.name || '',
+    age: rawData.age || 0,
+    location: rawData.location || '',
+    bio: rawData.bio || '',
+    verified: rawData.verified || false,
+    dob,
+    gender,
+    gender_preference: genderPreference || 'both',
+    relationship_goal: relationshipGoal || 'both',
+    height_unit: heightUnit,
+    show_age: rawData.show_age !== undefined ? rawData.show_age : true,
+    interests,
+    // Include other fields from SupabaseProfile as needed
+    email_verified: rawData.email_verified || false,
+    education: rawData.education,
+    height: rawData.height,
+    height_cm: rawData.height_cm,
+    has_pets: rawData.has_pets || false,
+    pet_type: rawData.pet_type,
+    has_children: rawData.has_children || false,
+    children_count: rawData.children_count || 0,
+    occupation: rawData.occupation,
+    activity_status: rawData.activity_status,
+    // Add empty images array (will be populated later)
+    images: []
+  };
+}
+
+/**
  * Creates a fallback profile for development and offline scenarios
  */
 function createFallbackProfile(userId = 'dev-user-123', email?: string | null): SupabaseProfile {
@@ -184,6 +202,11 @@ function createFallbackProfile(userId = 'dev-user-123', email?: string | null): 
     gender_preference: 'both' as 'male' | 'female' | 'both',
     relationship_goal: 'both' as 'long-term' | 'casual' | 'both',
     age: 25, // Adding required age property
-    location: 'Unknown' // Adding required location property
+    location: 'Unknown', // Adding required location property
+    has_pets: false,
+    has_children: false,
+    children_count: 0,
+    email_verified: false,
+    show_age: true
   };
 }

@@ -31,6 +31,13 @@ export interface SupabaseProfile {
   longitude?: number;
   location_updated_at?: string;
   streak_count?: number;
+  email_verified?: boolean;
+  // For internal use - not directly serialized/deserialized
+  profile_interests?: Array<{
+    interests?: {
+      name: string;
+    };
+  }>;
 }
 
 export interface Like {

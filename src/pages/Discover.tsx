@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AdvancedFilterOptions } from '@/components/discover/AdvancedFilters';
 import EmailVerificationPopup from '@/components/auth/EmailVerificationPopup';
 import { useAuth } from '@/context/auth';
@@ -34,7 +34,9 @@ const Discover: React.FC = () => {
   const { 
     currentProfile, 
     isLoading, 
-    handleSwipe 
+    handleSwipe,
+    setFilters: updateDiscoverFilters,
+    filters: savedFilters
   } = useDiscoverProfiles({
     minAge: filters.ageRange[0],
     maxAge: filters.ageRange[1],
@@ -42,6 +44,16 @@ const Discover: React.FC = () => {
   });
 
   const { showVerificationPopup, handleVerificationComplete } = useEmailVerification();
+  
+  // Update local filters when saved filters load
+  useEffect(() => {
+    if (savedFilters && Object.keys(savedFilters).length > 0) {
+      setFilters({
+        ...DEFAULT_FILTERS,
+        ...savedFilters
+      });
+    }
+  }, [savedFilters]);
 
   // Count active filters
   const countActiveFilters = () => {
@@ -67,6 +79,11 @@ const Discover: React.FC = () => {
   const openFilterDialog = () => {
     setIsFilterDialogOpen(true);
   };
+  
+  const handleFilterChange = (newFilters: AdvancedFilterOptions, savePreference: boolean = false) => {
+    setFilters(newFilters);
+    updateDiscoverFilters(newFilters, savePreference);
+  };
 
   return (
     <div className="flex flex-col h-screen bg-gradient-to-b from-island-dark via-island to-island-dark">
@@ -86,7 +103,7 @@ const Discover: React.FC = () => {
           {/* Filters component */}
           <DiscoverFilters 
             activeFilters={filters} 
-            onFilterChange={setFilters}
+            onFilterChange={handleFilterChange}
             isOpen={isFilterDialogOpen}
             onOpenChange={setIsFilterDialogOpen}
           />
