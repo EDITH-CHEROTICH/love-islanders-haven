@@ -103,7 +103,7 @@ export const saveDiscoverFilters = async (filters: DiscoverFilters) => {
     }
     
     // Convert the filters to a plain object that matches Json type
-    const matchPreferences: { discoverFilters: Record<string, Json> } = {
+    const matchPreferences = {
       discoverFilters: filters as unknown as Record<string, Json>
     };
     
@@ -149,8 +149,11 @@ export const getDiscoverFilters = async (): Promise<DiscoverFilters | null> => {
       return null;
     }
     
-    const matchPreferences = data.match_preferences as { discoverFilters?: DiscoverFilters };
-    return matchPreferences?.discoverFilters || null;
+    const matchPreferences = data.match_preferences as { discoverFilters?: Record<string, any> };
+    if (!matchPreferences?.discoverFilters) return null;
+    
+    // Convert from Record<string, any> back to DiscoverFilters
+    return matchPreferences.discoverFilters as unknown as DiscoverFilters;
   } catch (error) {
     console.error('Error in getDiscoverFilters:', error);
     return null;
