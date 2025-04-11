@@ -1,3 +1,4 @@
+
 import { SupabaseProfile } from "../types";
 
 /**
@@ -19,7 +20,7 @@ export function createFallbackProfile(userId: string = 'dev-user-123', email?: s
     images: [],
     show_age: true,
     age: 25,
-    dob: new Date().toISOString(),
+    dob: new Date(), // Create a proper Date object
     streak_count: 0,
     videos: []
   };
@@ -43,7 +44,7 @@ export function transformProfileData(data: any): SupabaseProfile {
     gender: data.gender,
     gender_preference: data.gender_preference,
     age: data.age,
-    dob: data.dob,
+    dob: data.dob ? new Date(data.dob) : undefined, // Convert string to Date object
     show_age: data.show_age,
     location: data.location,
     education: data.education,

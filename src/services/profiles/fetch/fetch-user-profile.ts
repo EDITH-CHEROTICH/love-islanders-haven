@@ -2,7 +2,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { getAuthenticatedUserId } from "../utils/profile-auth";
 import { SupabaseProfile } from "../types";
-import { createFallbackProfile } from "../utils/profile-transformers";
+import { createFallbackProfile, transformProfileData } from "../utils/profile-transformers";
 
 /**
  * Fetches the user's profile from Supabase
@@ -67,13 +67,18 @@ export const fetchUserProfile = async (): Promise<SupabaseProfile> => {
       console.error('Error fetching profile images:', imageError);
     }
     
-    console.log("Fetched user profile:", { ...data, images: profileImages || [] });
+    // Transform the profile data to match our SupabaseProfile type
+    const transformedProfile = transformProfileData(data);
     
-    // Return the profile with additional properties
-    return {
-      ...data,
+    // Add images to the profile
+    const profileWithImages = {
+      ...transformedProfile,
       images: profileImages?.map(img => img.url) || []
-    } as SupabaseProfile;
+    };
+    
+    console.log("Fetched user profile:", profileWithImages);
+    
+    return profileWithImages;
   } catch (error) {
     console.error('Error in fetchUserProfile:', error);
     
