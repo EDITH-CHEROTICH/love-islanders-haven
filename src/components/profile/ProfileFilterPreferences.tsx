@@ -42,7 +42,7 @@ const ProfileFilterPreferences = ({ onPreferencesUpdated }: ProfileFilterPrefere
         // Map from DiscoverFilters to AdvancedFilterOptions
         setFilters({
           ...filters,
-          ageRange: [savedFilters.minAge || 18, savedFilters.maxAge || 35],
+          ageRange: [savedFilters.minAge || 18, savedFilters.maxAge || 35] as [number, number],
           distance: savedFilters.maxDistance || 50,
           // Add other properties as they become available in the savedFilters
         });

@@ -8,5 +8,6 @@ export * from './location';
 export * from './verification';
 export * from './blocking';
 export * from './profile-creation';
-export * from './profile-fetch';
+// Remove the duplicate export to avoid ambiguity
+// export * from './profile-fetch';
 export * from './profile-preferences';
