@@ -2,6 +2,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { SupabaseProfile } from "./types";
 import { DiscoverFilters } from "@/services/discover";
+import { Json } from "@/integrations/supabase/types";
 
 /**
  * Updates a user's profile information in Supabase
@@ -101,13 +102,16 @@ export const saveDiscoverFilters = async (filters: DiscoverFilters) => {
       throw new Error('Authentication required to save filters');
     }
     
+    // Convert the filters to a plain object that matches Json type
+    const matchPreferences: { discoverFilters: Record<string, Json> } = {
+      discoverFilters: filters as unknown as Record<string, Json>
+    };
+    
     // Update the user settings table with the filters
     const { data, error } = await supabase
       .from('user_settings')
       .update({
-        match_preferences: {
-          discoverFilters: filters
-        }
+        match_preferences: matchPreferences as Json
       })
       .eq('id', user.id);
     
