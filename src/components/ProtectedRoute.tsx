@@ -1,10 +1,9 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/auth';
 import EmailAuthForm from './auth/EmailAuthForm';
 import VerificationForm from './auth/VerificationForm';
-import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Spinner } from '@/components/ui/spinner';
@@ -34,6 +33,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     if (loading || isVerifying) {
       const timer = setTimeout(() => {
         setLoadingTimeout(true);
+        console.log("Loading timeout detected");
       }, 5000); // Set a reasonable timeout (5 seconds)
       
       return () => clearTimeout(timer);
@@ -42,23 +42,27 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     }
   }, [loading, isVerifying]);
 
-  // For development purposes, bypass verification after timeout
-  useEffect(() => {
-    if (loadingTimeout && process.env.NODE_ENV === 'development') {
-      console.log('Loading timeout detected in development mode - bypassing verification');
-      setIsVerifying(false);
-      setIsVerified(true);
-      localStorage.setItem('emailVerificationCompleted', 'true');
-    }
-  }, [loadingTimeout]);
-  
   // Check if user's email is verified
   useEffect(() => {
     const checkEmailVerification = async () => {
-      if (!isAuthenticated || !user?.id) return;
+      if (!isAuthenticated || !user?.id) {
+        setIsVerifying(false);
+        return;
+      }
       
       try {
         setIsVerifying(true);
+        // First check localStorage
+        const verificationCompleted = localStorage.getItem('emailVerificationCompleted') === 'true';
+        
+        if (verificationCompleted) {
+          console.log("Email verification found in localStorage");
+          setIsVerified(true);
+          setIsVerifying(false);
+          return;
+        }
+        
+        console.log("Checking DB for email verification status");
         const { data, error } = await supabase
           .from('profiles')
           .select('email_verified')
@@ -66,14 +70,21 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
           .single();
           
         if (!error && data) {
+          console.log("Email verification status from DB:", data.email_verified);
           setIsVerified(data.email_verified === true);
           
-          // If email is not verified, force verification
+          // Also update localStorage for future checks
+          if (data.email_verified) {
+            localStorage.setItem('emailVerificationCompleted', 'true');
+          }
+          
+          // If email is not verified, prepare for verification
           if (!data.email_verified && !isEmailSubmitted) {
             // Get email from localStorage or user object
             const userEmail = user.email || localStorage.getItem('authContact');
             
             if (userEmail) {
+              console.log("Setting up verification for:", userEmail);
               setEmail(userEmail);
               // Generate a new verification code
               const newCode = Math.floor(1000 + Math.random() * 9000).toString();
@@ -84,6 +95,18 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
               await sendVerificationCode(userEmail, newCode);
             }
           }
+        } else if (error) {
+          console.error("Error checking verification status:", error);
+          // In development mode, default to unverified for testing
+          if (process.env.NODE_ENV === 'development' && loadingTimeout) {
+            setIsVerified(false);
+            setIsEmailSubmitted(true);
+            const userEmail = localStorage.getItem('authContact') || 'test@example.com';
+            setEmail(userEmail);
+            const newCode = Math.floor(1000 + Math.random() * 9000).toString();
+            setVerificationCode(newCode);
+            console.log("Development verification code:", newCode);
+          }
         }
       } catch (err) {
         console.error("Error checking email verification:", err);
@@ -93,39 +116,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     };
     
     checkEmailVerification();
-  }, [isAuthenticated, user?.id]);
-  
-  // For development purposes, set isAuthenticated to true by default
-  useEffect(() => {
-    // Check localStorage for authentication status
-    const localStorageAuth = localStorage.getItem('isAuthenticated') === 'true';
-    const verificationCompleted = localStorage.getItem('emailVerificationCompleted') === 'true';
-    
-    if (localStorageAuth && !isAuthenticated && !authenticationAttempted) {
-      setAuthenticationAttempted(true);
-      // Try to refresh the auth state
-      supabase.auth.refreshSession().then(({ data }) => {
-        if (!data.session && process.env.NODE_ENV !== 'development') {
-          // Don't clear localStorage in development mode
-          console.log("Session refresh failed, but keeping localStorage in development mode");
-        }
-      });
-    }
-    
-    // Set verified status based on localStorage in development
-    if (verificationCompleted) {
-      setIsVerified(true);
-    }
-    
-    // For development mode, don't get stuck in loading state
-    if (process.env.NODE_ENV === 'development' && loading) {
-      const timer = setTimeout(() => {
-        setIsVerifying(false);
-      }, 2000);
-      
-      return () => clearTimeout(timer);
-    }
-  }, [isAuthenticated, authenticationAttempted, loading]);
+  }, [isAuthenticated, user?.id, loadingTimeout]);
   
   const handleEmailSubmit = (email: string, code: string) => {
     setEmail(email);
@@ -137,6 +128,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     setIsSendingCode(true);
     
     try {
+      console.log("Sending verification code to:", email);
       // Send verification code via email through Supabase function
       const { error } = await supabase.functions.invoke('send-verification-email', {
         body: { 
@@ -174,6 +166,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     setIsEmailSubmitted(false);
     setIsVerified(true);
     localStorage.setItem('emailVerificationCompleted', 'true');
+    
+    // Force reload to ensure auth state is updated everywhere
     window.location.reload();
   };
 
@@ -215,7 +209,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   }
 
   // Authentication is confirmed, but check for email verification
-  if (!isVerified && !loadingTimeout) {
+  if (!isVerified) {
+    console.log("Showing verification form because user is not verified");
     return (
       <div className="min-h-screen bg-gradient-to-b from-island-dark via-island to-island-dark pt-4 pb-20 flex flex-col items-center justify-center px-4">
         <div className="glass-card w-full max-w-md p-6 rounded-xl shadow-lg">
@@ -235,7 +230,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     );
   }
 
-  // User is authenticated and verified, or timeout occurred in development mode
+  console.log("User is authenticated and verified, showing content");
+  // User is authenticated and verified
   return <>{children}</>;
 };
 

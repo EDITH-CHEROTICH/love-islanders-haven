@@ -41,43 +41,13 @@ const VerificationForm = ({
       if (verificationCode === generatedCode) {
         console.log("Code verified successfully");
         
-        // Sign up the user with Supabase
-        const { data: authData, error: authError } = await supabase.auth.signUp({
-          email,
-          password: crypto.randomUUID(), // Generate a random password
-          options: {
-            emailRedirectTo: window.location.origin + '/profile',
-            data: {
-              email_verified: true
-            }
-          }
-        });
-
-        if (authError) {
-          console.error("Error during signup:", authError);
-          
-          // If the error is because the user already exists, try to sign in
-          if (authError.message.includes("User already registered")) {
-            const { data: signInData, error: signInError } = await supabase.auth.signInWithOtp({
-              email,
-              options: {
-                emailRedirectTo: window.location.origin + '/profile'
-              }
-            });
-            
-            if (signInError) {
-              throw new Error(signInError.message);
-            }
-          } else {
-            throw authError;
-          }
-        }
-        
         // Get user ID (either from signup or from existing session)
         const { data: { user } } = await supabase.auth.getUser();
         
+        // Update email verification status
         if (user) {
           try {
+            console.log("Updating profile with verified status for user:", user.id);
             // Create/update profile with email verification status
             const { error } = await supabase
               .from('profiles')
@@ -109,27 +79,23 @@ const VerificationForm = ({
           }
         }
         
-        // Set authentication in localStorage
-        localStorage.setItem('isAuthenticated', 'true');
-        localStorage.setItem('authMethod', 'email');
-        localStorage.setItem('authContact', email);
-        
         // Set verification status in localStorage
         localStorage.setItem('emailVerificationCompleted', 'true');
         
         toast.success("Verification successful!");
         
-        // First call onClose to close the popup
+        // First call onClose to close the popup if provided
         if (onClose) {
-          console.log("Calling onClose callback to close the verification popup");
+          console.log("Calling onClose callback");
           onClose();
+        } else {
+          // If no onClose callback, navigate to discover page
+          console.log("No onClose callback, navigating to discover");
+          // Use navigate with replace and delay to ensure state updates complete
+          setTimeout(() => {
+            navigate('/discover', { replace: true });
+          }, 300);
         }
-        
-        // Then navigate to profile page with a small delay to ensure state updates
-        setTimeout(() => {
-          console.log("Navigating to profile page");
-          navigate('/profile', { replace: true });
-        }, 300);
       } else {
         toast.error("The code you entered is incorrect. Please try again.");
       }

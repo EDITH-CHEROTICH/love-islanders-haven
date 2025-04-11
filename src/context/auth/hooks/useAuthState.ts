@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -17,14 +16,8 @@ export const useAuthState = () => {
         console.log('Auth loading timeout detected - forcing completion');
         setLoadingTimeout(true);
         setLoading(false);
-        
-        // In development mode, set default authenticated state
-        if (process.env.NODE_ENV === 'development') {
-          localStorage.setItem('isAuthenticated', 'true');
-          localStorage.setItem('emailVerificationCompleted', 'true');
-        }
       }
-    }, 5000); // Set a reasonable timeout (5 seconds)
+    }, 3000); // Reduced timeout to 3 seconds for better user experience
     
     return () => clearTimeout(timer);
   }, [loading]);
@@ -55,7 +48,6 @@ export const useAuthState = () => {
             if (process.env.NODE_ENV !== 'development') {
               localStorage.removeItem('isAuthenticated');
             }
-            localStorage.removeItem('emailVerificationCompleted');
           }
           
           // Reset network error state when successful
@@ -103,13 +95,8 @@ export const useAuthState = () => {
       if (loading) {
         console.log("Session check timed out, falling back to localStorage auth");
         setLoading(false);
-        
-        // In development mode, ensure we have authenticated state
-        if (process.env.NODE_ENV === 'development') {
-          localStorage.setItem('isAuthenticated', 'true');
-        }
       }
-    }, 3000);
+    }, 2000); // Reduced timeout to 2 seconds for better UX
 
     return () => {
       subscription.unsubscribe();

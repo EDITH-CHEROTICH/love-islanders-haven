@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/auth';
 import { SettingsProvider } from './context/SettingsContext';
@@ -19,16 +19,6 @@ import Login from './pages/Login';
 import Streaks from './pages/Streaks';
 
 const App: React.FC = () => {
-  // Set default authenticated state for development
-  useEffect(() => {
-    // Only set if not already set
-    if (localStorage.getItem('isAuthenticated') === null) {
-      localStorage.setItem('isAuthenticated', 'true');
-      localStorage.setItem('emailVerificationCompleted', 'true');
-      console.log('Set default authentication state to true for development');
-    }
-  }, []);
-
   return (
     <AuthProvider>
       <SettingsProvider>
@@ -38,8 +28,8 @@ const App: React.FC = () => {
             <Route path="/verify" element={<Verify />} />
             <Route path="/login" element={<Login />} />
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-            <Route path="/ai-companion" element={<AICompanionChat />} />
-            <Route path="/feedback" element={<Feedback />} />
+            <Route path="/ai-companion" element={<ProtectedRoute><AICompanionChat /></ProtectedRoute>} />
+            <Route path="/feedback" element={<ProtectedRoute><Feedback /></ProtectedRoute>} />
             <Route path="/matches" element={<ProtectedRoute><Matches /></ProtectedRoute>} />
             <Route path="/discover" element={<ProtectedRoute><Discover /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
