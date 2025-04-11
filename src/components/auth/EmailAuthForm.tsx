@@ -34,6 +34,7 @@ const EmailAuthForm = ({ onEmailSubmit }: EmailAuthFormProps) => {
     try {
       // Generate a 4-digit verification code
       const verificationCode = Math.floor(1000 + Math.random() * 9000).toString();
+      console.log("Generated verification code:", verificationCode);
       
       // Send verification code via our custom email function
       const { error } = await supabase.functions.invoke('send-verification-email', {
@@ -44,18 +45,34 @@ const EmailAuthForm = ({ onEmailSubmit }: EmailAuthFormProps) => {
       });
       
       if (error) {
+        console.error("Error sending verification email:", error);
         throw new Error(error.message);
       }
 
       // Pass the email and code to parent component
-      toast("Verification code sent", {
+      toast.success("Verification code sent", {
         description: `We've sent a verification code to ${data.email}. Please check your inbox.`,
       });
+      
+      // Save email to localStorage for persistence
+      localStorage.setItem('authContact', data.email);
       
       onEmailSubmit(data.email, verificationCode);
     } catch (error: any) {
       console.error("Error sending verification email:", error);
-      toast("Error sending verification code", {
+      
+      // For development, show the code in toast for easier testing
+      if (process.env.NODE_ENV === 'development') {
+        const devCode = Math.floor(1000 + Math.random() * 9000).toString();
+        toast.success("Development mode: Code generated", {
+          description: `Verification code: ${devCode}`,
+        });
+        localStorage.setItem('authContact', data.email);
+        onEmailSubmit(data.email, devCode);
+        return;
+      }
+      
+      toast.error("Error sending verification code", {
         description: error.message || "We couldn't send the verification code. Please try again.",
         style: { backgroundColor: "#f44336", color: "white" }
       });

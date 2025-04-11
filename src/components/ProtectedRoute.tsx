@@ -13,24 +13,21 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const { isAuthenticated, loading, user } = useAuth();
+  const { isAuthenticated, loading, user, emailVerified } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [verificationCode, setVerificationCode] = useState("");
   const [isEmailSubmitted, setIsEmailSubmitted] = useState(false);
   const [isSendingCode, setIsSendingCode] = useState(false);
-  const [authenticationAttempted, setAuthenticationAttempted] = useState(false);
-  const [isVerified, setIsVerified] = useState(false);
-  const [isVerifying, setIsVerifying] = useState(true);
   const [loadingTimeout, setLoadingTimeout] = useState(false);
 
   console.log("ProtectedRoute - Path:", location.pathname);
-  console.log("ProtectedRoute - Auth state:", { isAuthenticated, loading });
+  console.log("ProtectedRoute - Auth state:", { isAuthenticated, loading, emailVerified });
   
   // Add a timeout to detect stuck loading states
   useEffect(() => {
-    if (loading || isVerifying) {
+    if (loading) {
       const timer = setTimeout(() => {
         setLoadingTimeout(true);
         console.log("Loading timeout detected");
@@ -40,85 +37,10 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     } else {
       setLoadingTimeout(false);
     }
-  }, [loading, isVerifying]);
+  }, [loading]);
 
-  // Check if user's email is verified
-  useEffect(() => {
-    const checkEmailVerification = async () => {
-      if (!isAuthenticated || !user?.id) {
-        setIsVerifying(false);
-        return;
-      }
-      
-      try {
-        setIsVerifying(true);
-        // First check localStorage
-        const verificationCompleted = localStorage.getItem('emailVerificationCompleted') === 'true';
-        
-        if (verificationCompleted) {
-          console.log("Email verification found in localStorage");
-          setIsVerified(true);
-          setIsVerifying(false);
-          return;
-        }
-        
-        console.log("Checking DB for email verification status");
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('email_verified')
-          .eq('id', user.id)
-          .single();
-          
-        if (!error && data) {
-          console.log("Email verification status from DB:", data.email_verified);
-          setIsVerified(data.email_verified === true);
-          
-          // Also update localStorage for future checks
-          if (data.email_verified) {
-            localStorage.setItem('emailVerificationCompleted', 'true');
-          }
-          
-          // If email is not verified, prepare for verification
-          if (!data.email_verified && !isEmailSubmitted) {
-            // Get email from localStorage or user object
-            const userEmail = user.email || localStorage.getItem('authContact');
-            
-            if (userEmail) {
-              console.log("Setting up verification for:", userEmail);
-              setEmail(userEmail);
-              // Generate a new verification code
-              const newCode = Math.floor(1000 + Math.random() * 9000).toString();
-              setVerificationCode(newCode);
-              setIsEmailSubmitted(true);
-              
-              // Send verification code
-              await sendVerificationCode(userEmail, newCode);
-            }
-          }
-        } else if (error) {
-          console.error("Error checking verification status:", error);
-          // In development mode, default to unverified for testing
-          if (process.env.NODE_ENV === 'development' && loadingTimeout) {
-            setIsVerified(false);
-            setIsEmailSubmitted(true);
-            const userEmail = localStorage.getItem('authContact') || 'test@example.com';
-            setEmail(userEmail);
-            const newCode = Math.floor(1000 + Math.random() * 9000).toString();
-            setVerificationCode(newCode);
-            console.log("Development verification code:", newCode);
-          }
-        }
-      } catch (err) {
-        console.error("Error checking email verification:", err);
-      } finally {
-        setIsVerifying(false);
-      }
-    };
-    
-    checkEmailVerification();
-  }, [isAuthenticated, user?.id, loadingTimeout]);
-  
-  const handleEmailSubmit = (email: string, code: string) => {
+  const handleEmailSubmit = async (email: string, code: string) => {
+    console.log("Email submitted:", email, "Code:", code);
     setEmail(email);
     setVerificationCode(code);
     setIsEmailSubmitted(true);
@@ -164,7 +86,6 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const handleAuthSuccess = () => {
     // Reset form and reload page to reflect auth status
     setIsEmailSubmitted(false);
-    setIsVerified(true);
     localStorage.setItem('emailVerificationCompleted', 'true');
     
     // Force reload to ensure auth state is updated everywhere
@@ -172,7 +93,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   };
 
   // If we're loading auth state, show a spinner
-  if ((loading || isVerifying) && !loadingTimeout) {
+  if (loading && !loadingTimeout) {
     return (
       <div className="flex items-center justify-center h-screen bg-gradient-to-b from-island-dark via-island to-island-dark">
         <Spinner className="h-12 w-12 text-love" />
@@ -209,8 +130,23 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   }
 
   // Authentication is confirmed, but check for email verification
-  if (!isVerified) {
+  if (emailVerified === false) {
     console.log("Showing verification form because user is not verified");
+    
+    // If we have an email in localStorage or user object, use it
+    const userEmail = user?.email || localStorage.getItem('authContact') || '';
+    
+    // If we don't have an email yet, we need to show the email form
+    if (!isEmailSubmitted && !email && userEmail) {
+      // If we have an email but haven't sent a code yet, generate one and send it
+      const newCode = Math.floor(1000 + Math.random() * 9000).toString();
+      setEmail(userEmail);
+      setVerificationCode(newCode);
+      setIsEmailSubmitted(true);
+      // Send the verification code in the background
+      sendVerificationCode(userEmail, newCode);
+    }
+    
     return (
       <div className="min-h-screen bg-gradient-to-b from-island-dark via-island to-island-dark pt-4 pb-20 flex flex-col items-center justify-center px-4">
         <div className="glass-card w-full max-w-md p-6 rounded-xl shadow-lg">
@@ -218,13 +154,17 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
             Verify Your Email
           </h1>
           
-          <VerificationForm 
-            email={email}
-            generatedCode={verificationCode}
-            onResendCode={handleResendCode}
-            isSendingCode={isSendingCode}
-            onClose={handleAuthSuccess}
-          />
+          {!isEmailSubmitted ? (
+            <EmailAuthForm onEmailSubmit={handleEmailSubmit} />
+          ) : (
+            <VerificationForm 
+              email={email}
+              generatedCode={verificationCode}
+              onResendCode={handleResendCode}
+              isSendingCode={isSendingCode}
+              onClose={handleAuthSuccess}
+            />
+          )}
         </div>
       </div>
     );

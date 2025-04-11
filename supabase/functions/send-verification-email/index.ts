@@ -16,9 +16,13 @@ serve(async (req) => {
   }
 
   try {
-    const { email, code } = await req.json();
+    const body = await req.json();
+    const { email, code } = body;
+    
+    console.log("Received request with body:", JSON.stringify(body));
 
     if (!email || !code) {
+      console.error("Missing required parameters:", { email, code });
       return new Response(
         JSON.stringify({ error: 'Missing required parameters' }),
         { 
