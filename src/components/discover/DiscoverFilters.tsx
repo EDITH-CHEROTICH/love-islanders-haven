@@ -1,7 +1,9 @@
 
 import React, { useState } from 'react';
-import { Dialog, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import AdvancedFilters, { AdvancedFilterOptions } from '@/components/discover/AdvancedFilters';
 
 interface DiscoverFiltersProps {
@@ -39,30 +41,30 @@ const DiscoverFilters: React.FC<DiscoverFiltersProps> = ({
   };
 
   return (
-    <div>
-      <Dialog open={isOpen} onOpenChange={handleDialogOpenChange}>
+    <Dialog open={isOpen} onOpenChange={handleDialogOpenChange}>
+      <DialogContent className="sm:max-w-md bg-neutral-900 text-white border-neutral-800">
         <AdvancedFilters
           onFilterChange={handleFilterChange}
           activeFilters={tempFilters}
         />
         <DialogFooter className="px-6 pb-6 pt-2">
           <div className="flex items-center mb-4 w-full">
-            <label className="flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                checked={saveAsPreference}
-                onChange={() => setSaveAsPreference(!saveAsPreference)}
-                className="mr-2 h-4 w-4"
-              />
-              <span className="text-sm text-muted-foreground">Save as default preferences</span>
-            </label>
+            <Switch
+              id="save-preference"
+              checked={saveAsPreference}
+              onCheckedChange={setSaveAsPreference}
+              className="mr-2"
+            />
+            <Label htmlFor="save-preference" className="text-sm text-gray-300">
+              Save as default preferences
+            </Label>
           </div>
-          <Button onClick={applyFilters} className="w-full">
+          <Button onClick={applyFilters} className="w-full bg-purple-600 hover:bg-purple-700">
             Apply Filters
           </Button>
         </DialogFooter>
-      </Dialog>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 };
 
