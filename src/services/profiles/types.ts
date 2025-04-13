@@ -12,7 +12,7 @@ export interface SupabaseProfile {
   videos?: string[];
   gender?: 'male' | 'female' | 'other';
   gender_preference?: 'male' | 'female' | 'both';
-  dob?: Date;
+  dob?: string; // Changed from Date to string to match Supabase expectations
   show_age?: boolean;
   education?: string;
   height?: number;

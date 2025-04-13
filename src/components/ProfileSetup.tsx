@@ -174,8 +174,8 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
     try {
       // Convert Date object to ISO string for database storage
       const profileData = {
-        ...preferences,
         name,
+        age: preferences.age,
         dob: preferences.dob instanceof Date ? preferences.dob.toISOString() : undefined,
         show_age: preferences.showAge,
         gender: preferences.gender,
