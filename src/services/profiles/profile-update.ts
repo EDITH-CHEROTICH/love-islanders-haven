@@ -14,15 +14,11 @@ export const updateUserProfile = async (profileData: Partial<SupabaseProfile>) =
       throw new Error('Authentication required to update profile');
     }
     
-    // Convert Date object to ISO string for database storage if present
-    const formattedProfileData = {
-      ...profileData,
-      dob: profileData.dob instanceof Date ? profileData.dob.toISOString() : profileData.dob
-    };
-    
+    // No need for instanceof check as dob should already be a string from SupabaseProfile type
+    // Just pass the profileData directly
     const { data, error } = await supabase
       .from('profiles')
-      .update(formattedProfileData)
+      .update(profileData)
       .eq('id', user.id)
       .select();
     
@@ -89,4 +85,3 @@ export const updateUserBio = async (bio: string) => {
     throw error;
   }
 };
-

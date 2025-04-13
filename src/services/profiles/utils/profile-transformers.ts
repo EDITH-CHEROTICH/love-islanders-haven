@@ -20,7 +20,7 @@ export function createFallbackProfile(userId: string = 'dev-user-123', email?: s
     images: [],
     show_age: true,
     age: 25,
-    dob: new Date(), // Create a proper Date object
+    dob: new Date().toISOString(), // Use ISO string instead of Date object
     streak_count: 0,
     videos: []
   };
@@ -44,7 +44,7 @@ export function transformProfileData(data: any): SupabaseProfile {
     gender: data.gender,
     gender_preference: data.gender_preference,
     age: data.age,
-    dob: data.dob ? new Date(data.dob) : undefined, // Convert string to Date object
+    dob: data.dob, // Keep as string from database
     show_age: data.show_age,
     location: data.location,
     education: data.education,
@@ -65,7 +65,6 @@ export function transformProfileData(data: any): SupabaseProfile {
 export function transformProfileForDisplay(profile: SupabaseProfile) {
   return {
     ...profile,
-    // Additional transformations as needed
-    dob: profile.dob ? new Date(profile.dob) : undefined,
+    // No transformation needed for dob since it's already a string
   };
 }

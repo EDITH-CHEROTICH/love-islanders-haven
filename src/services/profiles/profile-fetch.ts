@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { SupabaseProfile } from "./types";
 
@@ -150,8 +149,8 @@ function transformProfileData(rawData: any): SupabaseProfile {
         .filter(Boolean) 
     : [];
 
-  // Convert string date to Date object if exists
-  const dob = rawData.dob ? new Date(rawData.dob) : undefined;
+  // Keep dob as string from the database
+  const dob = rawData.dob || undefined;
   
   // Cast enums to their proper types
   const relationshipGoal = rawData.relationship_goal as 'long-term' | 'casual' | 'both' | undefined;

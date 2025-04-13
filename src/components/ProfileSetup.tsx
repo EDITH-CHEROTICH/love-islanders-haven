@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { User, Users, Heart, Calendar } from 'lucide-react';
@@ -172,7 +173,7 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
     setIsSubmitting(true);
     
     try {
-      // Convert Date object to ISO string for database storage
+      // Format data for database storage - ensure date is converted to string
       const profileData = {
         name,
         age: preferences.age,

@@ -19,8 +19,9 @@ export const createUserProfile = async (profileData: Partial<SupabaseProfile>): 
       ...profileData,
       id: user.id,
       updated_at: new Date().toISOString(),
-      // Ensure Date objects are converted to ISO strings
-      dob: profileData.dob instanceof Date ? profileData.dob.toISOString() : profileData.dob
+      // No need for instanceof check since dob should already be a string
+      // Just ensure it's properly formatted if provided
+      name: profileData.name || user.email?.split('@')[0] || 'User' // Ensure name is provided
     };
     
     // Use upsert to handle both creation and update
