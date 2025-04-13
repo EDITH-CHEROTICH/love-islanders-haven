@@ -23,10 +23,22 @@ export const updateUserProfile = async (profileData: Partial<SupabaseProfile>) =
       return { ...profileData, id: userId };
     }
     
+    console.log('Updating profile with data:', profileData);
+    
+    // Ensure any Date objects are converted to ISO strings
+    const cleanData = { ...profileData };
+    Object.keys(cleanData).forEach(key => {
+      const value = cleanData[key];
+      // Check if value is a Date
+      if (value instanceof Date) {
+        cleanData[key] = value.toISOString();
+      }
+    });
+    
     // Pass the profileData directly to Supabase
     const { data, error } = await supabase
       .from('profiles')
-      .update(profileData)
+      .update(cleanData)
       .eq('id', userId)
       .select();
     

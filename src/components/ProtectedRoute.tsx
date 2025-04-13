@@ -21,9 +21,10 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const [isEmailSubmitted, setIsEmailSubmitted] = useState(false);
   const [isSendingCode, setIsSendingCode] = useState(false);
   const [loadingTimeout, setLoadingTimeout] = useState(false);
+  const [verificationCompleted, setVerificationCompleted] = useState(false);
 
   console.log("ProtectedRoute - Path:", location.pathname);
-  console.log("ProtectedRoute - Auth state:", { isAuthenticated, loading, emailVerified });
+  console.log("ProtectedRoute - Auth state:", { isAuthenticated, loading, emailVerified, verificationCompleted });
   
   // Add a timeout to detect stuck loading states
   useEffect(() => {
@@ -38,6 +39,14 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
       setLoadingTimeout(false);
     }
   }, [loading]);
+
+  // Check if email verification is completed
+  useEffect(() => {
+    const emailVerificationCompleted = localStorage.getItem('emailVerificationCompleted') === 'true';
+    if (emailVerificationCompleted) {
+      setVerificationCompleted(true);
+    }
+  }, []);
 
   const handleEmailSubmit = async (email: string, code: string) => {
     console.log("Email submitted:", email, "Code:", code);
@@ -96,8 +105,13 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
         localStorage.setItem('emailVerificationCompleted', 'true');
       }
       
-      // Navigate to profile page after successful verification
-      navigate('/profile', { replace: true });
+      // Mark verification as completed
+      setVerificationCompleted(true);
+      
+      // Navigate to the current path or to profile page if on verification page
+      if (location.pathname === '/verify') {
+        navigate('/discover', { replace: true });
+      }
     } catch (error) {
       console.error("Error handling verification success:", error);
     }
@@ -140,10 +154,15 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     );
   }
 
-  // Authentication is confirmed, but check for email verification
-  // Either check emailVerified from context or from localStorage
-  const isEmailVerified = emailVerified || localStorage.getItem('emailVerificationCompleted') === 'true';
+  // Check if verification completed from context or localStorage
+  const isEmailVerified = emailVerified || verificationCompleted || localStorage.getItem('emailVerificationCompleted') === 'true';
   
+  // If we've explicitly marked verification as completed, skip verification check
+  if (verificationCompleted) {
+    return <>{children}</>;
+  }
+  
+  // Authentication is confirmed, but check for email verification
   if (isEmailVerified === false) {
     console.log("Showing verification form because user is not verified");
     

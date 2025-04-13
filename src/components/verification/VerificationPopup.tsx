@@ -91,15 +91,37 @@ const VerificationPopup = ({ open, onClose, onVerified, userId }: VerificationPo
         console.error('Service error updating verification status:', error);
         
         // If that fails, try direct Supabase update as fallback
-        const { error: directUpdateError } = await supabase
-          .from('profiles')
-          .update({ verified: true })
-          .eq('id', userId);
-          
-        if (directUpdateError) {
-          throw directUpdateError;
+        try {
+          const { error: directUpdateError } = await supabase
+            .from('profiles')
+            .update({ verified: true })
+            .eq('id', userId);
+            
+          if (directUpdateError) {
+            throw directUpdateError;
+          }
+        } catch (directError) {
+          console.error('Direct update error:', directError);
+          throw directError;
         }
       }
+      
+      // Mark email as verified too
+      try {
+        const { error: emailError } = await supabase
+          .from('profiles')
+          .update({ email_verified: true })
+          .eq('id', userId);
+          
+        if (emailError) {
+          console.warn('Error updating email verification status:', emailError);
+        }
+      } catch (emailVerifyError) {
+        console.warn('Error updating email verification:', emailVerifyError);
+      }
+      
+      // Set localStorage flag
+      localStorage.setItem('emailVerificationCompleted', 'true');
       
       toast.success('Verification successful!');
       onVerified();

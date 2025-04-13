@@ -81,6 +81,7 @@ const VerificationForm = ({
         
         // Set verification status in localStorage
         localStorage.setItem('emailVerificationCompleted', 'true');
+        localStorage.setItem('authContact', email);
         
         toast.success("Verification successful!");
         
@@ -88,13 +89,15 @@ const VerificationForm = ({
         if (onClose) {
           console.log("Calling onClose callback");
           onClose();
+          
+          // After a short delay, navigate to discover page
+          setTimeout(() => {
+            navigate('/discover', { replace: true });
+          }, 500);
         } else {
           // If no onClose callback, navigate to discover page
           console.log("No onClose callback, navigating to discover");
-          // Use navigate with replace and delay to ensure state updates complete
-          setTimeout(() => {
-            navigate('/discover', { replace: true });
-          }, 300);
+          navigate('/discover', { replace: true });
         }
       } else {
         toast.error("The code you entered is incorrect. Please try again.");

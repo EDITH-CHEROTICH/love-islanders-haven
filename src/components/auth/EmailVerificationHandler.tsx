@@ -53,8 +53,8 @@ const EmailVerificationHandler = ({
         localStorage.setItem('authContact', email);
         localStorage.setItem('emailVerificationCompleted', 'true');
         
-        // Navigate to profile page to set up user profile
-        navigate('/profile', { replace: true });
+        // Navigate to discover page instead of profile page
+        navigate('/discover', { replace: true });
         
         return true;
       }
