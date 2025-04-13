@@ -14,11 +14,13 @@ export const createUserProfile = async (profileData: Partial<SupabaseProfile>): 
       throw new Error('Authentication required to create profile');
     }
     
-    // Prepare profile data with user ID
+    // Prepare profile data with user ID and ensure Date is converted to string
     const profile = {
       ...profileData,
       id: user.id,
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
+      // Ensure Date objects are converted to ISO strings
+      dob: profileData.dob instanceof Date ? profileData.dob.toISOString() : profileData.dob
     };
     
     // Use upsert to handle both creation and update

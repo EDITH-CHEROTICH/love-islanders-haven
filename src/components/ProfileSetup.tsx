@@ -17,7 +17,7 @@ import {
   SelectValue 
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { createOrUpdateProfile } from '@/services/profiles/core';
+import { createUserProfile } from '@/services/profiles/core';
 
 export interface ProfilePreferences {
   age: number;
@@ -172,7 +172,26 @@ const ProfileSetup = ({ onComplete }: ProfileSetupProps) => {
     setIsSubmitting(true);
     
     try {
-      await createOrUpdateProfile(preferences, name);
+      // Convert Date object to ISO string for database storage
+      const profileData = {
+        ...preferences,
+        name,
+        dob: preferences.dob instanceof Date ? preferences.dob.toISOString() : undefined,
+        show_age: preferences.showAge,
+        gender: preferences.gender,
+        gender_preference: preferences.genderPreference,
+        height_unit: preferences.heightUnit,
+        height: preferences.height,
+        height_cm: preferences.heightCm,
+        has_pets: preferences.hasPets,
+        pet_type: preferences.petType,
+        has_children: preferences.hasChildren,
+        children_count: preferences.childrenCount,
+        occupation: preferences.occupation,
+        education: preferences.education
+      };
+      
+      await createUserProfile(profileData);
       
       toast({
         title: "Profile Setup Complete",

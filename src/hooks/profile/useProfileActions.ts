@@ -167,7 +167,7 @@ export const useProfileActions = ({
       setIsLoading(true);
       
       // Call update service
-      await updateRelationshipPreferences(goal, profile.gender_preference || 'both');
+      await updateRelationshipPreferences(goal, profile.genderPreference || 'both');
       
       // Update profile with new goal
       setProfile({
@@ -202,7 +202,7 @@ export const useProfileActions = ({
       // Update profile with new preference
       setProfile({
         ...profile,
-        gender_preference: preference
+        genderPreference: preference
       });
       
       toast({
