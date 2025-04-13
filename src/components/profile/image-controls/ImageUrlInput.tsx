@@ -23,7 +23,16 @@ const ImageUrlInput = ({
     e.preventDefault();
     if (!imageUrl.trim()) return;
     
-    onAddImage(imageUrl.trim());
+    // Basic URL validation
+    const urlPattern = /^(https?:\/\/)/i;
+    if (!urlPattern.test(imageUrl)) {
+      const correctedUrl = `https://${imageUrl}`;
+      onAddImage(correctedUrl.trim());
+    } else {
+      onAddImage(imageUrl.trim());
+    }
+    
+    setImageUrl('');
   };
   
   if (currentImagesCount >= maxImages) {

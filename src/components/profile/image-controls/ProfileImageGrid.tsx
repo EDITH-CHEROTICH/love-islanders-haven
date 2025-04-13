@@ -2,6 +2,8 @@
 import { Upload, Trash2, Eye, EyeOff, ChevronUp, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { useState } from 'react';
+import { Loader2 } from 'lucide-react';
 
 interface ProfileImageGridProps {
   images: string[];
@@ -24,6 +26,8 @@ const ProfileImageGrid = ({
   onMoveImageUp,
   onMoveImageDown
 }: ProfileImageGridProps) => {
+  const [isUploading, setIsUploading] = useState(false);
+
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -42,6 +46,7 @@ const ProfileImageGrid = ({
       return;
     }
 
+    setIsUploading(true);
     try {
       await onImageUploaded(file);
       
@@ -50,6 +55,8 @@ const ProfileImageGrid = ({
     } catch (error: any) {
       console.error("Error uploading image:", error);
       toast.error(error.message || "Failed to upload image. Please try again.");
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -115,18 +122,30 @@ const ProfileImageGrid = ({
             accept="image/jpeg,image/png,image/webp,image/gif"
             onChange={handleFileChange}
             className="sr-only"
+            disabled={isUploading}
           />
           <label
             htmlFor="image-upload"
-            className="cursor-pointer flex flex-col items-center"
+            className={`cursor-pointer flex flex-col items-center ${isUploading ? 'opacity-70 pointer-events-none' : ''}`}
           >
-            <Upload className="h-8 w-8 mb-2 text-island-light/70" />
-            <span className="text-sm text-island-light/70 text-center">
-              Upload Image
-            </span>
-            <span className="text-xs text-island-light/50 text-center mt-1">
-              (JPEG, PNG, WebP or GIF)
-            </span>
+            {isUploading ? (
+              <>
+                <Loader2 className="h-8 w-8 mb-2 text-island-light/70 animate-spin" />
+                <span className="text-sm text-island-light/70 text-center">
+                  Uploading...
+                </span>
+              </>
+            ) : (
+              <>
+                <Upload className="h-8 w-8 mb-2 text-island-light/70" />
+                <span className="text-sm text-island-light/70 text-center">
+                  Upload Image
+                </span>
+                <span className="text-xs text-island-light/50 text-center mt-1">
+                  (JPEG, PNG, WebP or GIF)
+                </span>
+              </>
+            )}
           </label>
         </div>
       )}

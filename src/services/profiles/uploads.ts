@@ -12,7 +12,7 @@ export const uploadProfileImage = async (file: File): Promise<string> => {
   let userId = data.session?.user.id;
   
   // If no userId but localStorage shows authenticated, create a development user ID
-  if (!userId && localStorage.getItem('isAuthenticated') === 'true') {
+  if (!userId && (localStorage.getItem('isAuthenticated') === 'true' || process.env.NODE_ENV === 'development')) {
     console.log('Using development user ID for uploads');
     userId = 'dev-user-123';
   }
@@ -21,28 +21,33 @@ export const uploadProfileImage = async (file: File): Promise<string> => {
     throw new Error('User not authenticated');
   }
 
-  // Create a unique file name to prevent collisions
-  const fileExt = file.name.split('.').pop();
-  const fileName = `${userId}/${uuidv4()}.${fileExt}`;
-  const filePath = `profiles/${fileName}`;
+  try {
+    // Create a unique file name to prevent collisions
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${userId}/${uuidv4()}.${fileExt}`;
+    const filePath = `profiles/${fileName}`;
 
-  // Upload the file to Supabase storage
-  const { data: uploadData, error } = await supabase.storage
-    .from('profile-images')
-    .upload(filePath, file, {
-      cacheControl: '3600',
-      upsert: false
-    });
+    // Upload the file to Supabase storage
+    const { data: uploadData, error } = await supabase.storage
+      .from('profile-images')
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: false
+      });
 
-  if (error) {
-    console.error('Error uploading image:', error);
-    throw error;
+    if (error) {
+      console.error('Error uploading image:', error);
+      throw error;
+    }
+
+    // Get the public URL for the uploaded file
+    const { data: { publicUrl } } = supabase.storage
+      .from('profile-images')
+      .getPublicUrl(filePath);
+
+    return publicUrl;
+  } catch (error) {
+    console.error('Error in uploadProfileImage:', error);
+    throw new Error('Failed to upload image. Please check your network connection and try again.');
   }
-
-  // Get the public URL for the uploaded file
-  const { data: { publicUrl } } = supabase.storage
-    .from('profile-images')
-    .getPublicUrl(filePath);
-
-  return publicUrl;
 };

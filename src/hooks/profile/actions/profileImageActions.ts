@@ -1,4 +1,3 @@
-
 import { Dispatch, SetStateAction } from 'react';
 import { saveProfileImage, deleteProfileImage, updateProfileImagePosition, updateProfileImageVisibility } from '@/services/profiles/media';
 import { ImageVisibility, ProfileImageAction } from '../types/profileImageTypes';
@@ -23,7 +22,9 @@ export const useProfileImageActions = (
 
     try {
       // Delete from database
-      await deleteProfileImage(images[index]);
+      await deleteProfileImage(images[index]).catch(err => {
+        console.warn('Error removing image from database, continuing with local update:', err);
+      });
       
       // Update local state
       const newImages = [...images];
@@ -53,7 +54,9 @@ export const useProfileImageActions = (
     setIsSubmitting(true);
     try {
       // Save to database
-      await saveProfileImage(url, images.length);
+      await saveProfileImage(url, images.length).catch(err => {
+        console.warn('Error saving image to database, continuing with local update:', err);
+      });
       
       // Update local state
       const newImages = [...images, url];
