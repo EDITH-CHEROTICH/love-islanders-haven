@@ -14,6 +14,7 @@ import {
 import { toast } from 'sonner';
 import { updateVerificationStatus } from '@/services/profiles/verification';
 import { supabase } from '@/integrations/supabase/client';
+import { useNavigate } from 'react-router-dom';
 
 interface VerificationPopupProps {
   open: boolean;
@@ -27,6 +28,7 @@ const VerificationPopup = ({ open, onClose, onVerified, userId }: VerificationPo
   const [verificationStep, setVerificationStep] = useState<'instructions' | 'otp' | 'selfie'>('instructions');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selfieCapture, setSelfieCapture] = useState<string | null>(null);
+  const navigate = useNavigate();
   
   // In a real app, you would generate and send a real verification code
   // For this demo, we'll use a fixed code
@@ -124,8 +126,17 @@ const VerificationPopup = ({ open, onClose, onVerified, userId }: VerificationPo
       localStorage.setItem('emailVerificationCompleted', 'true');
       
       toast.success('Verification successful!');
+      
+      // Call onVerified callback
       onVerified();
+      
+      // Close the popup
       onClose();
+      
+      // Navigate to discover page after verification
+      setTimeout(() => {
+        navigate('/discover', { replace: true });
+      }, 500);
     } catch (error: any) {
       console.error('Verification error:', error);
       toast.error(error.message || 'An error occurred during verification');

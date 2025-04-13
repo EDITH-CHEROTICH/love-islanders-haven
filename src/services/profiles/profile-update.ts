@@ -1,6 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { SupabaseProfile } from "./types";
+import { toast } from "sonner";
 
 /**
  * Updates a user's profile information in Supabase
@@ -14,6 +15,7 @@ export const updateUserProfile = async (profileData: Partial<SupabaseProfile>) =
                  (localStorage.getItem('isAuthenticated') === 'true' ? 'dev-user-123' : null);
     
     if (!userId) {
+      toast.error("Authentication required to update profile");
       throw new Error('Authentication required to update profile');
     }
 
@@ -44,10 +46,12 @@ export const updateUserProfile = async (profileData: Partial<SupabaseProfile>) =
     
     if (error) {
       console.error('Error updating profile:', error);
+      toast.error("Failed to update profile: " + error.message);
       throw error;
     }
     
     console.log('Profile updated successfully:', data);
+    toast.success("Profile updated successfully");
     return data;
   } catch (error) {
     console.error('Error in updateUserProfile:', error);
@@ -65,6 +69,7 @@ export const updateDisplayPreferences = async (name: string, showAge: boolean) =
     // For development mode
     if (process.env.NODE_ENV === 'development' && localStorage.getItem('isAuthenticated') === 'true') {
       console.log('Development mode: Simulating display preferences update');
+      toast.success("Display preferences updated");
       return { name, show_age: showAge };
     }
     
@@ -73,9 +78,11 @@ export const updateDisplayPreferences = async (name: string, showAge: boolean) =
       show_age: showAge
     });
     
+    toast.success("Display preferences updated successfully");
     return result;
   } catch (error) {
     console.error('Error updating display preferences:', error);
+    toast.error("Failed to update display preferences");
     throw error;
   }
 };
@@ -93,9 +100,11 @@ export const updateRelationshipPreferences = async (
       gender_preference: genderPreference
     });
     
+    toast.success("Relationship preferences updated successfully");
     return result;
   } catch (error) {
     console.error('Error updating relationship preferences:', error);
+    toast.error("Failed to update relationship preferences");
     throw error;
   }
 };
@@ -106,10 +115,12 @@ export const updateRelationshipPreferences = async (
 export const updateUserBio = async (bio: string) => {
   try {
     const result = await updateUserProfile({ bio });
+    toast.success("Bio updated successfully");
     
     return result;
   } catch (error) {
     console.error('Error updating bio:', error);
+    toast.error("Failed to update bio");
     throw error;
   }
 };

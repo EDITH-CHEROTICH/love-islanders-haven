@@ -5,7 +5,7 @@ import VerificationPopup from '../verification/VerificationPopup';
 import ProfileImageGrid from './image-controls/ProfileImageGrid';
 import ImageUrlInput from './image-controls/ImageUrlInput';
 import VerificationSection from './verification/VerificationSection';
-import { uploadProfileImage } from '@/services/profiles/image-upload';
+import { uploadProfileImage } from '@/services/profiles/uploads';
 import { toast } from 'sonner';
 
 interface ProfileImageManagerProps {
@@ -25,7 +25,7 @@ const ProfileImageManager = ({
   const [verificationOpen, setVerificationOpen] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [imageInput, setImageInput] = useState('');
-  const minImages = 2;
+  const minImages = 1;
   const maxImages = 6;
   
   const handleAddImage = async (url: string) => {
@@ -58,7 +58,7 @@ const ProfileImageManager = ({
   
   const handleRemoveImage = (index: number) => {
     if (images.length <= minImages) {
-      toast.error(`You must have at least ${minImages} images.`);
+      toast.error(`You must have at least ${minImages} image.`);
       return;
     }
     
@@ -100,7 +100,13 @@ const ProfileImageManager = ({
   };
   
   const handleVerificationSuccess = async () => {
+    setVerificationOpen(false);
     onVerificationRequest();
+    
+    // Refresh page to show verified status
+    setTimeout(() => {
+      window.location.reload();
+    }, 1000);
   };
 
   return (
@@ -132,7 +138,7 @@ const ProfileImageManager = ({
         />
         
         <div className="text-xs text-muted-foreground">
-          You must have at least {minImages} images and can add up to {maxImages} images.
+          You must have at least {minImages} image and can add up to {maxImages} images.
         </div>
       </div>
       

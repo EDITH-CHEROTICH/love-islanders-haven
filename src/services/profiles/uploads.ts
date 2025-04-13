@@ -6,7 +6,7 @@ import { toast } from "sonner";
 /**
  * Uploads an image to Supabase storage and returns the public URL
  */
-export const uploadProfileImage = async (file: File): Promise<string> => {
+export const uploadProfileImage = async (file: File, position: number = 0): Promise<string> => {
   // First, check for valid session
   const { data, error: sessionError } = await supabase.auth.getSession();
   
@@ -24,7 +24,7 @@ export const uploadProfileImage = async (file: File): Promise<string> => {
   }
 
   try {
-    console.log("Starting image upload for user:", userId);
+    console.log("Starting image upload for user:", userId, "file:", file.name);
     
     // Create a unique file name to prevent collisions
     const fileExt = file.name.split('.').pop();
@@ -37,7 +37,30 @@ export const uploadProfileImage = async (file: File): Promise<string> => {
       throw new Error('Invalid file');
     }
     
+    // Check if file size is within limits (10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("File size exceeds 10MB limit");
+      throw new Error('File too large');
+    }
+    
     console.log("Uploading file:", fileName, "Size:", file.size, "Type:", file.type);
+
+    // Upload the file to Supabase storage - first check if bucket exists
+    let { data: buckets } = await supabase.storage.listBuckets();
+    
+    // Create bucket if it doesn't exist
+    if (!buckets?.find(b => b.name === 'profile-images')) {
+      console.log("Creating profile-images bucket");
+      const { error: bucketError } = await supabase.storage.createBucket('profile-images', {
+        public: true,
+        fileSizeLimit: 10485760 // 10MB
+      });
+      
+      if (bucketError) {
+        console.warn("Error creating bucket:", bucketError);
+        // Continue anyway, as the bucket might exist but not be visible to the user
+      }
+    }
 
     // Upload the file to Supabase storage
     const { data: uploadData, error } = await supabase.storage
@@ -70,6 +93,25 @@ export const uploadProfileImage = async (file: File): Promise<string> => {
       .getPublicUrl(filePath);
 
     console.log("Image successfully uploaded with URL:", publicUrl);
+    
+    // After successful upload, update the profile with the image URL
+    try {
+      const { error: profileError } = await supabase
+        .from('profile_images')
+        .insert({
+          profile_id: userId,
+          url: publicUrl,
+          position: position, 
+          is_visible: true
+        });
+        
+      if (profileError) {
+        console.error('Error updating profile with image:', profileError);
+      }
+    } catch (profileUpdateError) {
+      console.error('Error linking image to profile:', profileUpdateError);
+    }
+    
     return publicUrl;
   } catch (error) {
     console.error('Error in uploadProfileImage:', error);

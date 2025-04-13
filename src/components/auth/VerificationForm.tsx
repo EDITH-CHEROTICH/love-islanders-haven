@@ -54,6 +54,7 @@ const VerificationForm = ({
               .upsert({
                 id: user.id,
                 name: email.split('@')[0], // Default name from email
+                email: email,
                 email_verified: true,
                 gender_preference: 'both',
                 relationship_goal: 'both'
@@ -68,6 +69,7 @@ const VerificationForm = ({
                 body: { 
                   userId: user.id,
                   name: email.split('@')[0], 
+                  email: email,
                   emailVerified: true
                 }
               });
@@ -82,6 +84,7 @@ const VerificationForm = ({
         // Set verification status in localStorage
         localStorage.setItem('emailVerificationCompleted', 'true');
         localStorage.setItem('authContact', email);
+        localStorage.setItem('isAuthenticated', 'true');
         
         toast.success("Verification successful!");
         
@@ -89,16 +92,13 @@ const VerificationForm = ({
         if (onClose) {
           console.log("Calling onClose callback");
           onClose();
-          
-          // After a short delay, navigate to discover page
-          setTimeout(() => {
-            navigate('/discover', { replace: true });
-          }, 500);
-        } else {
-          // If no onClose callback, navigate to discover page
-          console.log("No onClose callback, navigating to discover");
-          navigate('/discover', { replace: true });
         }
+        
+        // After a short delay, navigate to discover page
+        setTimeout(() => {
+          console.log("Navigating to discover page");
+          navigate('/discover', { replace: true });
+        }, 500);
       } else {
         toast.error("The code you entered is incorrect. Please try again.");
       }
