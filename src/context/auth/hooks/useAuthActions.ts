@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -32,7 +31,7 @@ export const useAuthActions = () => {
   const signUp = async (email: string, password: string, options?: any) => {
     setLoading(true);
     try {
-      const result = await supabase.auth.signUp({
+      const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -40,7 +39,9 @@ export const useAuthActions = () => {
           emailRedirectTo: `${window.location.origin}/auth/callback`
         }
       });
-      return result;
+      
+      // Return boolean to match our AuthContextType
+      return !error;
     } finally {
       setLoading(false);
     }

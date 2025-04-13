@@ -1,5 +1,5 @@
 
-import { User, Session } from '@supabase/supabase-js';
+import { User, Session, AuthTokenResponsePassword } from '@supabase/supabase-js';
 
 export type AuthContextType = {
   user: User | null;
@@ -8,7 +8,7 @@ export type AuthContextType = {
   isAuthenticated: boolean;
   networkError: boolean;
   emailVerified: boolean | null;
-  signIn: (email: string, password: string) => Promise<boolean>;
+  signIn: (email: string, password: string) => Promise<AuthTokenResponsePassword>;
   signInWithGoogle: () => Promise<void>;
   signUp: (email: string, password: string) => Promise<boolean>;
   resetPassword: (email: string) => Promise<void>;

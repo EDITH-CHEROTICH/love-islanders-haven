@@ -74,7 +74,10 @@ const Login = () => {
     setIsSubmitting(true);
     
     try {
-      await signIn(data.email, data.password);
+      const { error } = await signIn(data.email, data.password);
+      if (error) {
+        throw error;
+      }
       toast.success('Logged in successfully!');
       navigate(from, { replace: true });
     } catch (error: any) {
