@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -47,23 +48,31 @@ export const useAuthActions = () => {
     }
   };
 
-  const resetPassword = async (email: string) => {
+  const resetPassword = async (email: string): Promise<void> => {
     setLoading(true);
     try {
-      const result = await supabase.auth.resetPasswordForEmail(email, {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/reset-password`
       });
-      return result;
+      
+      if (error) {
+        throw error;
+      }
+      // Return void to match our AuthContextType
     } finally {
       setLoading(false);
     }
   };
 
-  const updatePassword = async (password: string) => {
+  const updatePassword = async (password: string): Promise<void> => {
     setLoading(true);
     try {
-      const result = await supabase.auth.updateUser({ password });
-      return result;
+      const { error } = await supabase.auth.updateUser({ password });
+      
+      if (error) {
+        throw error;
+      }
+      // Return void to match our AuthContextType
     } finally {
       setLoading(false);
     }

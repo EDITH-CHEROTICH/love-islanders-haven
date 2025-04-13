@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,6 +40,7 @@ const ForgotPassword = ({ onBackToLogin }: ForgotPasswordProps) => {
   const [userEmail, setUserEmail] = useState("");
   const [verificationCode, setVerificationCode] = useState("");
   const [generatedCode, setGeneratedCode] = useState("");
+  const { resetPassword } = useAuth();
 
   const emailForm = useForm<z.infer<typeof resetEmailSchema>>({
     resolver: zodResolver(resetEmailSchema),
