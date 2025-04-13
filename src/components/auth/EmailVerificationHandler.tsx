@@ -1,11 +1,11 @@
 
 import { useState, useEffect } from "react";
 import { Dialog } from "@/components/ui/dialog";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import VerificationDialog from "./VerificationDialog";
 import { useNavigate } from "react-router-dom";
-import { updateEmailVerificationStatus } from "@/services/profiles/verification";
+import { setupUserProfileAfterVerification } from "@/services/profiles/profile-creation";
 
 interface EmailVerificationHandlerProps {
   email: string;
@@ -21,35 +21,7 @@ const EmailVerificationHandler = ({
   const [showVerification, setShowVerification] = useState(true);
   const [sendingEmail, setSendingEmail] = useState(false);
   const [currentCode, setCurrentCode] = useState(generatedCode);
-  const { toast } = useToast();
   const navigate = useNavigate();
-
-  const sendVerificationEmail = async (email: string, code: string) => {
-    setSendingEmail(true);
-    try {
-      const { error } = await supabase.functions.invoke('send-verification-email', {
-        body: { email, code }
-      });
-      
-      if (error) {
-        throw new Error(error.message);
-      }
-      
-      toast({
-        title: "Verification code sent",
-        description: `We've sent a verification code to ${email}. Please check your inbox.`,
-      });
-    } catch (error: any) {
-      console.error("Error sending verification email:", error);
-      toast({
-        title: "Error sending email",
-        description: "We couldn't send the verification code. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setSendingEmail(false);
-    }
-  };
 
   const completeSignUp = async () => {
     try {
@@ -64,27 +36,8 @@ const EmailVerificationHandler = ({
           if (user) {
             console.log("EmailVerificationHandler: Creating/updating profile for user:", user.id);
             
-            // Update email verification status
-            await updateEmailVerificationStatus(user.id, true);
-            
-            // Try to upsert the profile with additional details
-            const { error } = await supabase
-              .from('profiles')
-              .upsert({
-                id: user.id,
-                name: email.split('@')[0], // Default name from email
-                email_verified: true,
-                gender_preference: 'both',
-                relationship_goal: 'both'
-              }, {
-                onConflict: 'id'
-              });
-              
-            if (error) {
-              console.error("Error creating profile:", error);
-            } else {
-              console.log("Profile created/updated for new user with verified email");
-            }
+            // Setup user profile after verification
+            await setupUserProfileAfterVerification(user.id, email);
           }
         } catch (profileError) {
           console.error("Error creating profile during signup:", profileError);
@@ -100,11 +53,8 @@ const EmailVerificationHandler = ({
         localStorage.setItem('authContact', email);
         localStorage.setItem('emailVerificationCompleted', 'true');
         
-        // Use navigate with replace and delay to ensure state updates complete
-        setTimeout(() => {
-          console.log("EmailVerificationHandler: Executing delayed navigation to /profile");
-          navigate('/profile', { replace: true });
-        }, 300);
+        // Navigate to profile page to set up user profile
+        navigate('/profile', { replace: true });
         
         return true;
       }
@@ -117,8 +67,30 @@ const EmailVerificationHandler = ({
 
   // Send the verification email when this component mounts
   useEffect(() => {
+    const sendVerificationEmail = async () => {
+      setSendingEmail(true);
+      try {
+        console.log("Sending verification email to:", email, "with code:", generatedCode);
+        const { error } = await supabase.functions.invoke('send-verification-email', {
+          body: { email, code: generatedCode }
+        });
+        
+        if (error) {
+          console.error("Error sending verification email:", error);
+          throw new Error(error.message);
+        }
+        
+        toast.success(`Verification code sent to ${email}`);
+      } catch (error: any) {
+        console.error("Error sending verification email:", error);
+        toast.error("Failed to send verification code. Please try again.");
+      } finally {
+        setSendingEmail(false);
+      }
+    };
+
     if (email && generatedCode) {
-      sendVerificationEmail(email, generatedCode);
+      sendVerificationEmail();
     }
   }, [email, generatedCode]);
 

@@ -14,4 +14,5 @@ export type AuthContextType = {
   resetPassword: (email: string) => Promise<void>;
   signOut: () => Promise<void>;
   updatePassword: (password: string) => Promise<void>;
+  verifyEmailWithCode: (userId: string, email: string) => Promise<boolean>;
 };

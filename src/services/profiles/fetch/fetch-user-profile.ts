@@ -1,117 +1,137 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { getAuthenticatedUserId } from "../utils/profile-auth";
 import { SupabaseProfile } from "../types";
-import { createFallbackProfile, transformProfileData } from "../utils/profile-transformers";
 
 /**
- * Fetches the user's profile from Supabase
+ * Fetches the current user's profile data from Supabase
  */
-export const fetchUserProfile = async (): Promise<SupabaseProfile> => {
+export const fetchUserProfile = async () => {
   try {
-    // Get the authenticated user ID or fallback to development ID
-    const userId = await getAuthenticatedUserId();
+    console.log('fetchUserProfile: Starting to fetch user profile');
     
-    if (!userId) {
-      console.log('No authenticated user ID found, using fallback profile');
-      return createFallbackProfile('dev-user-123');
+    // Add network connection check
+    if (!navigator.onLine) {
+      console.log('Device appears to be offline');
+      throw new Error('No internet connection');
     }
     
-    // Query the user's profile with comprehensive details
-    const { data, error } = await supabase
+    // Get the current user ID
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    
+    if (authError) {
+      console.log('Authentication error in fetchUserProfile:', authError.message);
+      throw new Error('Authentication error');
+    }
+    
+    let userId = user?.id;
+    
+    if (!userId) {
+      console.warn('No authenticated user found');
+      return null;
+    }
+    
+    console.log('fetchUserProfile: User authenticated, id:', userId);
+
+    // Fetch the user's profile data
+    const { data: profileData, error: profileError } = await supabase
       .from('profiles')
       .select(`
-        id,
-        name,
-        bio,
-        gender,
-        gender_preference,
-        age,
-        dob,
-        show_age,
-        relationship_goal,
-        occupation,
-        education,
-        verified,
-        email_verified,
-        location
+        *,
+        profile_interests (interests(name))
       `)
       .eq('id', userId)
       .single();
-    
-    if (error) {
-      console.error('Error fetching profile:', error);
-      
-      // For development, return a fallback profile after a real error
-      if (process.env.NODE_ENV === 'development') {
-        console.log('Using fallback profile for development');
-        return createFallbackProfile(userId);
-      }
-      
-      throw error;
+
+    if (profileError) {
+      console.error('Error fetching profile:', profileError);
+      throw profileError;
     }
     
-    // In development, if no data is found (empty object), use a fallback
-    if (!data && process.env.NODE_ENV === 'development') {
-      console.log('No profile found, using fallback profile for development');
-      return createFallbackProfile(userId);
+    if (!profileData) {
+      console.warn('No profile found for user:', userId);
+      return null;
     }
     
-    // Fetch related profile images with a timeout to prevent hanging
-    const imagePromise = new Promise(async (resolve) => {
-      try {
-        const { data: profileImages, error: imageError } = await supabase
-          .from('profile_images')
-          .select('*')
-          .eq('profile_id', userId)
-          .order('position', { ascending: true });
-          
-        if (imageError) {
-          console.error('Error fetching profile images:', imageError);
-          resolve([]);
-        } else {
-          resolve(profileImages || []);
-        }
-      } catch (err) {
-        console.error('Error in image fetch:', err);
-        resolve([]);
-      }
-    });
+    console.log('fetchUserProfile: Found profile data');
     
-    // Set a timeout for image fetching
-    const timeoutPromise = new Promise((resolve) => {
-      setTimeout(() => {
-        console.log('Image fetch timed out');
-        resolve([]);
-      }, 3000);
-    });
-    
-    // Race the image fetch against a timeout
-    const profileImages = await Promise.race([imagePromise, timeoutPromise]);
-    
-    // Transform the profile data to match our SupabaseProfile type
-    const transformedProfile = transformProfileData(data);
-    
-    // Add images to the profile
-    const profileWithImages = {
-      ...transformedProfile,
-      images: Array.isArray(profileImages) ? 
-        profileImages.map((img: any) => img.url) : []
+    // Fetch the user's profile images
+    const { data: imageData, error: imageError } = await supabase
+      .from('profile_images')
+      .select('url, position, is_visible')
+      .eq('profile_id', userId)
+      .order('position', { ascending: true });
+      
+    if (imageError) {
+      console.error('Error fetching profile images:', imageError);
+    } else {
+      console.log('fetchUserProfile: Found image data:', imageData?.length || 0, 'images');
+    }
+
+    // Create a profile object with image data
+    const profile = {
+      ...transformProfileData(profileData),
+      images: imageData 
+        ? imageData
+            .filter(img => img.is_visible)
+            .sort((a, b) => a.position - b.position)
+            .map(img => img.url) 
+        : []
     };
-    
-    console.log("Fetched user profile:", profileWithImages);
-    
-    return profileWithImages;
+
+    console.log('fetchUserProfile: Returning complete profile data');
+    return profile;
   } catch (error) {
-    console.error('Error in fetchUserProfile:', error);
-    
-    // For development, return a fallback profile after any error
-    if (process.env.NODE_ENV === 'development') {
-      const userId = await getAuthenticatedUserId() || 'dev-user-123';
-      console.log('Using fallback profile after error for development');
-      return createFallbackProfile(userId);
-    }
-    
+    console.error("Error in fetchUserProfile:", error);
     throw error;
   }
 };
+
+/**
+ * Transforms raw database data into a typed SupabaseProfile
+ */
+function transformProfileData(rawData: any): SupabaseProfile {
+  // Handle profile interests
+  const interests = rawData.profile_interests 
+    ? rawData.profile_interests
+        .map((pi: any) => pi.interests?.name)
+        .filter(Boolean) 
+    : [];
+
+  // Convert string date to Date object if exists
+  const dob = rawData.dob ? new Date(rawData.dob) : undefined;
+  
+  // Cast enums to their proper types
+  const relationshipGoal = rawData.relationship_goal as 'long-term' | 'casual' | 'both' | undefined;
+  const gender = rawData.gender as 'male' | 'female' | 'other' | undefined;
+  const genderPreference = rawData.gender_preference as 'male' | 'female' | 'both' | undefined;
+  const heightUnit = rawData.height_unit as 'ft' | 'm' | undefined;
+  
+  return {
+    id: rawData.id,
+    name: rawData.name || '',
+    age: rawData.age || 0,
+    location: rawData.location || '',
+    bio: rawData.bio || '',
+    verified: rawData.verified || false,
+    dob,
+    gender,
+    gender_preference: genderPreference || 'both',
+    relationship_goal: relationshipGoal || 'both',
+    height_unit: heightUnit,
+    show_age: rawData.show_age !== undefined ? rawData.show_age : true,
+    interests,
+    // Include other fields from SupabaseProfile as needed
+    email_verified: rawData.email_verified || false,
+    education: rawData.education,
+    height: rawData.height,
+    height_cm: rawData.height_cm,
+    has_pets: rawData.has_pets || false,
+    pet_type: rawData.pet_type,
+    has_children: rawData.has_children || false,
+    children_count: rawData.children_count || 0,
+    occupation: rawData.occupation,
+    activity_status: rawData.activity_status,
+    // Add empty images array (will be populated later)
+    images: []
+  };
+}

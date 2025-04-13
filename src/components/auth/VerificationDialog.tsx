@@ -1,11 +1,11 @@
 
 import { useState } from "react";
-import { DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
 
 interface VerificationDialogProps {
   email: string;
@@ -25,128 +25,160 @@ const VerificationDialog = ({
   setSendingEmail
 }: VerificationDialogProps) => {
   const [verificationCode, setVerificationCode] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const navigate = useNavigate();
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [attempts, setAttempts] = useState(0);
 
-  const sendVerificationEmail = async (email: string, code: string) => {
-    setSendingEmail(true);
+  const handleVerify = async () => {
+    if (verificationCode.length !== 4) {
+      toast.error("Please enter a valid 4-digit verification code");
+      return;
+    }
+
+    setIsVerifying(true);
+    
     try {
+      // Check if the verification code matches
+      if (verificationCode === generatedCode) {
+        // Get user ID (either from signup or from existing session)
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        if (user) {
+          try {
+            // Create user profile with verified email
+            const { error } = await supabase
+              .from('profiles')
+              .upsert({
+                id: user.id,
+                name: email.split('@')[0],
+                email_verified: true,
+                gender_preference: 'both',
+                relationship_goal: 'both'
+              }, {
+                onConflict: 'id'
+              });
+
+            if (error) {
+              console.error("Error updating profile:", error);
+              // Try admin function approach if direct update fails
+              await supabase.functions.invoke('create-user-profile', {
+                body: { 
+                  userId: user.id,
+                  name: email.split('@')[0], 
+                  emailVerified: true
+                }
+              });
+            }
+          } catch (profileError) {
+            console.error("Error handling profile:", profileError);
+          }
+        } else {
+          // No authenticated user yet, update local storage
+          localStorage.setItem('emailVerificationCompleted', 'true');
+          localStorage.setItem('authContact', email);
+          localStorage.setItem('isAuthenticated', 'true');
+        }
+        
+        toast.success("Email verification successful!");
+        await onVerifySuccess();
+      } else {
+        const newAttempts = attempts + 1;
+        setAttempts(newAttempts);
+        
+        if (newAttempts >= 3) {
+          toast.error("Too many failed attempts. Please request a new code.");
+        } else {
+          toast.error(`Incorrect code. ${3 - newAttempts} attempts remaining.`);
+        }
+      }
+    } catch (error: any) {
+      console.error("Verification error:", error);
+      toast.error(error.message || "Something went wrong during verification");
+    } finally {
+      setIsVerifying(false);
+    }
+  };
+
+  const handleResendCode = async () => {
+    setSendingEmail(true);
+    
+    try {
+      // Generate a new 4-digit code
+      const newVerificationCode = Math.floor(1000 + Math.random() * 9000).toString();
+      setGeneratedCode(newVerificationCode);
+      
+      // Send verification email with new code
       const { error } = await supabase.functions.invoke('send-verification-email', {
-        body: { email, code }
+        body: { 
+          email, 
+          code: newVerificationCode
+        }
       });
       
       if (error) {
         throw new Error(error.message);
       }
       
-      toast.success(`Verification code sent to ${email}. Please check your inbox.`);
+      toast.success("New verification code sent to your email");
+      setAttempts(0);
     } catch (error: any) {
       console.error("Error sending verification email:", error);
-      toast.error("We couldn't send the verification code. Please try again.");
+      toast.error(error.message || "Failed to send verification code");
     } finally {
       setSendingEmail(false);
     }
   };
 
-  const handleVerifyCode = async () => {
-    if (verificationCode.length !== 4) {
-      toast.error("Please enter a valid 4-digit code");
-      return;
-    }
-
-    setIsLoading(true);
-    
-    try {
-      console.log("VerificationDialog: Verifying code entered:", verificationCode, "generated:", generatedCode);
-      // Check if the entered code matches the generated code
-      if (verificationCode === generatedCode) {
-        console.log("VerificationDialog: Code matched, completing signup");
-        // Complete the signup process
-        const success = await onVerifySuccess();
-        console.log("VerificationDialog: Signup completion result:", success);
-        
-        if (success) {
-          toast.success("Verification successful! Your account has been created successfully!");
-          
-          console.log("VerificationDialog: Setting auth in localStorage");
-          // Set localStorage auth
-          localStorage.setItem('isAuthenticated', 'true');
-          localStorage.setItem('authMethod', 'email');
-          localStorage.setItem('authContact', email);
-          
-          console.log("VerificationDialog: Navigating to discover page");
-          
-          // Ensure redirection to discover page with replace to prevent back navigation
-          setTimeout(() => {
-            console.log("VerificationDialog: Executing delayed navigation to /discover");
-            navigate('/discover', { replace: true });
-          }, 300);
-        } else {
-          toast.error("Something went wrong with account creation");
-        }
-        
-        // Reset the verification code
-        setVerificationCode("");
-      } else {
-        toast.error("The code you entered is incorrect. Please try again.");
-      }
-    } catch (error: any) {
-      console.error("Verification error:", error);
-      toast.error(error.message || "Something went wrong");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleResendCode = async () => {
-    // Generate a new 4-digit code
-    const newCode = Math.floor(1000 + Math.random() * 9000).toString();
-    setGeneratedCode(newCode);
-    
-    console.log("VerificationDialog: Resending code:", newCode);
-    // Send the new code via email
-    await sendVerificationEmail(email, newCode);
-  };
-
   return (
-    <DialogContent className="bg-island-dark border-island-light text-white max-w-md">
+    <DialogContent className="sm:max-w-md">
       <DialogHeader>
-        <DialogTitle className="text-white">Verify Your Email</DialogTitle>
-        <DialogDescription className="text-muted-foreground">
-          We've sent a 4-digit verification code to {email}.
-          Please check your inbox and enter the code below.
+        <DialogTitle>Verify Your Email</DialogTitle>
+        <DialogDescription>
+          We've sent a verification code to {email}. 
+          Enter the 4-digit code below to verify your email.
         </DialogDescription>
       </DialogHeader>
-      
-      <div className="space-y-6 py-4">
-        <div className="flex justify-center py-2">
-          <InputOTP maxLength={4} value={verificationCode} onChange={setVerificationCode}>
-            <InputOTPGroup>
-              <InputOTPSlot index={0} />
-              <InputOTPSlot index={1} />
-              <InputOTPSlot index={2} />
-              <InputOTPSlot index={3} />
-            </InputOTPGroup>
-          </InputOTP>
-        </div>
-        
-        <Button 
-          onClick={handleVerifyCode}
-          disabled={verificationCode.length !== 4 || isLoading}
-          className="w-full bg-love hover:bg-love-dark"
+
+      <div className="flex flex-col items-center space-y-4 py-2">
+        <InputOTP 
+          maxLength={4} 
+          value={verificationCode} 
+          onChange={setVerificationCode}
         >
-          {isLoading ? "Verifying..." : "Verify Code"}
-        </Button>
+          <InputOTPGroup>
+            <InputOTPSlot index={0} />
+            <InputOTPSlot index={1} />
+            <InputOTPSlot index={2} />
+            <InputOTPSlot index={3} />
+          </InputOTPGroup>
+        </InputOTP>
         
-        <div className="text-center text-sm text-muted-foreground">
-          <button 
+        <div className="flex flex-col w-full space-y-2">
+          <Button 
+            onClick={handleVerify}
+            className="w-full bg-love hover:bg-love-dark"
+            disabled={verificationCode.length !== 4 || isVerifying}
+          >
+            {isVerifying ? (
+              <span className="flex items-center">
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Verifying...
+              </span>
+            ) : "Verify Email"}
+          </Button>
+          
+          <Button
+            variant="outline"
             onClick={handleResendCode}
-            className="text-love hover:underline"
-            type="button"
+            className="w-full"
             disabled={sendingEmail}
           >
-            {sendingEmail ? "Sending..." : "Didn't receive a code? Send again"}
-          </button>
+            {sendingEmail ? (
+              <span className="flex items-center">
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Sending...
+              </span>
+            ) : "Resend Code"}
+          </Button>
         </div>
       </div>
     </DialogContent>

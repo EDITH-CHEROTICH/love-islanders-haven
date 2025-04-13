@@ -1,61 +1,90 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { ProfilePreferences } from "@/components/ProfileSetup";
-import { requestAndUpdateLocation } from "./location";
+import { SupabaseProfile } from "./types";
 
 /**
- * Creates or updates a user profile with the provided information
+ * Creates a new user profile or updates an existing one
  */
-export const createOrUpdateProfile = async (preferences: ProfilePreferences, name: string, bio = '') => {
-  const { data: { user } } = await supabase.auth.getUser();
-  const userId = user?.id;
-
-  if (!userId) {
-    throw new Error('User not authenticated');
-  }
-
-  // Convert Date to ISO string for PostgreSQL
-  const dobString = preferences.dob.toISOString().split('T')[0];
-
-  const profileData = {
-    id: userId,
-    name,
-    age: preferences.age,
-    gender: preferences.gender,
-    gender_preference: preferences.genderPreference,
-    dob: dobString,
-    show_age: preferences.showAge,
-    education: preferences.education,
-    occupation: preferences.occupation,
-    height: preferences.height,
-    height_cm: preferences.heightCm,
-    height_unit: preferences.heightUnit,
-    has_pets: preferences.hasPets || false,
-    pet_type: preferences.petType,
-    has_children: preferences.hasChildren || false,
-    children_count: preferences.childrenCount,
-    bio,
-    location: '',
-    verified: false,
-    relationship_goal: 'both'
-  };
-
-  const { error } = await supabase
-    .from('profiles')
-    .upsert(profileData, { onConflict: 'id' });
-
-  if (error) {
-    console.error('Error saving profile:', error);
-    throw error;
-  }
-
-  // Try to get and update user's location after profile creation
-  // This is done in a non-blocking way so it doesn't affect profile creation
+export const createUserProfile = async (profileData: Partial<SupabaseProfile>): Promise<{ data: any; error: any }> => {
   try {
-    requestAndUpdateLocation().catch(err => console.error('Error updating location after profile creation:', err));
-  } catch (error) {
-    console.error('Error requesting location after profile creation:', error);
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    
+    if (authError || !user) {
+      console.error("Error getting authenticated user:", authError);
+      throw new Error('Authentication required to create profile');
+    }
+    
+    // Prepare profile data with user ID
+    const profile = {
+      ...profileData,
+      id: user.id,
+      updated_at: new Date().toISOString()
+    };
+    
+    // Use upsert to handle both creation and update
+    const { data, error } = await supabase
+      .from('profiles')
+      .upsert(profile, {
+        onConflict: 'id'
+      })
+      .select();
+    
+    if (error) {
+      console.error('Error creating/updating profile:', error);
+      return { data: null, error };
+    }
+    
+    return { data, error: null };
+  } catch (error: any) {
+    console.error('Error in createUserProfile:', error);
+    return { data: null, error };
   }
+};
 
-  return profileData;
+/**
+ * Handles email verification and profile creation for a new user
+ */
+export const setupUserProfileAfterVerification = async (userId: string, email: string): Promise<boolean> => {
+  try {
+    // Create or update profile with email verified status
+    const { error } = await supabase
+      .from('profiles')
+      .upsert({
+        id: userId,
+        name: email.split('@')[0],
+        email_verified: true,
+        updated_at: new Date().toISOString()
+      }, {
+        onConflict: 'id'
+      });
+
+    if (error) {
+      console.error("Error creating profile after verification:", error);
+      // Try using the edge function as fallback
+      try {
+        const { error: funcError } = await supabase.functions.invoke('create-user-profile', {
+          body: { 
+            userId, 
+            name: email.split('@')[0],
+            emailVerified: true
+          }
+        });
+        
+        if (funcError) {
+          throw funcError;
+        }
+      } catch (funcErr) {
+        console.error("Edge function error:", funcErr);
+        return false;
+      }
+    }
+    
+    // Mark email as verified in localStorage
+    localStorage.setItem('emailVerificationCompleted', 'true');
+    return true;
+    
+  } catch (error) {
+    console.error("Error in setupUserProfileAfterVerification:", error);
+    return false;
+  }
 };

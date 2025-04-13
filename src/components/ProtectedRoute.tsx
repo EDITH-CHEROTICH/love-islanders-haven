@@ -13,7 +13,7 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const { isAuthenticated, loading, user, emailVerified } = useAuth();
+  const { isAuthenticated, loading, user, emailVerified, verifyEmailWithCode } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
@@ -46,11 +46,15 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     setIsEmailSubmitted(true);
   };
 
-  const sendVerificationCode = async (email: string, code: string) => {
+  const sendVerificationCode = async (email: string) => {
     setIsSendingCode(true);
     
     try {
       console.log("Sending verification code to:", email);
+      // Generate a new 4-digit code
+      const code = Math.floor(1000 + Math.random() * 9000).toString();
+      setVerificationCode(code);
+      
       // Send verification code via email through Supabase function
       const { error } = await supabase.functions.invoke('send-verification-email', {
         body: { 
@@ -76,20 +80,27 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   };
 
   const handleResendCode = async () => {
-    // Generate a new 4-digit code
-    const newCode = Math.floor(1000 + Math.random() * 9000).toString();
-    setVerificationCode(newCode);
-    
-    await sendVerificationCode(email, newCode);
+    await sendVerificationCode(email);
   };
 
-  const handleAuthSuccess = () => {
-    // Reset form and reload page to reflect auth status
-    setIsEmailSubmitted(false);
-    localStorage.setItem('emailVerificationCompleted', 'true');
-    
-    // Force reload to ensure auth state is updated everywhere
-    window.location.reload();
+  const handleVerifySuccess = async () => {
+    try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (user) {
+        // Call the verifyEmailWithCode method
+        await verifyEmailWithCode(user.id, email);
+      } else {
+        // Handle case where no user is found
+        localStorage.setItem('emailVerificationCompleted', 'true');
+      }
+      
+      // Navigate to profile page after successful verification
+      navigate('/profile', { replace: true });
+    } catch (error) {
+      console.error("Error handling verification success:", error);
+    }
   };
 
   // If we're loading auth state, show a spinner
@@ -119,7 +130,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
               generatedCode={verificationCode}
               onResendCode={handleResendCode}
               isSendingCode={isSendingCode}
-              onClose={handleAuthSuccess}
+              onClose={handleVerifySuccess}
             />
           ) : (
             <EmailAuthForm onEmailSubmit={handleEmailSubmit} />
@@ -130,7 +141,10 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   }
 
   // Authentication is confirmed, but check for email verification
-  if (emailVerified === false) {
+  // Either check emailVerified from context or from localStorage
+  const isEmailVerified = emailVerified || localStorage.getItem('emailVerificationCompleted') === 'true';
+  
+  if (isEmailVerified === false) {
     console.log("Showing verification form because user is not verified");
     
     // If we have an email in localStorage or user object, use it
@@ -138,13 +152,10 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     
     // If we don't have an email yet, we need to show the email form
     if (!isEmailSubmitted && !email && userEmail) {
-      // If we have an email but haven't sent a code yet, generate one and send it
-      const newCode = Math.floor(1000 + Math.random() * 9000).toString();
+      // If we have an email but haven't sent a code yet, send one
       setEmail(userEmail);
-      setVerificationCode(newCode);
+      sendVerificationCode(userEmail);
       setIsEmailSubmitted(true);
-      // Send the verification code in the background
-      sendVerificationCode(userEmail, newCode);
     }
     
     return (
@@ -162,7 +173,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
               generatedCode={verificationCode}
               onResendCode={handleResendCode}
               isSendingCode={isSendingCode}
-              onClose={handleAuthSuccess}
+              onClose={handleVerifySuccess}
             />
           )}
         </div>

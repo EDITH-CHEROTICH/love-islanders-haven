@@ -11,7 +11,8 @@ export const useAuthHooks = () => {
     signUp, 
     resetPassword, 
     signOut,
-    updatePassword
+    updatePassword,
+    verifyEmailWithCode 
   } = useAuthActions();
   
   return {
@@ -30,5 +31,6 @@ export const useAuthHooks = () => {
     resetPassword,
     signOut,
     updatePassword,
+    verifyEmailWithCode
   };
 };
