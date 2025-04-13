@@ -3,7 +3,7 @@ import { useAuthState } from './useAuthState';
 import { useAuthActions } from './useAuthActions';
 
 export const useAuthHooks = () => {
-  const { session, user, loading, isAuthenticated, networkError } = useAuthState();
+  const { session, user, loading, isAuthenticated, networkError, emailVerified } = useAuthState();
   const { 
     loading: actionLoading, 
     signIn, 
@@ -21,6 +21,7 @@ export const useAuthHooks = () => {
     loading: loading || actionLoading,
     isAuthenticated,
     networkError,
+    emailVerified,
     
     // Actions
     signIn,
