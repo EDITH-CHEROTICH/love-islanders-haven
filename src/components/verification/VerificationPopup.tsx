@@ -1,5 +1,4 @@
 
-// We'll only update the relevant part of this file to handle profile verification
 import { useState } from 'react';
 import { X, Check, Camera } from 'lucide-react';
 import { 
@@ -13,7 +12,7 @@ import {
   InputOTPSlot 
 } from '@/components/ui/input-otp';
 import { toast } from 'sonner';
-import { updateVerificationStatus } from '@/services/profiles';
+import { updateVerificationStatus } from '@/services/profiles/verification';
 import { supabase } from '@/integrations/supabase/client';
 
 interface VerificationPopupProps {
@@ -36,7 +35,7 @@ const VerificationPopup = ({ open, onClose, onVerified, userId }: VerificationPo
   const handleStartVerification = () => {
     setVerificationStep('otp');
     // In a real implementation, you would trigger sending an OTP code here
-    toast.info(`For demo purposes, use the verification code: ${verificationCode}`);
+    toast.success(`For demo purposes, use the verification code: ${verificationCode}`);
   };
   
   const handleVerifyCode = async () => {
@@ -49,12 +48,13 @@ const VerificationPopup = ({ open, onClose, onVerified, userId }: VerificationPo
     
     try {
       // Simulate verification delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
       if (otp === verificationCode) {
         // If OTP is correct, proceed to selfie step or complete verification
         setVerificationStep('selfie');
         setOtp('');
+        toast.success('Code verified successfully!');
       } else {
         toast.error('Invalid verification code. Please try again.');
       }
@@ -82,29 +82,31 @@ const VerificationPopup = ({ open, onClose, onVerified, userId }: VerificationPo
     setIsSubmitting(true);
     
     try {
-      // Try to update via the service first
+      console.log('Attempting to update verification status for user:', userId);
+      
+      // Try to update via the service
       const { error } = await updateVerificationStatus(userId, true);
       
       if (error) {
-        // If that fails, try the direct admin function approach
-        const functionResponse = await supabase.functions.invoke('create-user-profile', {
-          body: { 
-            userId,
-            verified: true
-          }
-        });
+        console.error('Service error updating verification status:', error);
         
-        if (functionResponse.error) {
-          throw new Error(functionResponse.error.message);
+        // If that fails, try direct Supabase update as fallback
+        const { error: directUpdateError } = await supabase
+          .from('profiles')
+          .update({ verified: true })
+          .eq('id', userId);
+          
+        if (directUpdateError) {
+          throw directUpdateError;
         }
       }
       
       toast.success('Verification successful!');
       onVerified();
       onClose();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Verification error:', error);
-      toast.error('An error occurred during verification');
+      toast.error(error.message || 'An error occurred during verification');
     } finally {
       setIsSubmitting(false);
     }
@@ -166,7 +168,12 @@ const VerificationPopup = ({ open, onClose, onVerified, userId }: VerificationPo
             </DialogFooter>
             
             <div className="text-center text-sm text-muted-foreground">
-              <button className="text-love hover:underline">
+              <button 
+                onClick={() => {
+                  toast.info(`Code resent! For demo, use: ${verificationCode}`);
+                }} 
+                className="text-love hover:underline"
+              >
                 Didn't receive a code? Send again
               </button>
             </div>

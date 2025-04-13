@@ -1,7 +1,8 @@
 
 import { useState } from 'react';
-import { Plus } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Loader2, PlusCircle } from 'lucide-react';
 
 interface ImageUrlInputProps {
   maxImages: number;
@@ -10,71 +11,54 @@ interface ImageUrlInputProps {
   isSubmitting: boolean;
 }
 
-const ImageUrlInput = ({ 
-  maxImages, 
-  currentImagesCount, 
+const ImageUrlInput = ({
+  maxImages,
+  currentImagesCount,
   onAddImage,
-  isSubmitting 
+  isSubmitting
 }: ImageUrlInputProps) => {
-  const [newImageUrl, setNewImageUrl] = useState('');
-  const { toast } = useToast();
-
-  const handleAddImage = async () => {
-    if (!newImageUrl) {
-      toast({
-        title: "Error",
-        description: "Please enter an image URL.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (currentImagesCount >= maxImages) {
-      toast({
-        title: "Error",
-        description: `You can only have up to ${maxImages} images.`,
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Simple URL validation
-    if (!newImageUrl.match(/^https?:\/\/.+\.(jpeg|jpg|png|gif|webp)(\?.*)?$/i)) {
-      toast({
-        title: "Error",
-        description: "Please enter a valid image URL (JPEG, PNG, GIF, WEBP).",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    onAddImage(newImageUrl);
-    setNewImageUrl('');
+  const [imageUrl, setImageUrl] = useState('');
+  
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!imageUrl.trim()) return;
+    
+    onAddImage(imageUrl.trim());
   };
+  
+  if (currentImagesCount >= maxImages) {
+    return null;
+  }
 
   return (
-    <div className="flex gap-2">
-      <input
+    <form onSubmit={handleSubmit} className="flex gap-2">
+      <Input
         type="text"
-        value={newImageUrl}
-        onChange={(e) => setNewImageUrl(e.target.value)}
-        placeholder="Or enter image URL"
-        className="flex-1 bg-island-dark border-island-light border px-3 py-2 rounded-lg text-sm text-white focus:outline-none focus:ring-1 focus:ring-love"
+        placeholder="Enter image URL"
+        value={imageUrl}
+        onChange={(e) => setImageUrl(e.target.value)}
+        className="flex-1 bg-island-light/20 border-island-light"
         disabled={isSubmitting}
       />
-      <button
-        onClick={handleAddImage}
-        disabled={currentImagesCount >= maxImages || !newImageUrl || isSubmitting}
-        className="bg-love hover:bg-love-light text-white px-3 py-2 rounded-lg flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+      <Button 
+        type="submit"
+        disabled={isSubmitting || !imageUrl.trim()}
+        variant="outline"
+        className="bg-island-light/20 border-island-light"
       >
-        {isSubmitting ? 'Adding...' : (
+        {isSubmitting ? (
           <>
-            <Plus size={16} />
-            <span>Add</span>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Adding...
+          </>
+        ) : (
+          <>
+            <PlusCircle className="mr-2 h-4 w-4" />
+            Add
           </>
         )}
-      </button>
-    </div>
+      </Button>
+    </form>
   );
 };
 

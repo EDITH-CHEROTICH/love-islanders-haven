@@ -37,14 +37,15 @@ const ProfileDisplayPreferences = ({
     setIsSaving(true);
     
     try {
-      await updateDisplayPreferences(displayName, showAge);
+      // Call the update service with the new values
+      const result = await updateDisplayPreferences(displayName, showAge);
       
       toast({
         title: "Preferences Saved",
         description: "Your display preferences have been updated",
       });
       
-      // Update parent component
+      // Notify parent component that preferences were updated
       onPreferencesUpdated();
     } catch (error: any) {
       console.error('Error saving display preferences:', error);

@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
 /**
@@ -5,31 +6,43 @@ import { supabase } from "@/integrations/supabase/client";
  */
 export const updateVerificationStatus = async (userId: string, status: boolean) => {
   try {
+    console.log('Updating verification status for user', userId, 'to', status);
+    
     // Attempt to update using the client first (works if RLS permits)
     const { data, error } = await supabase
       .from('profiles')
       .update({ verified: status })
-      .eq('id', userId);
+      .eq('id', userId)
+      .select();
       
     if (error) {
-      console.warn("Client-side update failed, trying with admin function:", error);
+      console.warn("Client-side update failed, trying direct approach:", error);
       
-      // If that fails, use the edge function to bypass RLS
-      const functionResponse = await supabase.functions.invoke('create-user-profile', {
-        body: { 
-          userId,
-          verified: status,
-          // Keep these undefined so they don't overwrite existing values
-          name: undefined,
-          emailVerified: undefined
-        }
-      });
+      // Get the current session to verify authentication
+      const { data: sessionData } = await supabase.auth.getSession();
       
-      if (functionResponse.error) {
-        throw new Error(functionResponse.error.message);
+      if (!sessionData.session) {
+        throw new Error('Authentication required to update verification status');
       }
       
-      return { data: functionResponse.data, error: null };
+      // Try a direct update as the authenticated user
+      const { error: directError } = await supabase
+        .from('profiles')
+        .update({ verified: status })
+        .eq('id', userId);
+        
+      if (directError) {
+        throw directError;
+      }
+      
+      // Fetch the updated profile
+      const { data: updatedProfile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+        
+      return { data: updatedProfile, error: null };
     }
     
     return { data, error: null };
@@ -48,27 +61,30 @@ export const updateEmailVerificationStatus = async (userId: string, status: bool
     const { data, error } = await supabase
       .from('profiles')
       .update({ email_verified: status })
-      .eq('id', userId);
+      .eq('id', userId)
+      .select();
     
     if (error) {
-      console.warn("Client-side update failed, trying with admin function:", error);
+      console.warn("Client-side update failed:", error);
       
-      // Use the edge function as fallback
-      const functionResponse = await supabase.functions.invoke('create-user-profile', {
-        body: { 
-          userId,
-          emailVerified: status,
-          // Keep these undefined so they don't overwrite existing values
-          name: undefined,
-          verified: undefined
-        }
-      });
-      
-      if (functionResponse.error) {
-        throw new Error(functionResponse.error.message);
+      // Try direct update as authenticated user
+      const { error: directError } = await supabase
+        .from('profiles')
+        .update({ email_verified: status })
+        .eq('id', userId);
+        
+      if (directError) {
+        throw directError;
       }
       
-      return { data: functionResponse.data, error: null };
+      // Fetch the updated profile
+      const { data: updatedProfile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+        
+      return { data: updatedProfile, error: null };
     }
     
     return { data, error: null };

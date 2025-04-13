@@ -1,7 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { SupabaseProfile } from "./types";
-import { Json } from "@/integrations/supabase/types";
 
 /**
  * Updates a user's profile information in Supabase
@@ -40,6 +39,7 @@ export const updateUserProfile = async (profileData: Partial<SupabaseProfile>) =
  */
 export const updateDisplayPreferences = async (name: string, showAge: boolean) => {
   try {
+    console.log('Updating display preferences:', { name, showAge });
     const result = await updateUserProfile({
       name,
       show_age: showAge
