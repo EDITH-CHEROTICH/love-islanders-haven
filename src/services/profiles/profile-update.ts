@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { SupabaseProfile } from "./types";
 import { toast } from "sonner";
@@ -19,11 +18,15 @@ export const updateUserProfile = async (profileData: Partial<SupabaseProfile>) =
       throw new Error('Authentication required to update profile');
     }
 
-    // Handle development mode
+    // Handle development mode or mobile testing without auth
     if (devMode) {
       console.log('Development mode: Simulating profile update with data:', profileData);
-      // Just return the data without attempting to update the database
-      return { ...profileData, id: 'dev-user-123' };
+      // For development: return mock data without using UUID in DB operations
+      return { 
+        ...profileData, 
+        id: 'development-user',  // Use string that isn't a UUID format
+        updated_at: new Date().toISOString() 
+      };
     }
     
     console.log('Updating profile with data:', profileData);
@@ -74,7 +77,11 @@ export const updateDisplayPreferences = async (name: string, showAge: boolean) =
     if (devMode) {
       console.log('Development mode: Simulating display preferences update');
       toast.success("Display preferences updated");
-      return { name, show_age: showAge, id: 'dev-user-123' };
+      return { 
+        name, 
+        show_age: showAge, 
+        id: 'development-user' // Use string that isn't a UUID format
+      };
     }
     
     const result = await updateUserProfile({

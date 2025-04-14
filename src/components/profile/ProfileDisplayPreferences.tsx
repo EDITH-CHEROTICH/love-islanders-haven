@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { updateDisplayPreferences } from '@/services/profiles/profile-update';
 import { useToast } from '@/hooks/use-toast';
@@ -50,9 +49,14 @@ const ProfileDisplayPreferences = ({
     } catch (error: any) {
       console.error('Error saving display preferences:', error);
       
+      // Ensure we don't show raw DB errors to the user
+      const errorMessage = process.env.NODE_ENV === 'development' 
+        ? error.message 
+        : "Failed to save your preferences. Please try again.";
+      
       toast({
         title: "Save Failed",
-        description: error.message || "Failed to save your preferences",
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {
