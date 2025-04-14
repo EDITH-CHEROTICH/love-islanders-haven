@@ -745,7 +745,9 @@ export type Database = {
       }
       user_settings: {
         Row: {
+          accessibility_settings: Json | null
           account_settings: Json | null
+          ai_companion_settings: Json | null
           app_customization: Json | null
           communication_settings: Json | null
           created_at: string
@@ -756,7 +758,9 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          accessibility_settings?: Json | null
           account_settings?: Json | null
+          ai_companion_settings?: Json | null
           app_customization?: Json | null
           communication_settings?: Json | null
           created_at?: string
@@ -767,7 +771,9 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          accessibility_settings?: Json | null
           account_settings?: Json | null
+          ai_companion_settings?: Json | null
           app_customization?: Json | null
           communication_settings?: Json | null
           created_at?: string

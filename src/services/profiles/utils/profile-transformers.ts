@@ -12,8 +12,6 @@ export function createFallbackProfile(userId: string = 'dev-user-123', email?: s
     gender: null,
     gender_preference: 'both',
     location: 'Test Location',
-    education: null,
-    occupation: null,
     relationship_goal: 'both',
     verified: false,
     email_verified: true,
@@ -47,8 +45,6 @@ export function transformProfileData(data: any): SupabaseProfile {
     dob: data.dob, // Keep as string from database
     show_age: data.show_age,
     location: data.location,
-    education: data.education,
-    occupation: data.occupation,
     relationship_goal: data.relationship_goal,
     verified: data.verified || false,
     email_verified: data.email_verified || false,
