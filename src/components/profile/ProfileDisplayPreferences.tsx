@@ -38,7 +38,7 @@ const ProfileDisplayPreferences = ({
     
     try {
       // Call the update service with the new values
-      const result = await updateDisplayPreferences(displayName, showAge);
+      await updateDisplayPreferences(displayName, showAge);
       
       toast({
         title: "Preferences Saved",

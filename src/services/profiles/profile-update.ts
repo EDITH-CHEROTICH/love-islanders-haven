@@ -11,18 +11,19 @@ export const updateUserProfile = async (profileData: Partial<SupabaseProfile>) =
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     
     // For development or when Supabase auth is not fully available
-    const userId = user?.id || 
-                 (localStorage.getItem('isAuthenticated') === 'true' ? 'dev-user-123' : null);
+    let userId = user?.id;
+    const devMode = !userId && (localStorage.getItem('isAuthenticated') === 'true' || process.env.NODE_ENV === 'development');
     
-    if (!userId) {
+    if (!userId && !devMode) {
       toast.error("Authentication required to update profile");
       throw new Error('Authentication required to update profile');
     }
 
     // Handle development mode
-    if (process.env.NODE_ENV === 'development' && (!user || localStorage.getItem('isAuthenticated') === 'true')) {
+    if (devMode) {
       console.log('Development mode: Simulating profile update with data:', profileData);
-      return { ...profileData, id: userId };
+      // Just return the data without attempting to update the database
+      return { ...profileData, id: 'dev-user-123' };
     }
     
     console.log('Updating profile with data:', profileData);
@@ -66,11 +67,14 @@ export const updateDisplayPreferences = async (name: string, showAge: boolean) =
   try {
     console.log('Updating display preferences:', { name, showAge });
     
-    // For development mode
-    if (process.env.NODE_ENV === 'development' && localStorage.getItem('isAuthenticated') === 'true') {
+    // Check if in development mode
+    const { data: { user } } = await supabase.auth.getUser();
+    const devMode = !user?.id && (localStorage.getItem('isAuthenticated') === 'true' || process.env.NODE_ENV === 'development');
+    
+    if (devMode) {
       console.log('Development mode: Simulating display preferences update');
       toast.success("Display preferences updated");
-      return { name, show_age: showAge };
+      return { name, show_age: showAge, id: 'dev-user-123' };
     }
     
     const result = await updateUserProfile({

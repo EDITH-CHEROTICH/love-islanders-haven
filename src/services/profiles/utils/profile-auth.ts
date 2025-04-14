@@ -25,30 +25,24 @@ export async function getAuthenticatedUserId(): Promise<string | null> {
     if (authError) {
       console.log('Authentication error:', authError.message);
       // For development and testing, continue if localStorage shows authenticated
-      if (localStorage.getItem('isAuthenticated') === 'true') {
+      if (localStorage.getItem('isAuthenticated') === 'true' || process.env.NODE_ENV === 'development') {
         console.log('Using development authentication from localStorage');
-        return 'dev-user-123';
+        // Don't return a fake ID here, just signify we're in dev mode
+        return null;
       } else {
         throw new Error('Authentication error');
       }
     }
     
-    // For development, use a fallback user ID if needed
-    let userId = user?.id;
-    
-    // If no userId but localStorage shows authenticated, create a development user ID
-    if (!userId && localStorage.getItem('isAuthenticated') === 'true') {
-      console.log('No authenticated user in Supabase but localStorage authenticated');
-      return 'dev-user-123';
-    }
-    
-    return userId || null;
+    // Return the actual user ID from Supabase
+    return user?.id || null;
   } catch (error) {
     console.error('Error checking authentication:', error);
     
-    // For development purposes, return a dev ID if localStorage indicates authentication
-    if (localStorage.getItem('isAuthenticated') === 'true') {
-      return 'dev-user-123';
+    // For development purposes, don't return a fake ID
+    if (localStorage.getItem('isAuthenticated') === 'true' || process.env.NODE_ENV === 'development') {
+      console.log('Development mode activated, not using real database');
+      return null;
     }
     
     return null;
