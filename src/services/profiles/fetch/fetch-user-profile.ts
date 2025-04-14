@@ -103,7 +103,6 @@ function transformProfileData(rawData: any): SupabaseProfile {
   const relationshipGoal = rawData.relationship_goal as 'long-term' | 'casual' | 'both' | undefined;
   const gender = rawData.gender as 'male' | 'female' | 'other' | undefined;
   const genderPreference = rawData.gender_preference as 'male' | 'female' | 'both' | undefined;
-  const heightUnit = rawData.height_unit as 'ft' | 'm' | undefined;
   
   return {
     id: rawData.id,
@@ -116,21 +115,11 @@ function transformProfileData(rawData: any): SupabaseProfile {
     gender,
     gender_preference: genderPreference || 'both',
     relationship_goal: relationshipGoal || 'both',
-    height_unit: heightUnit,
     show_age: rawData.show_age !== undefined ? rawData.show_age : true,
     interests,
-    // Include other fields from SupabaseProfile as needed
+    streak_count: rawData.streak_count || 0,
     email_verified: rawData.email_verified || false,
-    education: rawData.education,
-    height: rawData.height,
-    height_cm: rawData.height_cm,
-    has_pets: rawData.has_pets || false,
-    pet_type: rawData.pet_type,
-    has_children: rawData.has_children || false,
-    children_count: rawData.children_count || 0,
-    occupation: rawData.occupation,
-    activity_status: rawData.activity_status,
-    // Add empty images array (will be populated later)
+    // Include other fields from SupabaseProfile as needed
     images: []
   };
 }

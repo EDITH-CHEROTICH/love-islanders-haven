@@ -16,14 +16,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
-
-type FeedbackItem = {
-  id: string;
-  feedback: string;
-  created_at: string;
-  category: string;
-  status: string;
-};
+import { FeedbackItem } from '@/services/profiles/types';
 
 const getCategoryColor = (category: string) => {
   switch (category) {
@@ -75,7 +68,21 @@ const FeedbackPage = () => {
           .order('created_at', { ascending: false });
 
         if (error) throw error;
-        setFeedbackItems(data || []);
+        
+        // Make sure data matches our FeedbackItem type
+        if (data) {
+          const typedFeedback = data.map(item => ({
+            id: item.id,
+            feedback: item.feedback,
+            created_at: item.created_at,
+            category: item.category || 'general',
+            status: item.status || 'new'
+          })) as FeedbackItem[];
+          
+          setFeedbackItems(typedFeedback);
+        } else {
+          setFeedbackItems([]);
+        }
       } catch (err) {
         console.error('Error fetching feedback:', err);
         setError('Failed to load feedback. Please try again.');

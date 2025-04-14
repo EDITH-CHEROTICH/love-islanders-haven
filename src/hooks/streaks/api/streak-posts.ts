@@ -20,13 +20,17 @@ export const fetchStreakPosts = async (): Promise<StreakData[]> => {
         likes_count,
         comments_count,
         expires_at,
-        profiles (name)
+        profiles:user_id (name)
       `)
       .order('created_at', { ascending: false })
       .limit(20);
 
     if (error) {
       console.error("Error fetching streak posts:", error);
+      return [];
+    }
+    
+    if (!data || data.length === 0) {
       return [];
     }
     

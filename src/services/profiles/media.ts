@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { v4 as uuidv4 } from 'uuid';
 
@@ -72,18 +73,23 @@ export const deleteProfileImage = async (imageUrl: string) => {
  * Save a video URL to a user's profile
  */
 export const saveProfileVideo = async (videoUrl: string) => {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error('User not authenticated');
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('User not authenticated');
 
-  const { error } = await supabase
-    .from('profile_videos')
-    .insert({
-      profile_id: user.id,
-      url: videoUrl
-    });
+    const { error } = await supabase
+      .from('profile_videos')
+      .insert({
+        profile_id: user.id,
+        url: videoUrl
+      });
 
-  if (error) throw error;
-  return true;
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    console.error("Error saving profile video:", error);
+    throw error;
+  }
 };
 
 /**
@@ -109,7 +115,7 @@ export const uploadProfileImage = async (file: File): Promise<string> => {
     const bucketExists = buckets?.some(bucket => bucket.name === 'profile-images');
     
     // Use public bucket if it exists, otherwise fallback
-    const bucketName = bucketExists ? 'profile-images' : 'avatars';
+    const bucketName = bucketExists ? 'profile-images' : 'profile-images';
     
     // Upload to storage
     const { error: uploadError, data: uploadData } = await supabase.storage

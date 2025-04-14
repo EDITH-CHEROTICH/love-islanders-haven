@@ -16,6 +16,8 @@ export interface SupabaseProfile {
   dob?: string; // Changed from Date to string to match Supabase expectations
   show_age?: boolean;
   email_verified?: boolean;
+  streak_count?: number;
+  // Remove height_unit and other properties that don't exist in our new database structure
 }
 
 export interface Like {
@@ -25,4 +27,12 @@ export interface Like {
   is_like: boolean;
   is_super?: boolean;
   created_at: string;
+}
+
+export interface FeedbackItem {
+  id: string;
+  feedback: string;
+  created_at: string;
+  category: string;
+  status: string;
 }

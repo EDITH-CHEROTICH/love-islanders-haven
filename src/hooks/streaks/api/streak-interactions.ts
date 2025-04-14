@@ -84,6 +84,10 @@ export const getTopStreaks = async (limit = 3): Promise<TopStreakUser[]> => {
       throw error;
     }
     
+    if (!data || data.length === 0) {
+      return [];
+    }
+    
     return data.map(profile => ({
       id: profile.id,
       name: profile.name || 'Anonymous',

@@ -509,6 +509,35 @@ export type Database = {
           },
         ]
       }
+      profile_videos: {
+        Row: {
+          created_at: string
+          id: string
+          profile_id: string
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          profile_id: string
+          url: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          profile_id?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profile_videos_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           age: number | null
@@ -526,6 +555,7 @@ export type Database = {
           name: string | null
           relationship_goal: string | null
           show_age: boolean | null
+          streak_count: number | null
           updated_at: string
           verified: boolean | null
         }
@@ -545,6 +575,7 @@ export type Database = {
           name?: string | null
           relationship_goal?: string | null
           show_age?: boolean | null
+          streak_count?: number | null
           updated_at?: string
           verified?: boolean | null
         }
@@ -564,6 +595,7 @@ export type Database = {
           name?: string | null
           relationship_goal?: string | null
           show_age?: boolean | null
+          streak_count?: number | null
           updated_at?: string
           verified?: boolean | null
         }
@@ -638,6 +670,7 @@ export type Database = {
           comments_count: number
           content: string
           created_at: string
+          expires_at: string | null
           id: string
           likes_count: number
           streak_count: number
@@ -648,6 +681,7 @@ export type Database = {
           comments_count?: number
           content: string
           created_at?: string
+          expires_at?: string | null
           id?: string
           likes_count?: number
           streak_count?: number
@@ -658,6 +692,7 @@ export type Database = {
           comments_count?: number
           content?: string
           created_at?: string
+          expires_at?: string | null
           id?: string
           likes_count?: number
           streak_count?: number
@@ -666,6 +701,41 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "streaks_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_feedback: {
+        Row: {
+          category: string | null
+          created_at: string
+          feedback: string
+          id: string
+          status: string | null
+          user_id: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          feedback: string
+          id?: string
+          status?: string | null
+          user_id: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          feedback?: string
+          id?: string
+          status?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_feedback_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
