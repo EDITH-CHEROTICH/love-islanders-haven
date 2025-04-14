@@ -17,7 +17,7 @@ export interface SupabaseProfile {
   show_age?: boolean;
   email_verified?: boolean;
   streak_count?: number;
-  // Remove height_unit and other properties that don't exist in our new database structure
+  // Remove height_unit and other properties that don't exist in our database structure
 }
 
 export interface Like {

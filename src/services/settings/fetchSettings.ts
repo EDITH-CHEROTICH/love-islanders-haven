@@ -51,8 +51,8 @@ export const fetchUserSettings = async (): Promise<UserSettings> => {
       privacy_settings: safelyMergeSettings(defaultSettings.privacy_settings, data.privacy_settings),
       match_preferences: safelyMergeSettings(defaultSettings.match_preferences, data.match_preferences),
       communication_settings: safelyMergeSettings(defaultSettings.communication_settings, data.communication_settings),
-      ai_companion_settings: safelyMergeSettings(defaultSettings.ai_companion_settings, data.ai_companion_settings),
-      accessibility_settings: safelyMergeSettings(defaultSettings.accessibility_settings, data.accessibility_settings),
+      ai_companion_settings: safelyMergeSettings(defaultSettings.ai_companion_settings, data.ai_companion_settings || {}),
+      accessibility_settings: safelyMergeSettings(defaultSettings.accessibility_settings, data.accessibility_settings || {}),
       security_settings: safelyMergeSettings(defaultSettings.security_settings, data.security_settings),
       app_customization: safelyMergeSettings(defaultSettings.app_customization, data.app_customization)
     };

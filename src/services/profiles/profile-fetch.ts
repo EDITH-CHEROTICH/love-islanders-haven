@@ -156,7 +156,6 @@ function transformProfileData(rawData: any): SupabaseProfile {
   const relationshipGoal = rawData.relationship_goal as 'long-term' | 'casual' | 'both' | undefined;
   const gender = rawData.gender as 'male' | 'female' | 'other' | undefined;
   const genderPreference = rawData.gender_preference as 'male' | 'female' | 'both' | undefined;
-  const heightUnit = rawData.height_unit as 'ft' | 'm' | undefined;
   
   return {
     id: rawData.id,
@@ -169,21 +168,10 @@ function transformProfileData(rawData: any): SupabaseProfile {
     gender,
     gender_preference: genderPreference || 'both',
     relationship_goal: relationshipGoal || 'both',
-    height_unit: heightUnit,
     show_age: rawData.show_age !== undefined ? rawData.show_age : true,
     interests,
-    // Include other fields from SupabaseProfile as needed
+    streak_count: rawData.streak_count || 0,
     email_verified: rawData.email_verified || false,
-    education: rawData.education,
-    height: rawData.height,
-    height_cm: rawData.height_cm,
-    has_pets: rawData.has_pets || false,
-    pet_type: rawData.pet_type,
-    has_children: rawData.has_children || false,
-    children_count: rawData.children_count || 0,
-    occupation: rawData.occupation,
-    activity_status: rawData.activity_status,
-    // Add empty images array (will be populated later)
     images: []
   };
 }
@@ -202,9 +190,6 @@ function createFallbackProfile(userId = 'dev-user-123', email?: string | null): 
     relationship_goal: 'both' as 'long-term' | 'casual' | 'both',
     age: 25, // Adding required age property
     location: 'Unknown', // Adding required location property
-    has_pets: false,
-    has_children: false,
-    children_count: 0,
     email_verified: false,
     show_age: true
   };
