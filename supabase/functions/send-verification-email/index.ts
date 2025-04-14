@@ -48,6 +48,18 @@ serve(async (req) => {
     const resend = new Resend(resendApiKey);
 
     console.log(`Sending verification code ${code} to ${email}`);
+    
+    // Store the verification code in the database
+    const { error: insertError } = await supabase
+      .from('email_verification')
+      .insert({
+        email: email,
+        code: code
+      });
+      
+    if (insertError) {
+      console.error("Error storing verification code:", insertError);
+    }
 
     // Send the verification email
     const emailResult = await resend.emails.send({

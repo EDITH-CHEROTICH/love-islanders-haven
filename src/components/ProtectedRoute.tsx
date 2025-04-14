@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/auth';
 import EmailAuthForm from './auth/EmailAuthForm';
 import VerificationForm from './auth/VerificationForm';
@@ -15,7 +15,6 @@ interface ProtectedRouteProps {
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { isAuthenticated, loading, user, emailVerified, verifyEmailWithCode } = useAuth();
   const location = useLocation();
-  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [verificationCode, setVerificationCode] = useState("");
   const [isEmailSubmitted, setIsEmailSubmitted] = useState(false);
@@ -98,20 +97,28 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
       const { data: { user } } = await supabase.auth.getUser();
       
       if (user) {
-        // Call the verifyEmailWithCode method
-        await verifyEmailWithCode(user.id, email);
+        // Update profile with email verified status
+        const { error } = await supabase
+          .from('profiles')
+          .update({
+            email: email,
+            email_verified: true
+          })
+          .eq('id', user.id);
+          
+        if (error) {
+          console.error("Error updating email verification status:", error);
+        }
       } else {
         // Handle case where no user is found
         localStorage.setItem('emailVerificationCompleted', 'true');
+        localStorage.setItem('authContact', email);
       }
       
       // Mark verification as completed
       setVerificationCompleted(true);
       
-      // Navigate to the current path or to profile page if on verification page
-      if (location.pathname === '/verify') {
-        navigate('/discover', { replace: true });
-      }
+      window.location.href = '/discover';
     } catch (error) {
       console.error("Error handling verification success:", error);
     }

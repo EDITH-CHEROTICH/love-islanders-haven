@@ -1,7 +1,6 @@
 
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { updateEmailVerificationStatus } from '@/services/profiles/verification';
 
 export const useAuthActions = () => {
   const [loading, setLoading] = useState(false);
@@ -9,8 +8,11 @@ export const useAuthActions = () => {
   const signIn = async (email: string, password: string) => {
     setLoading(true);
     try {
-      const result = await supabase.auth.signInWithPassword({ email, password });
-      return result;
+      const auth = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      return auth;
     } finally {
       setLoading(false);
     }
@@ -22,90 +24,44 @@ export const useAuthActions = () => {
       await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`
-        }
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
       });
     } finally {
       setLoading(false);
     }
   };
 
-  const signUp = async (email: string, password: string, options?: any) => {
+  const signUp = async (email: string, password: string) => {
     setLoading(true);
     try {
-      // If no password provided, just handle as email verification only
-      if (!password && email) {
-        // Create a temporary session based on email only
-        localStorage.setItem('authContact', email);
-        localStorage.setItem('isAuthenticated', 'true');
-        return true;
-      }
-      
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          data: options?.metadata || {},
-          emailRedirectTo: `${window.location.origin}/auth/callback`
-        }
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          data: {
+            name: email.split('@')[0],
+            email_verified: false,
+          },
+        },
       });
       
-      if (!error) {
-        try {
-          // Create initial profile if sign up is successful
-          const { data: { user } } = await supabase.auth.getUser();
-          if (user) {
-            const { error: profileError } = await supabase
-              .from('profiles')
-              .upsert({
-                id: user.id,
-                name: email.split('@')[0], // Default name from email
-                email_verified: true, // Mark as verified since we're verifying with code
-                gender_preference: 'both',
-                relationship_goal: 'both'
-              });
-              
-            if (profileError) {
-              console.error("Error creating initial profile:", profileError);
-            }
-          }
-        } catch (profileError) {
-          console.error("Error setting up initial profile:", profileError);
-        }
-      }
+      if (error) throw error;
       
-      // Return boolean to match our AuthContextType
-      return !error;
+      // Return true if signup was successful
+      return !!data.user;
     } finally {
       setLoading(false);
     }
   };
 
-  const resetPassword = async (email: string): Promise<void> => {
+  const resetPassword = async (email: string) => {
     setLoading(true);
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`
+      await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
       });
-      
-      if (error) {
-        throw error;
-      }
-      // Return void to match our AuthContextType
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const updatePassword = async (password: string): Promise<void> => {
-    setLoading(true);
-    try {
-      const { error } = await supabase.auth.updateUser({ password });
-      
-      if (error) {
-        throw error;
-      }
-      // Return void to match our AuthContextType
     } finally {
       setLoading(false);
     }
@@ -115,31 +71,49 @@ export const useAuthActions = () => {
     setLoading(true);
     try {
       await supabase.auth.signOut();
-      // Clear local storage authentication data
-      localStorage.removeItem('isAuthenticated');
-      localStorage.removeItem('authContact');
       localStorage.removeItem('emailVerificationCompleted');
+      localStorage.removeItem('isAuthenticated');
+      localStorage.removeItem('authMethod');
+      localStorage.removeItem('authContact');
     } finally {
       setLoading(false);
     }
   };
 
-  // New method to verify email
-  const verifyEmailWithCode = async (userId: string, email: string): Promise<boolean> => {
+  const updatePassword = async (password: string) => {
     setLoading(true);
     try {
-      // Update email verification status
-      const { error } = await updateEmailVerificationStatus(userId, true);
-      
+      await supabase.auth.updateUser({ password });
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  // Function to verify email with code
+  const verifyEmailWithCode = async (userId: string, email: string) => {
+    setLoading(true);
+    try {
+      // Update user profile with verified email status
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          email: email,
+          email_verified: true
+        })
+        .eq('id', userId);
+        
       if (error) {
         console.error("Error updating email verification status:", error);
         return false;
       }
       
+      // Set localStorage flags
       localStorage.setItem('emailVerificationCompleted', 'true');
+      localStorage.setItem('authContact', email);
+      
       return true;
     } catch (error) {
-      console.error("Error verifying email:", error);
+      console.error("Error verifying email with code:", error);
       return false;
     } finally {
       setLoading(false);
@@ -152,8 +126,8 @@ export const useAuthActions = () => {
     signInWithGoogle,
     signUp,
     resetPassword,
-    updatePassword,
     signOut,
-    verifyEmailWithCode,
+    updatePassword,
+    verifyEmailWithCode
   };
 };

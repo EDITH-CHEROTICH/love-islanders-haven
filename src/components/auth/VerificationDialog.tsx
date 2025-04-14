@@ -44,39 +44,27 @@ const VerificationDialog = ({
         
         if (user) {
           try {
-            // Create user profile with verified email
+            // Create or update user profile with verified email
             const { error } = await supabase
               .from('profiles')
-              .upsert({
-                id: user.id,
-                name: email.split('@')[0],
+              .update({
+                email: email,
                 email_verified: true,
-                gender_preference: 'both',
-                relationship_goal: 'both'
-              }, {
-                onConflict: 'id'
-              });
+              })
+              .eq('id', user.id);
 
             if (error) {
               console.error("Error updating profile:", error);
-              // Try admin function approach if direct update fails
-              await supabase.functions.invoke('create-user-profile', {
-                body: { 
-                  userId: user.id,
-                  name: email.split('@')[0], 
-                  emailVerified: true
-                }
-              });
             }
           } catch (profileError) {
             console.error("Error handling profile:", profileError);
           }
-        } else {
-          // No authenticated user yet, update local storage
-          localStorage.setItem('emailVerificationCompleted', 'true');
-          localStorage.setItem('authContact', email);
-          localStorage.setItem('isAuthenticated', 'true');
         }
+        
+        // Set verification status in localStorage
+        localStorage.setItem('emailVerificationCompleted', 'true');
+        localStorage.setItem('authContact', email);
+        localStorage.setItem('isAuthenticated', 'true');
         
         toast.success("Email verification successful!");
         await onVerifySuccess();

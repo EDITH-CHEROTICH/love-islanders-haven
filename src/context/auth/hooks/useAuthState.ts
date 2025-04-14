@@ -7,160 +7,124 @@ export const useAuthState = () => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const [loadingTimeout, setLoadingTimeout] = useState(false);
   const [networkError, setNetworkError] = useState(false);
   const [emailVerified, setEmailVerified] = useState<boolean | null>(null);
-  
+
   useEffect(() => {
-    // Add a timeout to detect stuck loading states
-    const timer = setTimeout(() => {
-      if (loading) {
-        console.log('Auth loading timeout detected - forcing completion');
-        setLoadingTimeout(true);
-        setLoading(false);
+    // Function to check if the email is verified
+    const checkEmailVerification = async (userId: string) => {
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('email_verified')
+          .eq('id', userId)
+          .single();
+
+        if (error) {
+          console.error("Error checking email verification:", error);
+          return null;
+        }
+
+        return data?.email_verified;
+      } catch (error) {
+        console.error("Error checking email verification:", error);
+        return null;
       }
-    }, 3000); // Reduced timeout to 3 seconds for better user experience
-    
-    return () => clearTimeout(timer);
-  }, [loading]);
-  
-  useEffect(() => {
-    // First check localStorage for auth status
-    const localStorageAuth = localStorage.getItem('isAuthenticated') === 'true';
-    
-    // Set initial auth state from localStorage
-    if (localStorageAuth) {
-      console.log("Initial auth state from localStorage: authenticated");
-    }
-    
-    // Set up auth state listener FIRST
+    };
+
+    // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        console.log("Auth state changed:", event, !!session);
+      async (event, newSession) => {
+        console.log("Auth state changed:", event, newSession?.user?.id);
         
-        try {
-          setSession(session);
-          setUser(session?.user ?? null);
+        setUser(newSession?.user ?? null);
+        setSession(newSession);
+        
+        if (newSession?.user) {
+          // Check if email is verified when session changes
+          const verified = await checkEmailVerification(newSession.user.id);
+          setEmailVerified(verified);
           
-          // Update localStorage to reflect current auth state
-          if (session) {
-            localStorage.setItem('isAuthenticated', 'true');
-            
-            // Check email verification status when user signs in
-            checkEmailVerificationStatus(session.user.id);
-          } else if (event === 'SIGNED_OUT') {
-            // Don't remove isAuthenticated in development mode to keep features working
-            if (process.env.NODE_ENV !== 'development') {
-              localStorage.removeItem('isAuthenticated');
-              localStorage.removeItem('emailVerificationCompleted');
+          // Store authentication status in localStorage
+          if (verified) {
+            localStorage.setItem('emailVerificationCompleted', 'true');
+            if (newSession?.user?.email) {
+              localStorage.setItem('authContact', newSession.user.email);
             }
-            setEmailVerified(null);
           }
           
-          // Reset network error state when successful
-          setNetworkError(false);
-          setLoading(false);
-        } catch (error) {
-          console.error("Error handling auth state change:", error);
-          setLoading(false);
+          localStorage.setItem('isAuthenticated', 'true');
+        } else {
+          setEmailVerified(null);
         }
       }
     );
 
-    // THEN check for existing session with error handling
-    const checkSession = async () => {
+    // Check for existing session
+    const initializeAuthState = async () => {
       try {
-        const { data: { session }, error } = await supabase.auth.getSession();
+        setLoading(true);
         
-        if (error) {
-          console.error("Error getting session:", error);
-          setNetworkError(true);
-        } else {
-          console.log("Initial session check:", !!session);
-          setSession(session);
-          setUser(session?.user ?? null);
+        const { data: { session: existingSession } } = await supabase.auth.getSession();
+        
+        setUser(existingSession?.user ?? null);
+        setSession(existingSession);
+        
+        if (existingSession?.user) {
+          // Check if email is verified
+          const verified = await checkEmailVerification(existingSession.user.id);
+          setEmailVerified(verified);
           
-          // Update localStorage to reflect current auth state
-          if (session) {
-            localStorage.setItem('isAuthenticated', 'true');
-            
-            // Check email verification status when session exists
-            if (session.user) {
-              checkEmailVerificationStatus(session.user.id);
-            }
+          // Store authentication status in localStorage
+          localStorage.setItem('isAuthenticated', 'true');
+          if (verified) {
+            localStorage.setItem('emailVerificationCompleted', 'true');
           }
-          setNetworkError(false);
+          if (existingSession?.user?.email) {
+            localStorage.setItem('authContact', existingSession.user.email);
+          }
+        } else {
+          // Check if we have authentication in localStorage from hybrid flow
+          const isLocallyAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+          if (isLocallyAuthenticated) {
+            const isLocallyVerified = localStorage.getItem('emailVerificationCompleted') === 'true';
+            setEmailVerified(isLocallyVerified);
+          }
         }
         
-        setLoading(false);
+        setNetworkError(false);
       } catch (error) {
-        console.error("Network error checking session:", error);
+        console.error("Error initializing auth state:", error);
         setNetworkError(true);
+        
+        // Check if we have authentication in localStorage as fallback
+        const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+        const isVerified = localStorage.getItem('emailVerificationCompleted') === 'true';
+        
+        if (isAuthenticated) {
+          setEmailVerified(isVerified);
+        }
+      } finally {
         setLoading(false);
       }
     };
-    
-    checkSession();
 
-    // Handle case where session check takes too long
-    const timeoutId = setTimeout(() => {
-      if (loading) {
-        console.log("Session check timed out, falling back to localStorage auth");
-        setLoading(false);
-      }
-    }, 2000); // Reduced timeout to 2 seconds for better UX
+    initializeAuthState();
 
     return () => {
       subscription.unsubscribe();
-      clearTimeout(timeoutId);
     };
   }, []);
-  
-  // Function to check email verification status
-  const checkEmailVerificationStatus = async (userId: string) => {
-    try {
-      const verificationCompleted = localStorage.getItem('emailVerificationCompleted') === 'true';
-      
-      if (verificationCompleted) {
-        console.log("Email verification found in localStorage");
-        setEmailVerified(true);
-        return;
-      }
-      
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('email_verified')
-        .eq('id', userId)
-        .single();
-        
-      if (error) {
-        console.error("Error checking email verification:", error);
-        // In dev mode, consider as not verified to show the flow
-        if (process.env.NODE_ENV === 'development') {
-          setEmailVerified(false);
-        }
-        return;
-      }
-      
-      console.log("Email verification status:", data?.email_verified);
-      setEmailVerified(data?.email_verified === true);
-      
-      if (data?.email_verified === true) {
-        localStorage.setItem('emailVerificationCompleted', 'true');
-      }
-    } catch (e) {
-      console.error("Error checking email verification status:", e);
-    }
-  };
+
+  // Determine if the user is authenticated based on session or localStorage fallback
+  const isAuthenticated = !!user || localStorage.getItem('isAuthenticated') === 'true';
 
   return {
     user,
     session,
-    loading: loading && !loadingTimeout,
+    loading,
+    isAuthenticated,
     networkError,
-    emailVerified,
-    // Consider isAuthenticated true if user is set OR localStorage has the flag
-    // Always consider authenticated in development mode to ensure features work
-    isAuthenticated: (!!user || localStorage.getItem('isAuthenticated') === 'true' || process.env.NODE_ENV === 'development'),
+    emailVerified
   };
 };

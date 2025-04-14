@@ -29,7 +29,7 @@ export const uploadProfileImage = async (file: File, position: number = 0): Prom
     // Create a unique file name to prevent collisions
     const fileExt = file.name.split('.').pop();
     const fileName = `${userId}/${uuidv4()}.${fileExt}`;
-    const filePath = `profiles/${fileName}`;
+    const filePath = `${fileName}`;
 
     // Ensure the file is valid
     if (!file || file.size === 0) {
@@ -44,23 +44,6 @@ export const uploadProfileImage = async (file: File, position: number = 0): Prom
     }
     
     console.log("Uploading file:", fileName, "Size:", file.size, "Type:", file.type);
-
-    // Upload the file to Supabase storage - first check if bucket exists
-    let { data: buckets } = await supabase.storage.listBuckets();
-    
-    // Create bucket if it doesn't exist
-    if (!buckets?.find(b => b.name === 'profile-images')) {
-      console.log("Creating profile-images bucket");
-      const { error: bucketError } = await supabase.storage.createBucket('profile-images', {
-        public: true,
-        fileSizeLimit: 10485760 // 10MB
-      });
-      
-      if (bucketError) {
-        console.warn("Error creating bucket:", bucketError);
-        // Continue anyway, as the bucket might exist but not be visible to the user
-      }
-    }
 
     // Upload the file to Supabase storage
     const { data: uploadData, error } = await supabase.storage

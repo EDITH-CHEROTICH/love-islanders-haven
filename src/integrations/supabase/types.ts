@@ -295,7 +295,22 @@ export type Database = {
           liked_id?: string
           liker_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "likes_liked_id_fkey"
+            columns: ["liked_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "likes_liker_id_fkey"
+            columns: ["liker_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       matches: {
         Row: {
@@ -316,7 +331,22 @@ export type Database = {
           user1_id?: string
           user2_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "matches_user1_id_fkey"
+            columns: ["user1_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "matches_user2_id_fkey"
+            columns: ["user2_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       messages: {
         Row: {
@@ -357,6 +387,13 @@ export type Database = {
             referencedRelation: "matches"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       notifications: {
@@ -390,7 +427,22 @@ export type Database = {
           type?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "notifications_related_user_id_fkey"
+            columns: ["related_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profile_images: {
         Row: {
@@ -457,117 +509,61 @@ export type Database = {
           },
         ]
       }
-      profile_videos: {
-        Row: {
-          created_at: string
-          id: string
-          profile_id: string
-          url: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          profile_id: string
-          url: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          profile_id?: string
-          url?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "profile_videos_profile_id_fkey"
-            columns: ["profile_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       profiles: {
         Row: {
           age: number | null
           bio: string | null
-          children_count: number | null
           created_at: string
           dob: string | null
-          education: string | null
+          email: string | null
           email_verified: boolean | null
           gender: string | null
           gender_preference: string | null
-          has_children: boolean | null
-          has_pets: boolean | null
-          height_cm: number | null
-          height_unit: string | null
           id: string
           latitude: number | null
           location: string | null
-          location_updated_at: string | null
           longitude: number | null
-          name: string
-          occupation: string | null
-          pet_type: string | null
+          name: string | null
           relationship_goal: string | null
           show_age: boolean | null
-          streak_count: number | null
           updated_at: string
           verified: boolean | null
         }
         Insert: {
           age?: number | null
           bio?: string | null
-          children_count?: number | null
           created_at?: string
           dob?: string | null
-          education?: string | null
+          email?: string | null
           email_verified?: boolean | null
           gender?: string | null
           gender_preference?: string | null
-          has_children?: boolean | null
-          has_pets?: boolean | null
-          height_cm?: number | null
-          height_unit?: string | null
           id: string
           latitude?: number | null
           location?: string | null
-          location_updated_at?: string | null
           longitude?: number | null
-          name: string
-          occupation?: string | null
-          pet_type?: string | null
+          name?: string | null
           relationship_goal?: string | null
           show_age?: boolean | null
-          streak_count?: number | null
           updated_at?: string
           verified?: boolean | null
         }
         Update: {
           age?: number | null
           bio?: string | null
-          children_count?: number | null
           created_at?: string
           dob?: string | null
-          education?: string | null
+          email?: string | null
           email_verified?: boolean | null
           gender?: string | null
           gender_preference?: string | null
-          has_children?: boolean | null
-          has_pets?: boolean | null
-          height_cm?: number | null
-          height_unit?: string | null
           id?: string
           latitude?: number | null
           location?: string | null
-          location_updated_at?: string | null
           longitude?: number | null
-          name?: string
-          occupation?: string | null
-          pet_type?: string | null
+          name?: string | null
           relationship_goal?: string | null
           show_age?: boolean | null
-          streak_count?: number | null
           updated_at?: string
           verified?: boolean | null
         }
@@ -627,6 +623,13 @@ export type Database = {
             referencedRelation: "streaks"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "streak_likes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       streaks: {
@@ -635,13 +638,8 @@ export type Database = {
           comments_count: number
           content: string
           created_at: string
-          expires_at: string | null
           id: string
           likes_count: number
-          song_album_art: string | null
-          song_artist: string | null
-          song_preview_url: string | null
-          song_title: string | null
           streak_count: number
           user_id: string
         }
@@ -650,13 +648,8 @@ export type Database = {
           comments_count?: number
           content: string
           created_at?: string
-          expires_at?: string | null
           id?: string
           likes_count?: number
-          song_album_art?: string | null
-          song_artist?: string | null
-          song_preview_url?: string | null
-          song_title?: string | null
           streak_count?: number
           user_id: string
         }
@@ -665,53 +658,24 @@ export type Database = {
           comments_count?: number
           content?: string
           created_at?: string
-          expires_at?: string | null
           id?: string
           likes_count?: number
-          song_album_art?: string | null
-          song_artist?: string | null
-          song_preview_url?: string | null
-          song_title?: string | null
           streak_count?: number
           user_id?: string
         }
-        Relationships: []
-      }
-      user_feedback: {
-        Row: {
-          category: string
-          created_at: string
-          email: string | null
-          feedback: string
-          id: string
-          status: string
-          user_id: string | null
-        }
-        Insert: {
-          category?: string
-          created_at?: string
-          email?: string | null
-          feedback: string
-          id?: string
-          status?: string
-          user_id?: string | null
-        }
-        Update: {
-          category?: string
-          created_at?: string
-          email?: string | null
-          feedback?: string
-          id?: string
-          status?: string
-          user_id?: string | null
-        }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "streaks_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_settings: {
         Row: {
-          accessibility_settings: Json | null
           account_settings: Json | null
-          ai_companion_settings: Json | null
           app_customization: Json | null
           communication_settings: Json | null
           created_at: string
@@ -722,9 +686,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          accessibility_settings?: Json | null
           account_settings?: Json | null
-          ai_companion_settings?: Json | null
           app_customization?: Json | null
           communication_settings?: Json | null
           created_at?: string
@@ -735,9 +697,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
-          accessibility_settings?: Json | null
           account_settings?: Json | null
-          ai_companion_settings?: Json | null
           app_customization?: Json | null
           communication_settings?: Json | null
           created_at?: string
@@ -747,7 +707,15 @@ export type Database = {
           security_settings?: Json | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_settings_id_fkey"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

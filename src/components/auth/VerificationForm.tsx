@@ -51,16 +51,12 @@ const VerificationForm = ({
             // Create/update profile with email verification status
             const { error } = await supabase
               .from('profiles')
-              .upsert({
-                id: user.id,
+              .update({
                 name: email.split('@')[0], // Default name from email
                 email: email,
-                email_verified: true,
-                gender_preference: 'both',
-                relationship_goal: 'both'
-              }, {
-                onConflict: 'id'
-              });
+                email_verified: true
+              })
+              .eq('id', user.id);
 
             if (error) {
               console.error("Error updating profile:", error);

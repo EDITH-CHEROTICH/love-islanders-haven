@@ -1,6 +1,7 @@
 
-import { Edit } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Button } from "@/components/ui/button";
+import { Edit, Check } from "lucide-react";
+import { useAuth } from "@/context/auth";
 
 interface ProfileHeaderProps {
   isEditing: boolean;
@@ -8,21 +9,23 @@ interface ProfileHeaderProps {
 }
 
 const ProfileHeader = ({ isEditing, onEditToggle }: ProfileHeaderProps) => {
+  const { user } = useAuth();
+  const email = user?.email || localStorage.getItem('authContact') || 'User';
+  
   return (
-    <header className="text-center pt-4 mb-6 relative">
-      <h1 className="text-2xl font-bold text-gradient">My Profile</h1>
-      <div className="absolute right-0 top-1/2 -translate-y-1/2">
-        <Button 
-          variant="ghost" 
-          size="sm"
-          onClick={onEditToggle}
-          className="flex items-center gap-1"
-        >
-          <Edit className="h-4 w-4" />
-          {isEditing ? "Done" : "Edit"}
-        </Button>
+    <div className="flex justify-between items-center py-4 px-2">
+      <div>
+        <h1 className="text-xl font-bold text-gradient">My Profile</h1>
+        <p className="text-sm text-muted-foreground">{email}</p>
       </div>
-    </header>
+      <Button 
+        variant="ghost"
+        className={`rounded-full p-2 ${isEditing ? 'bg-love text-white' : 'bg-background text-love'}`}
+        onClick={onEditToggle}
+      >
+        {isEditing ? <Check className="h-5 w-5" /> : <Edit className="h-5 w-5" />}
+      </Button>
+    </div>
   );
 };
 

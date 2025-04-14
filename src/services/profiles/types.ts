@@ -2,6 +2,7 @@
 export interface SupabaseProfile {
   id: string;
   name: string;
+  email?: string;
   age: number;
   location: string;
   bio: string;
@@ -14,30 +15,7 @@ export interface SupabaseProfile {
   gender_preference?: 'male' | 'female' | 'both';
   dob?: string; // Changed from Date to string to match Supabase expectations
   show_age?: boolean;
-  education?: string;
-  height?: number;
-  height_cm?: number;
-  height_unit?: 'ft' | 'm';
-  has_pets?: boolean;
-  pet_type?: string;
-  has_children?: boolean;
-  children_count?: number;
-  occupation?: string;
-  activity_status?: string;
-  // Fields from database that weren't in the original interface
-  created_at?: string;
-  updated_at?: string;
-  latitude?: number;
-  longitude?: number;
-  location_updated_at?: string;
-  streak_count?: number;
   email_verified?: boolean;
-  // For internal use - not directly serialized/deserialized
-  profile_interests?: Array<{
-    interests?: {
-      name: string;
-    };
-  }>;
 }
 
 export interface Like {

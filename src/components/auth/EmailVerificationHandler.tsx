@@ -5,7 +5,6 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import VerificationDialog from "./VerificationDialog";
 import { useNavigate } from "react-router-dom";
-import { setupUserProfileAfterVerification } from "@/services/profiles/profile-creation";
 
 interface EmailVerificationHandlerProps {
   email: string;
@@ -36,8 +35,18 @@ const EmailVerificationHandler = ({
           if (user) {
             console.log("EmailVerificationHandler: Creating/updating profile for user:", user.id);
             
-            // Setup user profile after verification
-            await setupUserProfileAfterVerification(user.id, email);
+            // Update profile with email verified status
+            const { error } = await supabase
+              .from('profiles')
+              .update({ 
+                email_verified: true,
+                email: email
+              })
+              .eq('id', user.id);
+
+            if (error) {
+              console.error("Error updating profile during verification:", error);
+            }
           }
         } catch (profileError) {
           console.error("Error creating profile during signup:", profileError);
@@ -45,7 +54,7 @@ const EmailVerificationHandler = ({
         
         setShowVerification(false);
         
-        console.log("EmailVerificationHandler: Navigating to profile page after verification");
+        console.log("EmailVerificationHandler: Navigating to discover page after verification");
         
         // Set auth state in localStorage first
         localStorage.setItem('isAuthenticated', 'true');
@@ -53,7 +62,7 @@ const EmailVerificationHandler = ({
         localStorage.setItem('authContact', email);
         localStorage.setItem('emailVerificationCompleted', 'true');
         
-        // Navigate to discover page instead of profile page
+        // Navigate to discover page
         navigate('/discover', { replace: true });
         
         return true;
