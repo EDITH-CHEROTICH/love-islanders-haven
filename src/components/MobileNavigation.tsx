@@ -45,6 +45,14 @@ const MobileNavigation: React.FC = () => {
       </Link>
       
       <Link 
+        to="/ai-companion" 
+        className={`flex flex-col items-center ${isActive('/ai-companion') ? 'text-love' : 'text-white/70'}`}
+      >
+        <Sparkles size={22} />
+        <span className="text-xs mt-1">Isla</span>
+      </Link>
+      
+      <Link 
         to="/profile" 
         className={`flex flex-col items-center ${isActive('/profile') ? 'text-love' : 'text-white/70'}`}
       >

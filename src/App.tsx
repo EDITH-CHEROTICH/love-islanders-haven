@@ -23,6 +23,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Messages from '@/pages/Messages';
 import Matches from '@/pages/Matches';
 import Streaks from '@/pages/Streaks';
+import AICompanionChat from '@/pages/AICompanionChat';
 
 // Don't forget to add the Onboarding component to your routes
 import Onboarding from './pages/Onboarding';
@@ -43,7 +44,7 @@ function App() {
   }, [online, toast]);
 
   return (
-    <div className="relative min-h-screen pb-16">
+    <div className="relative min-h-screen pb-20">
       {online ? (
         <>
           <Routes>
@@ -90,6 +91,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Streaks />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/ai-companion"
+              element={
+                <ProtectedRoute>
+                  <AICompanionChat />
                 </ProtectedRoute>
               }
             />
