@@ -509,6 +509,41 @@ export type Database = {
           },
         ]
       }
+      profile_onboarding: {
+        Row: {
+          completed: boolean | null
+          completed_steps: string[] | null
+          created_at: string | null
+          current_step: string | null
+          profile_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          completed?: boolean | null
+          completed_steps?: string[] | null
+          created_at?: string | null
+          current_step?: string | null
+          profile_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          completed?: boolean | null
+          completed_steps?: string[] | null
+          created_at?: string | null
+          current_step?: string | null
+          profile_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profile_onboarding_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profile_videos: {
         Row: {
           created_at: string
@@ -542,62 +577,101 @@ export type Database = {
         Row: {
           age: number | null
           bio: string | null
+          children_status: string | null
           created_at: string
           dob: string | null
+          drinking_habit: string | null
+          education: string | null
           email: string | null
           email_verified: boolean | null
           gender: string | null
           gender_preference: string | null
+          height: number | null
+          hometown: string | null
           id: string
+          languages: string[] | null
           latitude: number | null
+          living_in: string | null
           location: string | null
           longitude: number | null
+          looking_for: string | null
           name: string | null
+          occupation: string | null
+          political_view: string | null
           relationship_goal: string | null
+          religion: string | null
           show_age: boolean | null
+          smoking_habit: string | null
           streak_count: number | null
           updated_at: string
           verified: boolean | null
+          zodiac_sign: string | null
         }
         Insert: {
           age?: number | null
           bio?: string | null
+          children_status?: string | null
           created_at?: string
           dob?: string | null
+          drinking_habit?: string | null
+          education?: string | null
           email?: string | null
           email_verified?: boolean | null
           gender?: string | null
           gender_preference?: string | null
+          height?: number | null
+          hometown?: string | null
           id: string
+          languages?: string[] | null
           latitude?: number | null
+          living_in?: string | null
           location?: string | null
           longitude?: number | null
+          looking_for?: string | null
           name?: string | null
+          occupation?: string | null
+          political_view?: string | null
           relationship_goal?: string | null
+          religion?: string | null
           show_age?: boolean | null
+          smoking_habit?: string | null
           streak_count?: number | null
           updated_at?: string
           verified?: boolean | null
+          zodiac_sign?: string | null
         }
         Update: {
           age?: number | null
           bio?: string | null
+          children_status?: string | null
           created_at?: string
           dob?: string | null
+          drinking_habit?: string | null
+          education?: string | null
           email?: string | null
           email_verified?: boolean | null
           gender?: string | null
           gender_preference?: string | null
+          height?: number | null
+          hometown?: string | null
           id?: string
+          languages?: string[] | null
           latitude?: number | null
+          living_in?: string | null
           location?: string | null
           longitude?: number | null
+          looking_for?: string | null
           name?: string | null
+          occupation?: string | null
+          political_view?: string | null
           relationship_goal?: string | null
+          religion?: string | null
           show_age?: boolean | null
+          smoking_habit?: string | null
           streak_count?: number | null
           updated_at?: string
           verified?: boolean | null
+          zodiac_sign?: string | null
         }
         Relationships: []
       }

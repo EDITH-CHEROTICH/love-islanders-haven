@@ -79,7 +79,10 @@ const Login = () => {
         throw error;
       }
       toast.success('Logged in successfully!');
-      navigate(from, { replace: true });
+      
+      // Navigate based on redirectAfterAuth or default to /discover
+      const redirectPath = localStorage.getItem('redirectAfterAuth') || '/discover';
+      navigate(redirectPath, { replace: true });
     } catch (error: any) {
       console.error('Login error:', error);
       toast.error(error.message || 'Failed to log in');

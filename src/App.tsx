@@ -1,48 +1,141 @@
+import React, { useEffect } from 'react';
+import { BrowserRouter as Router, Route, Routes, useNavigate, Navigate } from 'react-router-dom';
+import { useAuth } from '@/context/auth';
+import Login from '@/pages/Login';
+import ProfilePage from '@/pages/ProfilePage';
+import Discover from '@/pages/Discover';
+import Verify from '@/pages/Verify';
+import Settings from '@/pages/Settings';
+import Feedback from '@/pages/Feedback';
+import Safety from '@/pages/Safety';
+import Support from '@/pages/Support';
+import Terms from '@/pages/Terms';
+import Privacy from '@/pages/Privacy';
+import Signup from '@/pages/Signup';
+import { ToastContainer } from 'sonner';
+import MobileNavigation from '@/components/MobileNavigation';
+import useOnline from '@/hooks/useOnline';
+import OfflinePlaceholder from '@/components/OfflinePlaceholder';
+import { useToast } from '@/hooks/use-toast';
+import { Loader2 } from 'lucide-react';
 
-import React from 'react';
-import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
-import { AuthProvider } from './context/auth';
-import { SettingsProvider } from './context/SettingsContext';
-import { Toaster } from '@/components/ui/sonner';
-import Feedback from './pages/Feedback';
-import Settings from './pages/Settings';
-import AICompanionChat from './pages/AICompanionChat';
-import ProtectedRoute from './components/ProtectedRoute';
-import Verify from './pages/Verify';
-import NotFound from './pages/NotFound';
-import Navbar from './components/Navbar';
-import Profile from './pages/Profile';
-import Matches from './pages/Matches';
-import Discover from './pages/Discover';
-import Messages from './pages/Messages';
-import Login from './pages/Login';
-import Streaks from './pages/Streaks';
+// Don't forget to add the Onboarding component to your routes
+import Onboarding from './pages/Onboarding';
 
-const App: React.FC = () => {
+function App() {
+  const { isAuthenticated, loading, user } = useAuth();
+  const online = useOnline();
+  const { toast } = useToast();
+  
+  useEffect(() => {
+    if (!online) {
+      toast({
+        title: "No internet connection",
+        description: "Some features may be unavailable",
+        duration: 5000,
+      })
+    }
+  }, [online, toast]);
+
+  // Custom PrivateRoute component
+  const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
+    const navigate = useNavigate();
+    
+    useEffect(() => {
+      if (!isAuthenticated && !loading) {
+        // Redirect to login if not authenticated
+        navigate('/login', { replace: true });
+      }
+    }, [isAuthenticated, loading, navigate]);
+
+    // Show loading indicator while authenticating
+    if (loading) {
+      return (
+        <div className="flex h-screen items-center justify-center bg-island-dark">
+          <Loader2 className="h-12 w-12 animate-spin text-love" />
+        </div>
+      );
+    }
+
+    return isAuthenticated ? <>{children}</> : null;
+  };
+
   return (
-    <AuthProvider>
-      <SettingsProvider>
-        <Router>
+    <Router>
+      {online ? (
+        <>
           <Routes>
+            <Route path="/login" element={isAuthenticated ? <Navigate to="/discover" replace /> : <Login />} />
+            <Route path="/signup" element={isAuthenticated ? <Navigate to="/discover" replace /> : <Signup />} />
+            <Route path="/verify" element={isAuthenticated ? <Navigate to="/discover" replace /> : <Verify />} />
+            
+            <Route path="/onboarding" element={<Onboarding />} />
+            
+            <Route
+              path="/profile"
+              element={
+                <PrivateRoute>
+                  <ProfilePage />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/discover"
+              element={
+                <PrivateRoute>
+                  <Discover />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/settings"
+              element={
+                <PrivateRoute>
+                  <Settings />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/feedback"
+              element={
+                <PrivateRoute>
+                  <Feedback />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/safety"
+              element={
+                <PrivateRoute>
+                  <Safety />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/support"
+              element={
+                <PrivateRoute>
+                  <Support />
+                </PrivateRoute>
+              }
+            />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/privacy" element={<Privacy />} />
             <Route path="/" element={<Navigate to="/discover" replace />} />
-            <Route path="/verify" element={<Verify />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-            <Route path="/ai-companion" element={<ProtectedRoute><AICompanionChat /></ProtectedRoute>} />
-            <Route path="/feedback" element={<ProtectedRoute><Feedback /></ProtectedRoute>} />
-            <Route path="/matches" element={<ProtectedRoute><Matches /></ProtectedRoute>} />
-            <Route path="/discover" element={<ProtectedRoute><Discover /></ProtectedRoute>} />
-            <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-            <Route path="/streaks" element={<ProtectedRoute><Streaks /></ProtectedRoute>} />
-            <Route path="/messages/:matchId" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
-            <Route path="*" element={<NotFound />} />
           </Routes>
-          <Navbar />
-          <Toaster />
-        </Router>
-      </SettingsProvider>
-    </AuthProvider>
+          
+          {/* Conditionally render MobileNavigation */}
+          {isAuthenticated && user && (
+            <MobileNavigation />
+          )}
+          
+          <ToastContainer />
+        </>
+      ) : (
+        <OfflinePlaceholder />
+      )}
+    </Router>
   );
-};
+}
 
 export default App;
