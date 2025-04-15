@@ -1,11 +1,11 @@
-
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { AuthTokenResponsePassword } from '@supabase/supabase-js';
 
 export const useAuthActions = () => {
   const [loading, setLoading] = useState(false);
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (email: string, password: string): Promise<AuthTokenResponsePassword | null> => {
     setLoading(true);
     try {
       const auth = await supabase.auth.signInWithPassword({
@@ -13,6 +13,9 @@ export const useAuthActions = () => {
         password,
       });
       return auth;
+    } catch (error) {
+      console.error("Error during sign in:", error);
+      return null;
     } finally {
       setLoading(false);
     }
@@ -32,7 +35,7 @@ export const useAuthActions = () => {
     }
   };
 
-  const signUp = async (email: string, password: string) => {
+  const signUp = async (email: string, password: string): Promise<boolean> => {
     setLoading(true);
     try {
       const { data, error } = await supabase.auth.signUp({
@@ -90,7 +93,7 @@ export const useAuthActions = () => {
   };
   
   // Function to verify email with code
-  const verifyEmailWithCode = async (userId: string, email: string) => {
+  const verifyEmailWithCode = async (userId: string, email: string): Promise<boolean> => {
     setLoading(true);
     try {
       // Update user profile with verified email status

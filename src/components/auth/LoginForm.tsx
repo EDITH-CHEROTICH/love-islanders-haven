@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useAuth } from "@/context/auth";
 import { toast } from "sonner";
@@ -29,9 +28,9 @@ const LoginForm = ({ isLoginMode, toggleAuthMode, onForgotPassword }: LoginFormP
   const completeSignUp = async () => {
     try {
       console.log("LoginForm: Completing signup");
-      // Fix: store the result of signUp and check for success
+      // Call signUp function and properly check the result
       const signupResult = await signUp(storedEmail, "");
-      if (!signupResult) {
+      if (signupResult === false) {
         throw new Error("Signup failed");
       }
       
