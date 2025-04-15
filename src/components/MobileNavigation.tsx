@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Heart, Search, User, MessageCircle, Settings } from 'lucide-react';
+import { Heart, Search, User, MessageCircle, Settings, Activity, Sparkles } from 'lucide-react';
 
 const MobileNavigation: React.FC = () => {
   const location = useLocation();
@@ -29,6 +29,14 @@ const MobileNavigation: React.FC = () => {
       </Link>
       
       <Link 
+        to="/streaks" 
+        className={`flex flex-col items-center ${isActive('/streaks') ? 'text-love' : 'text-white/70'}`}
+      >
+        <Activity size={22} />
+        <span className="text-xs mt-1">Streaks</span>
+      </Link>
+      
+      <Link 
         to="/messages" 
         className={`flex flex-col items-center ${isActive('/messages') ? 'text-love' : 'text-white/70'}`}
       >
@@ -42,14 +50,6 @@ const MobileNavigation: React.FC = () => {
       >
         <User size={22} />
         <span className="text-xs mt-1">Profile</span>
-      </Link>
-      
-      <Link 
-        to="/settings" 
-        className={`flex flex-col items-center ${isActive('/settings') ? 'text-love' : 'text-white/70'}`}
-      >
-        <Settings size={22} />
-        <span className="text-xs mt-1">Settings</span>
       </Link>
     </div>
   );

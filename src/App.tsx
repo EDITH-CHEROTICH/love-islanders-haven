@@ -20,6 +20,9 @@ import OfflinePlaceholder from '@/components/OfflinePlaceholder';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import ProtectedRoute from './components/ProtectedRoute';
+import Messages from '@/pages/Messages';
+import Matches from '@/pages/Matches';
+import Streaks from '@/pages/Streaks';
 
 // Don't forget to add the Onboarding component to your routes
 import Onboarding from './pages/Onboarding';
@@ -40,7 +43,7 @@ function App() {
   }, [online, toast]);
 
   return (
-    <div className="relative min-h-screen">
+    <div className="relative min-h-screen pb-16">
       {online ? (
         <>
           <Routes>
@@ -63,6 +66,30 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Discover />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/messages"
+              element={
+                <ProtectedRoute>
+                  <Messages />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/matches"
+              element={
+                <ProtectedRoute>
+                  <Matches />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/streaks"
+              element={
+                <ProtectedRoute>
+                  <Streaks />
                 </ProtectedRoute>
               }
             />
