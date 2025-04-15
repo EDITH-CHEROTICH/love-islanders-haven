@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { AuthTokenResponsePassword } from '@supabase/supabase-js';
@@ -54,6 +55,9 @@ export const useAuthActions = () => {
       
       // Return true if signup was successful
       return !!data.user;
+    } catch (error) {
+      console.error("Error during sign up:", error);
+      return false;
     } finally {
       setLoading(false);
     }
