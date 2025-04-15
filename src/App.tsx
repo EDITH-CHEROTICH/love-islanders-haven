@@ -40,7 +40,7 @@ function App() {
   }, [online, toast]);
 
   return (
-    <>
+    <div className="relative min-h-screen">
       {online ? (
         <>
           <Routes>
@@ -104,7 +104,7 @@ function App() {
           </Routes>
           
           {/* Conditionally render MobileNavigation */}
-          {isAuthenticated && user && (
+          {isAuthenticated && user && !loading && (
             <MobileNavigation />
           )}
           
@@ -113,7 +113,7 @@ function App() {
       ) : (
         <OfflinePlaceholder />
       )}
-    </>
+    </div>
   );
 }
 
