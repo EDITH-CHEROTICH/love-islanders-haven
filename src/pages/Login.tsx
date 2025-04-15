@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/auth';
@@ -74,9 +75,9 @@ const Login = () => {
     setIsSubmitting(true);
     
     try {
-      const { error } = await signIn(data.email, data.password);
-      if (error) {
-        throw error;
+      const result = await signIn(data.email, data.password);
+      if (result.error) {
+        throw result.error;
       }
       toast.success('Logged in successfully!');
       
