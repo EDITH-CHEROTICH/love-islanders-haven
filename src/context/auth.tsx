@@ -10,11 +10,13 @@ interface AuthContextType {
   isAuthenticated: boolean;
   loading: boolean;
   networkError: boolean;
-  signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string) => Promise<void>;
+  emailVerified: boolean | null;
+  signIn: (email: string, password: string) => Promise<any>; // Updated to return response with potential error
+  signUp: (email: string, password: string) => Promise<boolean>; // Updated to return boolean
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
+  verifyEmailWithCode: (userId: string, email: string) => Promise<boolean>; // Added for email verification
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -37,6 +39,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
   const [networkError, setNetworkError] = useState(false);
+  const [emailVerified, setEmailVerified] = useState<boolean | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -90,7 +93,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       });
 
       if (error) {
-        throw error;
+        return { error };
       }
 
       if (!error) {
@@ -109,15 +112,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
       }
       
+      return { data }; // Return data on success
+      
     } catch (error: any) {
       console.error('Sign-in error:', error);
-      throw error;
+      return { error }; // Return the error
     } finally {
       setLoading(false);
     }
   };
 
-  const signUp = async (email: string, password: string) => {
+  const signUp = async (email: string, password: string): Promise<boolean> => {
     try {
       setLoading(true);
       const { data, error } = await supabase.auth.signUp({
@@ -133,22 +138,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
       
       // When successful, set redirect to onboarding instead of /profile
-      if (!error) {
+      if (data.user) {
         localStorage.setItem('redirectAfterAuth', '/onboarding');
+      
+        // Store signup info for verification
+        localStorage.setItem('authMethod', 'email');
+        localStorage.setItem('authContact', email);
+
+        // Generate a verification code (4 digits)
+        const verificationCode = Math.floor(1000 + Math.random() * 9000).toString();
+        localStorage.setItem('verificationCode', verificationCode);
+
+        console.log('Verification code:', verificationCode);
+        
+        return true;
       }
-
-      // Store signup info for verification
-      localStorage.setItem('authMethod', 'email');
-      localStorage.setItem('authContact', email);
-
-      // Generate a verification code (4 digits)
-      const verificationCode = Math.floor(1000 + Math.random() * 9000).toString();
-      localStorage.setItem('verificationCode', verificationCode);
-
-      console.log('Verification code:', verificationCode);
+      
+      return false;
+      
     } catch (error: any) {
       console.error('Sign-up error:', error);
-      throw error;
+      return false;
     } finally {
       setLoading(false);
     }
@@ -208,6 +218,36 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setLoading(false);
     }
   };
+  
+  const verifyEmailWithCode = async (userId: string, email: string): Promise<boolean> => {
+    try {
+      setLoading(true);
+      // Update user profile with verified email status
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          email_verified: true
+        })
+        .eq('id', userId);
+        
+      if (error) {
+        console.error("Error updating email verification status:", error);
+        return false;
+      }
+      
+      // Set verification completed in localStorage
+      localStorage.setItem('emailVerificationCompleted', 'true');
+      localStorage.setItem('authContact', email);
+      setEmailVerified(true);
+      
+      return true;
+    } catch (error) {
+      console.error("Error verifying email:", error);
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const value: AuthContextType = {
     user,
@@ -215,11 +255,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     isAuthenticated,
     loading,
     networkError,
+    emailVerified,
     signIn,
     signUp,
     signOut,
     resetPassword,
     signInWithGoogle,
+    verifyEmailWithCode,
   };
 
   return (

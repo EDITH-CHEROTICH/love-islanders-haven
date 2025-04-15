@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/auth';
@@ -95,7 +96,10 @@ const Login = () => {
     setIsSubmitting(true);
     
     try {
-      await signUp(data.email, data.password);
+      const result = await signUp(data.email, data.password);
+      if (!result) {
+        throw new Error('Failed to create account');
+      }
       toast.success('Account created! Please check your email for verification.');
       // Switch back to login mode after successful signup
       setAuthMode('login');
