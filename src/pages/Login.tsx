@@ -76,7 +76,7 @@ const Login = () => {
     try {
       const response = await signIn(data.email, data.password);
       if (response?.error) {
-        throw response.error;
+        throw new Error(response.error.message);
       }
       toast.success('Logged in successfully!');
       
