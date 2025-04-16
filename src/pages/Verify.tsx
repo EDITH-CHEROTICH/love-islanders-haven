@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const Verify = () => {
   const navigate = useNavigate();
@@ -13,11 +14,13 @@ const Verify = () => {
   const [contactType, setContactType] = useState('');
   const [attemptsLeft, setAttemptsLeft] = useState(3);
   const [isLoading, setIsLoading] = useState(false);
+  const [storedCode, setStoredCode] = useState('');
   
   useEffect(() => {
     // Check if there's contact info in localStorage
     const authMethod = localStorage.getItem('authMethod');
     const authContact = localStorage.getItem('authContact');
+    const code = localStorage.getItem('verificationCode');
     
     if (!authMethod || !authContact) {
       // No signup info, redirect back to signup
@@ -27,6 +30,10 @@ const Verify = () => {
     
     setContactType(authMethod);
     setContactInfo(authContact);
+    
+    if (code) {
+      setStoredCode(code);
+    }
   }, [navigate]);
   
   const handleVerify = async (e: React.FormEvent) => {
@@ -44,15 +51,32 @@ const Verify = () => {
     setIsLoading(true);
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Check verification code
-      const storedCode = localStorage.getItem('verificationCode');
-      
       if (verificationCode === storedCode) {
+        // Get current user if available
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        // Update profile with verified status if user exists
+        if (user) {
+          try {
+            const { error } = await supabase
+              .from('profiles')
+              .update({
+                email_verified: true,
+                email: contactInfo
+              })
+              .eq('id', user.id);
+            
+            if (error) {
+              console.error("Error updating profile:", error);
+            }
+          } catch (profileError) {
+            console.error("Error updating profile:", profileError);
+          }
+        }
+        
         // Mark user as authenticated
         localStorage.setItem('isAuthenticated', 'true');
+        localStorage.setItem('emailVerificationCompleted', 'true');
         
         toast({
           title: "Verification Successful",
@@ -62,8 +86,8 @@ const Verify = () => {
         // Clean up
         localStorage.removeItem('verificationCode');
         
-        // Redirect to the discover page instead of main page
-        navigate('/discover');
+        // Redirect to the discover page
+        navigate('/discover', { replace: true });
       } else {
         // Decrease attempts
         const newAttemptsLeft = attemptsLeft - 1;
@@ -96,14 +120,59 @@ const Verify = () => {
   };
   
   const handleResendCode = async () => {
-    // Generate a new verification code (4 digits)
-    const newVerificationCode = Math.floor(1000 + Math.random() * 9000).toString();
-    localStorage.setItem('verificationCode', newVerificationCode);
+    setIsLoading(true);
     
-    toast({
-      title: "New Code Sent",
-      description: `Your new verification code is: ${newVerificationCode}`,
-    });
+    try {
+      // Generate a new verification code (4 digits)
+      const newVerificationCode = Math.floor(1000 + Math.random() * 9000).toString();
+      localStorage.setItem('verificationCode', newVerificationCode);
+      setStoredCode(newVerificationCode);
+      
+      // Try to send the verification code via edge function
+      try {
+        const { error } = await supabase.functions.invoke('send-verification-email', {
+          body: { 
+            email: contactInfo, 
+            code: newVerificationCode 
+          }
+        });
+        
+        if (error) {
+          console.error("Error sending verification email:", error);
+          throw error;
+        }
+        
+        toast({
+          title: "New Code Sent",
+          description: `We've sent a new verification code to your email.`,
+        });
+      } catch (emailError) {
+        console.error("Failed to send email:", emailError);
+        
+        // For development, show the code directly
+        if (process.env.NODE_ENV === 'development') {
+          toast({
+            title: "New Code Sent (Development)",
+            description: `Your new verification code is: ${newVerificationCode}`,
+          });
+        } else {
+          toast({
+            title: "Error Sending Code",
+            description: "Failed to send verification code. Please try again.",
+            variant: "destructive"
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Error generating new code:", error);
+      toast({
+        title: "Error",
+        description: "Failed to generate a new verification code.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -140,9 +209,10 @@ const Verify = () => {
         <div className="mt-4 text-center">
           <button 
             onClick={handleResendCode}
+            disabled={isLoading}
             className="text-muted-foreground hover:text-love text-sm transition-colors"
           >
-            Didn't receive a code? Send again
+            {isLoading ? "Processing..." : "Didn't receive a code? Send again"}
           </button>
         </div>
       </div>

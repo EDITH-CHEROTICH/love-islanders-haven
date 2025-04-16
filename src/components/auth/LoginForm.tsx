@@ -32,18 +32,24 @@ const LoginForm = ({ isLoginMode, toggleAuthMode, onForgotPassword }: LoginFormP
       // Fix: pass an empty string as the second argument (password) since signUp expects 2 arguments
       const success = await signUp(storedEmail, "");
       
-      // Set localStorage auth
-      localStorage.setItem('isAuthenticated', 'true');
-      localStorage.setItem('authMethod', 'email');
-      localStorage.setItem('authContact', storedEmail);
+      if (success) {
+        // Set localStorage auth
+        localStorage.setItem('isAuthenticated', 'true');
+        localStorage.setItem('authMethod', 'email');
+        localStorage.setItem('authContact', storedEmail);
+        localStorage.setItem('emailVerificationCompleted', 'true');
+        
+        console.log("LoginForm: Signup successful, navigating to discover");
+        // Explicitly navigate after successful signup
+        navigate('/discover', { replace: true });
+        return true;
+      }
       
-      console.log("LoginForm: Signup successful, navigating to discover");
-      // Explicitly navigate after successful signup
-      navigate('/discover', { replace: true });
-      return true;
+      return false;
     } catch (error: any) {
       console.error("Signup error:", error);
-      throw error;
+      toast.error(error.message || "Error completing signup");
+      return false;
     }
   };
 
@@ -64,7 +70,7 @@ const LoginForm = ({ isLoginMode, toggleAuthMode, onForgotPassword }: LoginFormP
         />
       </div>
 
-      {/* Verification Dialog - only shown after signup */}
+      {/* Verification Dialog - only shown after email submission */}
       {generatedCode && (
         <EmailVerificationHandler
           email={storedEmail}

@@ -70,7 +70,8 @@ const EmailVerificationHandler = ({
       return false;
     } catch (error: any) {
       console.error("Error in completeSignUp:", error);
-      throw error;
+      toast.error(error.message || "Error completing signup");
+      return false;
     }
   };
 
@@ -80,6 +81,8 @@ const EmailVerificationHandler = ({
       setSendingEmail(true);
       try {
         console.log("Sending verification email to:", email, "with code:", generatedCode);
+        
+        // Check if the edge function is available
         const { error } = await supabase.functions.invoke('send-verification-email', {
           body: { email, code: generatedCode }
         });
@@ -92,16 +95,22 @@ const EmailVerificationHandler = ({
         toast.success(`Verification code sent to ${email}`);
       } catch (error: any) {
         console.error("Error sending verification email:", error);
-        toast.error("Failed to send verification code. Please try again.");
+        
+        // For development purposes, show the code in the toast
+        if (process.env.NODE_ENV === 'development') {
+          toast.success(`Development mode: Use this verification code: ${generatedCode}`);
+        } else {
+          toast.error("Failed to send verification code. Please try again.");
+        }
       } finally {
         setSendingEmail(false);
       }
     };
 
-    if (email && generatedCode) {
+    if (email && generatedCode && showVerification) {
       sendVerificationEmail();
     }
-  }, [email, generatedCode]);
+  }, [email, generatedCode, showVerification]);
 
   return (
     <Dialog open={showVerification} onOpenChange={setShowVerification}>

@@ -36,27 +36,40 @@ const EmailAuthForm = ({ onEmailSubmit }: EmailAuthFormProps) => {
       const verificationCode = Math.floor(1000 + Math.random() * 9000).toString();
       console.log("Generated verification code:", verificationCode);
       
-      // Send verification code via our custom email function
-      const { error } = await supabase.functions.invoke('send-verification-email', {
-        body: { 
-          email: data.email, 
-          code: verificationCode 
+      // Try to send verification code via Supabase edge function
+      try {
+        const { error } = await supabase.functions.invoke('send-verification-email', {
+          body: { 
+            email: data.email, 
+            code: verificationCode 
+          }
+        });
+        
+        if (error) {
+          console.error("Error sending verification email via edge function:", error);
+          throw new Error(error.message);
         }
-      });
-      
-      if (error) {
-        console.error("Error sending verification email:", error);
-        throw new Error(error.message);
+        
+        toast.success("Verification code sent", {
+          description: `We've sent a verification code to ${data.email}. Please check your inbox.`,
+        });
+      } catch (emailError) {
+        console.error("Failed to send email via edge function:", emailError);
+        
+        // For development, show the code in toast for easier testing
+        if (process.env.NODE_ENV === 'development') {
+          toast.success("Development mode: Code generated", {
+            description: `Verification code: ${verificationCode}`,
+          });
+        } else {
+          throw emailError;
+        }
       }
 
-      // Pass the email and code to parent component
-      toast.success("Verification code sent", {
-        description: `We've sent a verification code to ${data.email}. Please check your inbox.`,
-      });
-      
       // Save email to localStorage for persistence
       localStorage.setItem('authContact', data.email);
       
+      // Pass the email and code to parent component
       onEmailSubmit(data.email, verificationCode);
     } catch (error: any) {
       console.error("Error sending verification email:", error);
@@ -69,13 +82,12 @@ const EmailAuthForm = ({ onEmailSubmit }: EmailAuthFormProps) => {
         });
         localStorage.setItem('authContact', data.email);
         onEmailSubmit(data.email, devCode);
-        return;
+      } else {
+        toast.error("Error sending verification code", {
+          description: error.message || "We couldn't send the verification code. Please try again.",
+          style: { backgroundColor: "#f44336", color: "white" }
+        });
       }
-      
-      toast.error("Error sending verification code", {
-        description: error.message || "We couldn't send the verification code. Please try again.",
-        style: { backgroundColor: "#f44336", color: "white" }
-      });
     } finally {
       setIsLoading(false);
     }
