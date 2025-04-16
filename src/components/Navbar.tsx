@@ -1,6 +1,6 @@
 
 import { Link, useLocation } from 'react-router-dom';
-import { Heart, User, Compass, Bot, Flame } from 'lucide-react';
+import { Compass, Heart, Bot, Flame, User } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 const Navbar = () => {
@@ -18,7 +18,7 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="fixed bottom-0 left-0 w-full h-16 bg-island-light backdrop-blur-lg border-t border-love/10 z-50">
+    <nav className="fixed bottom-0 left-0 w-full h-16 bg-slate-800/90 backdrop-blur-lg border-t border-slate-700 z-50">
       <div className="container h-full max-w-md mx-auto px-2 flex items-center">
         <div className="flex justify-between w-full">
           <NavItem path="/discover" icon={<Compass size={18} />} label="Discover" isActive={isActivePath('/discover')} />
@@ -42,9 +42,9 @@ interface NavItemProps {
 const NavItem = ({ path, icon, label, isActive }: NavItemProps) => (
   <Link 
     to={path} 
-    className={`flex flex-col items-center justify-center px-2 transition-all duration-300 ${isActive ? 'text-love scale-110' : 'text-muted-foreground'}`}
+    className={`flex flex-col items-center justify-center px-2 transition-all duration-300 ${isActive ? 'text-purple-500 scale-110' : 'text-gray-400'}`}
   >
-    <div className={`${isActive ? 'text-love' : ''}`}>
+    <div className={`${isActive ? 'text-purple-500' : ''}`}>
       {icon}
     </div>
     <span className="text-[10px] mt-1">{label}</span>

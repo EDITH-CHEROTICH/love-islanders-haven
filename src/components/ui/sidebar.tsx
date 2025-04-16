@@ -2,7 +2,7 @@
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 import { Link } from "react-router-dom"
-import { Home, Heart, User, MessageCircleHeart } from "lucide-react"
+import { Compass, Heart, User, Bot, Flame } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
@@ -64,28 +64,32 @@ const Sidebar = React.forwardRef<HTMLDivElement, SidebarProps>(
         className={cn(
           "flex flex-col gap-2 p-2",
           mobile
-            ? "fixed inset-x-0 -bottom-0 border-t border-t-sidebar-border bg-sidebar pb-safe z-50"
-            : "h-full border-r border-r-sidebar-border bg-sidebar",
+            ? "fixed inset-x-0 -bottom-0 border-t border-slate-700 bg-slate-800/90 backdrop-blur-md pb-safe z-50"
+            : "h-full border-r border-sidebar-border bg-sidebar",
           className
         )}
         {...props}
       >
         <nav className="flex flex-col gap-2">
-          <NavLink to="/" active={activePath === "/"}>
-            <Home className="h-5 w-5" />
-            <span className={cn("flex-1", mobile ? "hidden" : "")}>Home</span>
+          <NavLink to="/discover" active={activePath === "/discover"}>
+            <Compass className="h-5 w-5" />
+            <span className={cn("flex-1", mobile ? "hidden" : "")}>Discover</span>
           </NavLink>
           <NavLink to="/matches" active={activePath === "/matches"}>
             <Heart className="h-5 w-5" />
             <span className={cn("flex-1", mobile ? "hidden" : "")}>Matches</span>
           </NavLink>
+          <NavLink to="/ai-companion" active={activePath === "/ai-companion"}>
+            <Bot className="h-5 w-5" />
+            <span className={cn("flex-1", mobile ? "hidden" : "")}>Isla</span>
+          </NavLink>
+          <NavLink to="/streaks" active={activePath === "/streaks"}>
+            <Flame className="h-5 w-5" />
+            <span className={cn("flex-1", mobile ? "hidden" : "")}>Streaks</span>
+          </NavLink>
           <NavLink to="/profile" active={activePath === "/profile"}>
             <User className="h-5 w-5" />
             <span className={cn("flex-1", mobile ? "hidden" : "")}>Profile</span>
-          </NavLink>
-          <NavLink to="/ai-companion" active={activePath === "/ai-companion"}>
-            <MessageCircleHeart className="h-5 w-5" />
-            <span className={cn("flex-1", mobile ? "hidden" : "")}>Companion</span>
           </NavLink>
         </nav>
       </div>

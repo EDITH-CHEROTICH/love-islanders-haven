@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes, useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '@/context/auth';
@@ -19,6 +18,8 @@ import useOnline from '@/hooks/useOnline';
 import OfflinePlaceholder from '@/components/OfflinePlaceholder';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
+import Streaks from '@/pages/Streaks';
+import Matches from '@/pages/Matches';
 
 // Don't forget to add the Onboarding component to your routes
 import Onboarding from './pages/Onboarding';
@@ -101,6 +102,32 @@ function App() {
               element={
                 <PrivateRoute>
                   <Discover />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/matches"
+              element={
+                <PrivateRoute>
+                  <Matches />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/ai-companion"
+              element={
+                <PrivateRoute>
+                  <div className="min-h-screen bg-gradient-to-b from-neutral-950 via-neutral-900 to-neutral-950 flex items-center justify-center">
+                    <h1 className="text-xl text-center">AI Companion Coming Soon</h1>
+                  </div>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/streaks"
+              element={
+                <PrivateRoute>
+                  <Streaks />
                 </PrivateRoute>
               }
             />
