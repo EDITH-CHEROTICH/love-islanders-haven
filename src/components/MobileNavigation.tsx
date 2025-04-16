@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Heart, Search, User, MessageCircle, Settings, Activity, Sparkles } from 'lucide-react';
+import { Heart, Search, User, MessageCircle, Settings } from 'lucide-react';
 
 const MobileNavigation: React.FC = () => {
   const location = useLocation();
@@ -11,12 +11,12 @@ const MobileNavigation: React.FC = () => {
   };
   
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-island-dark border-t border-island-light/30 py-3 px-4 flex justify-around z-50">
+    <div className="fixed bottom-0 left-0 right-0 bg-island-dark border-t border-island-light/30 py-2 px-4 flex justify-around z-50">
       <Link 
         to="/discover" 
         className={`flex flex-col items-center ${isActive('/discover') ? 'text-love' : 'text-white/70'}`}
       >
-        <Search size={22} />
+        <Search size={24} />
         <span className="text-xs mt-1">Discover</span>
       </Link>
       
@@ -24,40 +24,32 @@ const MobileNavigation: React.FC = () => {
         to="/matches" 
         className={`flex flex-col items-center ${isActive('/matches') ? 'text-love' : 'text-white/70'}`}
       >
-        <Heart size={22} />
+        <Heart size={24} />
         <span className="text-xs mt-1">Matches</span>
-      </Link>
-      
-      <Link 
-        to="/streaks" 
-        className={`flex flex-col items-center ${isActive('/streaks') ? 'text-love' : 'text-white/70'}`}
-      >
-        <Activity size={22} />
-        <span className="text-xs mt-1">Streaks</span>
       </Link>
       
       <Link 
         to="/messages" 
         className={`flex flex-col items-center ${isActive('/messages') ? 'text-love' : 'text-white/70'}`}
       >
-        <MessageCircle size={22} />
+        <MessageCircle size={24} />
         <span className="text-xs mt-1">Messages</span>
-      </Link>
-      
-      <Link 
-        to="/ai-companion" 
-        className={`flex flex-col items-center ${isActive('/ai-companion') ? 'text-love' : 'text-white/70'}`}
-      >
-        <Sparkles size={22} />
-        <span className="text-xs mt-1">Isla</span>
       </Link>
       
       <Link 
         to="/profile" 
         className={`flex flex-col items-center ${isActive('/profile') ? 'text-love' : 'text-white/70'}`}
       >
-        <User size={22} />
+        <User size={24} />
         <span className="text-xs mt-1">Profile</span>
+      </Link>
+      
+      <Link 
+        to="/settings" 
+        className={`flex flex-col items-center ${isActive('/settings') ? 'text-love' : 'text-white/70'}`}
+      >
+        <Settings size={24} />
+        <span className="text-xs mt-1">Settings</span>
       </Link>
     </div>
   );

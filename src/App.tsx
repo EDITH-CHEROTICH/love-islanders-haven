@@ -20,10 +20,6 @@ import OfflinePlaceholder from '@/components/OfflinePlaceholder';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import ProtectedRoute from './components/ProtectedRoute';
-import Messages from '@/pages/Messages';
-import Matches from '@/pages/Matches';
-import Streaks from '@/pages/Streaks';
-import AICompanionChat from '@/pages/AICompanionChat';
 
 // Don't forget to add the Onboarding component to your routes
 import Onboarding from './pages/Onboarding';
@@ -32,7 +28,6 @@ function App() {
   const { isAuthenticated, loading, user } = useAuth();
   const online = useOnline();
   const { toast } = useToast();
-  const navigate = useNavigate();
   
   useEffect(() => {
     if (!online) {
@@ -44,16 +39,8 @@ function App() {
     }
   }, [online, toast]);
 
-  // If user is at the root path (/), redirect them based on auth status
-  useEffect(() => {
-    const path = window.location.pathname;
-    if (path === '/' && !loading) {
-      navigate(isAuthenticated ? '/discover' : '/login', { replace: true });
-    }
-  }, [isAuthenticated, loading, navigate]);
-
   return (
-    <div className="relative min-h-screen pb-24">
+    <>
       {online ? (
         <>
           <Routes>
@@ -76,38 +63,6 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Discover />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/messages"
-              element={
-                <ProtectedRoute>
-                  <Messages />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/matches"
-              element={
-                <ProtectedRoute>
-                  <Matches />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/streaks"
-              element={
-                <ProtectedRoute>
-                  <Streaks />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/ai-companion"
-              element={
-                <ProtectedRoute>
-                  <AICompanionChat />
                 </ProtectedRoute>
               }
             />
@@ -145,11 +100,11 @@ function App() {
             />
             <Route path="/terms" element={<Terms />} />
             <Route path="/privacy" element={<Privacy />} />
-            <Route path="/" element={<Navigate to={isAuthenticated ? "/discover" : "/login"} replace />} />
+            <Route path="/" element={<Navigate to="/discover" replace />} />
           </Routes>
           
-          {/* Always render MobileNavigation for authenticated users */}
-          {isAuthenticated && (
+          {/* Conditionally render MobileNavigation */}
+          {isAuthenticated && user && (
             <MobileNavigation />
           )}
           
@@ -158,7 +113,7 @@ function App() {
       ) : (
         <OfflinePlaceholder />
       )}
-    </div>
+    </>
   );
 }
 

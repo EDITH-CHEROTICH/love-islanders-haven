@@ -103,7 +103,7 @@ const Discover: React.FC = () => {
   return (
     <div className="flex flex-col h-screen bg-gradient-to-b from-neutral-950 via-neutral-900 to-neutral-950">
       <ScrollArea className="h-full w-full overflow-auto">
-        <div className="container mx-auto px-4 py-8 pb-32">
+        <div className="container mx-auto px-4 py-8 pb-24">
           <h1 className="text-3xl font-bold text-center text-white mb-6">Discover People</h1>
 
           {/* Profile display component or empty state */}
@@ -136,7 +136,7 @@ const Discover: React.FC = () => {
           />
           
           {/* Fixed Filter Button */}
-          <div className="fixed bottom-24 left-6 z-10">
+          <div className="fixed bottom-20 left-6 z-10">
             <Button 
               onClick={openFilterDialog} 
               variant="secondary" 
