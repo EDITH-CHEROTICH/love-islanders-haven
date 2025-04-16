@@ -13,7 +13,7 @@ import Support from '@/pages/Support';
 import Terms from '@/pages/Terms';
 import Privacy from '@/pages/Privacy';
 import Signup from '@/pages/Signup';
-import { ToastContainer } from 'sonner';
+import { Toaster as ToastContainer } from 'sonner';
 import MobileNavigation from '@/components/MobileNavigation';
 import useOnline from '@/hooks/useOnline';
 import OfflinePlaceholder from '@/components/OfflinePlaceholder';
