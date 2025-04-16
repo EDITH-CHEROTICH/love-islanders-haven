@@ -32,6 +32,7 @@ function App() {
   const { isAuthenticated, loading, user } = useAuth();
   const online = useOnline();
   const { toast } = useToast();
+  const navigate = useNavigate();
   
   useEffect(() => {
     if (!online) {
@@ -42,6 +43,14 @@ function App() {
       })
     }
   }, [online, toast]);
+
+  // If user is at the root path (/), redirect them based on auth status
+  useEffect(() => {
+    const path = window.location.pathname;
+    if (path === '/' && !loading) {
+      navigate(isAuthenticated ? '/discover' : '/login', { replace: true });
+    }
+  }, [isAuthenticated, loading, navigate]);
 
   return (
     <div className="relative min-h-screen pb-24">
@@ -136,11 +145,11 @@ function App() {
             />
             <Route path="/terms" element={<Terms />} />
             <Route path="/privacy" element={<Privacy />} />
-            <Route path="/" element={<Navigate to="/discover" replace />} />
+            <Route path="/" element={<Navigate to={isAuthenticated ? "/discover" : "/login"} replace />} />
           </Routes>
           
           {/* Always render MobileNavigation for authenticated users */}
-          {isAuthenticated && !loading && (
+          {isAuthenticated && (
             <MobileNavigation />
           )}
           
