@@ -1,8 +1,9 @@
+
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes, useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '@/context/auth';
 import Login from '@/pages/Login';
-import ProfilePage from '@/pages/ProfilePage';
+import Profile from '@/pages/Profile'; // Changed from ProfilePage to Profile
 import Discover from '@/pages/Discover';
 import Verify from '@/pages/Verify';
 import Settings from '@/pages/Settings';
@@ -75,7 +76,7 @@ function App() {
               path="/profile"
               element={
                 <PrivateRoute>
-                  <ProfilePage />
+                  <Profile /> {/* Changed from ProfilePage to Profile */}
                 </PrivateRoute>
               }
             />
