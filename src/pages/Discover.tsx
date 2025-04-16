@@ -136,7 +136,7 @@ const Discover: React.FC = () => {
           />
           
           {/* Fixed Filter Button */}
-          <div className="fixed bottom-20 left-6 z-10">
+          <div className="fixed bottom-24 left-6 z-10">
             <Button 
               onClick={openFilterDialog} 
               variant="secondary" 

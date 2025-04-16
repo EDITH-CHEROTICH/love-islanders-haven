@@ -44,7 +44,7 @@ function App() {
   }, [online, toast]);
 
   return (
-    <div className="relative min-h-screen pb-20">
+    <div className="relative min-h-screen pb-24">
       {online ? (
         <>
           <Routes>
@@ -139,8 +139,8 @@ function App() {
             <Route path="/" element={<Navigate to="/discover" replace />} />
           </Routes>
           
-          {/* Conditionally render MobileNavigation */}
-          {isAuthenticated && user && !loading && (
+          {/* Always render MobileNavigation for authenticated users */}
+          {isAuthenticated && !loading && (
             <MobileNavigation />
           )}
           
