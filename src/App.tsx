@@ -1,6 +1,5 @@
-
 import React, { useEffect } from 'react';
-import { Route, Routes, useNavigate, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '@/context/auth';
 import Login from '@/pages/Login';
 import ProfilePage from '@/pages/ProfilePage';
@@ -13,13 +12,12 @@ import Support from '@/pages/Support';
 import Terms from '@/pages/Terms';
 import Privacy from '@/pages/Privacy';
 import Signup from '@/pages/Signup';
-import { Toaster } from 'sonner';
+import { ToastContainer } from 'sonner';
 import MobileNavigation from '@/components/MobileNavigation';
 import useOnline from '@/hooks/useOnline';
 import OfflinePlaceholder from '@/components/OfflinePlaceholder';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
-import ProtectedRoute from './components/ProtectedRoute';
 
 // Don't forget to add the Onboarding component to your routes
 import Onboarding from './pages/Onboarding';
@@ -39,8 +37,31 @@ function App() {
     }
   }, [online, toast]);
 
+  // Custom PrivateRoute component
+  const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
+    const navigate = useNavigate();
+    
+    useEffect(() => {
+      if (!isAuthenticated && !loading) {
+        // Redirect to login if not authenticated
+        navigate('/login', { replace: true });
+      }
+    }, [isAuthenticated, loading, navigate]);
+
+    // Show loading indicator while authenticating
+    if (loading) {
+      return (
+        <div className="flex h-screen items-center justify-center bg-island-dark">
+          <Loader2 className="h-12 w-12 animate-spin text-love" />
+        </div>
+      );
+    }
+
+    return isAuthenticated ? <>{children}</> : null;
+  };
+
   return (
-    <>
+    <Router>
       {online ? (
         <>
           <Routes>
@@ -53,49 +74,49 @@ function App() {
             <Route
               path="/profile"
               element={
-                <ProtectedRoute>
+                <PrivateRoute>
                   <ProfilePage />
-                </ProtectedRoute>
+                </PrivateRoute>
               }
             />
             <Route
               path="/discover"
               element={
-                <ProtectedRoute>
+                <PrivateRoute>
                   <Discover />
-                </ProtectedRoute>
+                </PrivateRoute>
               }
             />
             <Route
               path="/settings"
               element={
-                <ProtectedRoute>
+                <PrivateRoute>
                   <Settings />
-                </ProtectedRoute>
+                </PrivateRoute>
               }
             />
             <Route
               path="/feedback"
               element={
-                <ProtectedRoute>
+                <PrivateRoute>
                   <Feedback />
-                </ProtectedRoute>
+                </PrivateRoute>
               }
             />
             <Route
               path="/safety"
               element={
-                <ProtectedRoute>
+                <PrivateRoute>
                   <Safety />
-                </ProtectedRoute>
+                </PrivateRoute>
               }
             />
             <Route
               path="/support"
               element={
-                <ProtectedRoute>
+                <PrivateRoute>
                   <Support />
-                </ProtectedRoute>
+                </PrivateRoute>
               }
             />
             <Route path="/terms" element={<Terms />} />
@@ -108,12 +129,12 @@ function App() {
             <MobileNavigation />
           )}
           
-          <Toaster />
+          <ToastContainer />
         </>
       ) : (
         <OfflinePlaceholder />
       )}
-    </>
+    </Router>
   );
 }
 

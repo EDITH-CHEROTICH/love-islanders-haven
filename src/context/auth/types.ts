@@ -8,7 +8,7 @@ export type AuthContextType = {
   isAuthenticated: boolean;
   networkError: boolean;
   emailVerified: boolean | null;
-  signIn: (email: string, password: string) => Promise<AuthTokenResponsePassword | null>;
+  signIn: (email: string, password: string) => Promise<AuthTokenResponsePassword>;
   signInWithGoogle: () => Promise<void>;
   signUp: (email: string, password: string) => Promise<boolean>;
   resetPassword: (email: string) => Promise<void>;

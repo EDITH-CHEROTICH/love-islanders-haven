@@ -74,9 +74,9 @@ const Login = () => {
     setIsSubmitting(true);
     
     try {
-      const response = await signIn(data.email, data.password);
-      if (response?.error) {
-        throw new Error(response.error.message);
+      const { error } = await signIn(data.email, data.password);
+      if (error) {
+        throw error;
       }
       toast.success('Logged in successfully!');
       
