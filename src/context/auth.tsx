@@ -1,5 +1,5 @@
+
 import { createContext, useContext, useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { AuthChangeEvent, Session, User } from '@supabase/supabase-js';
 
 import { supabase } from '@/integrations/supabase/client';
@@ -10,8 +10,10 @@ interface AuthContextType {
   isAuthenticated: boolean;
   loading: boolean;
   networkError: boolean;
-  signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string) => Promise<void>;
+  signIn: (email: string, password: string) => Promise<{
+    error?: Error;
+  }>;
+  signUp: (email: string, password: string) => Promise<boolean>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
@@ -37,7 +39,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
   const [networkError, setNetworkError] = useState(false);
-  const navigate = useNavigate();
 
   useEffect(() => {
     const getSession = async () => {
@@ -66,11 +67,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setIsAuthenticated(!!session);
         setLoading(false);
 
-        // Handle redirect after authentication
-        const redirectPath = localStorage.getItem('redirectAfterAuth');
-        if (redirectPath) {
-          localStorage.removeItem('redirectAfterAuth');
-          navigate(redirectPath, { replace: true });
+        // Store redirect path in localStorage to be used after auth
+        if (session && event === 'SIGNED_IN') {
+          const redirectPath = localStorage.getItem('redirectAfterAuth');
+          if (redirectPath) {
+            // Don't remove the redirectAfterAuth here, let the component that handles 
+            // navigation remove it after successful navigation
+            // The actual navigation will be handled in the component that renders this redirect
+            console.log('Auth state changed, redirect path:', redirectPath);
+          }
         }
       }
     );
@@ -79,7 +84,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return () => {
       subscription?.unsubscribe();
     };
-  }, [navigate]);
+  }, []);
 
   const signIn = async (email: string, password: string) => {
     try {
@@ -90,15 +95,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       });
 
       if (error) {
-        throw error;
+        return { error };
       }
 
-      if (!error) {
+      if (data.user) {
         // Check if the user should be redirected to onboarding
         const { data: onboardingData } = await supabase
           .from('profile_onboarding')
           .select('completed')
-          .eq('profile_id', data.user?.id)
+          .eq('profile_id', data.user.id)
           .single();
           
         // If onboarding doesn't exist or is not completed, redirect to onboarding
@@ -109,9 +114,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
       }
       
+      return {};
     } catch (error: any) {
       console.error('Sign-in error:', error);
-      throw error;
+      return { error };
     } finally {
       setLoading(false);
     }
@@ -133,7 +139,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
       
       // When successful, set redirect to onboarding instead of /profile
-      if (!error) {
+      if (data.user) {
         localStorage.setItem('redirectAfterAuth', '/onboarding');
       }
 
@@ -146,6 +152,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       localStorage.setItem('verificationCode', verificationCode);
 
       console.log('Verification code:', verificationCode);
+      
+      return true;
     } catch (error: any) {
       console.error('Sign-up error:', error);
       throw error;
@@ -163,7 +171,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
       localStorage.removeItem('isAuthenticated');
       localStorage.removeItem('redirectAfterAuth');
-      navigate('/login', { replace: true }); // Redirect to login after sign out
+      
+      // We'll handle the actual navigation in App.tsx or other components
+      localStorage.setItem('shouldRedirectToLogin', 'true');
     } catch (error: any) {
       console.error('Sign-out error:', error);
       throw error;

@@ -27,6 +27,7 @@ function App() {
   const { isAuthenticated, loading, user } = useAuth();
   const online = useOnline();
   const { toast } = useToast();
+  const navigate = useNavigate();
   
   useEffect(() => {
     if (!online) {
@@ -34,9 +35,24 @@ function App() {
         title: "No internet connection",
         description: "Some features may be unavailable",
         duration: 5000,
-      })
+      });
     }
   }, [online, toast]);
+
+  // Handle redirect after auth changes
+  useEffect(() => {
+    const redirectPath = localStorage.getItem('redirectAfterAuth');
+    if (redirectPath && isAuthenticated) {
+      localStorage.removeItem('redirectAfterAuth');
+      navigate(redirectPath, { replace: true });
+    }
+    
+    const shouldRedirectToLogin = localStorage.getItem('shouldRedirectToLogin');
+    if (shouldRedirectToLogin === 'true' && !isAuthenticated && !loading) {
+      localStorage.removeItem('shouldRedirectToLogin');
+      navigate('/login', { replace: true });
+    }
+  }, [isAuthenticated, loading, navigate]);
 
   // Custom PrivateRoute component
   const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
@@ -62,7 +78,7 @@ function App() {
   };
 
   return (
-    <Router>
+    <>
       {online ? (
         <>
           <Routes>
@@ -76,7 +92,7 @@ function App() {
               path="/profile"
               element={
                 <PrivateRoute>
-                  <Profile /> {/* Changed from ProfilePage to Profile */}
+                  <Profile />
                 </PrivateRoute>
               }
             />
@@ -135,7 +151,7 @@ function App() {
       ) : (
         <OfflinePlaceholder />
       )}
-    </Router>
+    </>
   );
 }
 

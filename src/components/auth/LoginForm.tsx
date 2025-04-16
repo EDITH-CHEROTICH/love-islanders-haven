@@ -30,10 +30,7 @@ const LoginForm = ({ isLoginMode, toggleAuthMode, onForgotPassword }: LoginFormP
     try {
       console.log("LoginForm: Completing signup");
       // Fix: pass an empty string as the second argument (password) since signUp expects 2 arguments
-      const result = await signUp(storedEmail, "");
-      if (!result) {
-        throw new Error("Signup failed");
-      }
+      const success = await signUp(storedEmail, "");
       
       // Set localStorage auth
       localStorage.setItem('isAuthenticated', 'true');
