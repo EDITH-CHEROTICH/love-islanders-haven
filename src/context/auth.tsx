@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useState, useEffect } from 'react';
 import { AuthChangeEvent, Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -177,9 +176,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               profile_id: data.user.id,
               completed: false,
               current_step: 'basics'
-            })
-            .onConflict('profile_id')
-            .ignore();
+            });
             
         } catch (profileError) {
           console.error("Error creating profile:", profileError);
