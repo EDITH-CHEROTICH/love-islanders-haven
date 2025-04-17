@@ -1,387 +1,200 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+
+import { useState } from 'react';
 import { useAuth } from '@/context/auth';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import AlreadyLoggedIn from '@/components/auth/AlreadyLoggedIn';
-import SocialLoginButton from '@/components/auth/SocialLoginButton';
-import { Loader2, ArrowRight, LockKeyhole } from 'lucide-react';
-
-const loginSchema = z.object({
-  email: z.string().email('Please enter a valid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
-});
-
-const signupSchema = z.object({
-  email: z.string().email('Please enter a valid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
-  confirmPassword: z.string().min(6, 'Password must be at least 6 characters'),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ["confirmPassword"],
-});
+import { useNavigate } from 'react-router-dom';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 const Login = () => {
+  const [email, setEmail] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [verificationCode, setVerificationCode] = useState('');
+  const [showCodeInput, setShowCodeInput] = useState(false);
+  const [generatedCode, setGeneratedCode] = useState('');
   const navigate = useNavigate();
-  const location = useLocation();
-  const [authMode, setAuthMode] = useState<'login' | 'signup' | 'forgot'>('login');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const { signIn, signUp, resetPassword, isAuthenticated, loading, signInWithGoogle } = useAuth();
-  
-  const from = location.state?.from?.pathname || '/discover';
+  const { signUp } = useAuth();
 
-  const loginForm = useForm<z.infer<typeof loginSchema>>({
-    resolver: zodResolver(loginSchema),
-    defaultValues: {
-      email: '',
-      password: '',
-    },
-  });
-
-  const signupForm = useForm<z.infer<typeof signupSchema>>({
-    resolver: zodResolver(signupSchema),
-    defaultValues: {
-      email: '',
-      password: '',
-      confirmPassword: '',
-    },
-  });
-
-  const forgotForm = useForm<{ email: string }>({
-    resolver: zodResolver(z.object({
-      email: z.string().email('Please enter a valid email address'),
-    })),
-    defaultValues: {
-      email: '',
-    },
-  });
-
-  // Redirect if already authenticated
-  useEffect(() => {
-    if (isAuthenticated && !loading) {
-      navigate(from, { replace: true });
+  const handleSendVerificationCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
+      toast.error('Please enter a valid email address');
+      return;
     }
-  }, [isAuthenticated, navigate, from, loading]);
 
-  const handleLogin = async (data: z.infer<typeof loginSchema>) => {
-    setIsSubmitting(true);
+    setIsLoading(true);
     
     try {
-      const { error } = await signIn(data.email, data.password);
+      // Generate a 4-digit verification code
+      const code = Math.floor(1000 + Math.random() * 9000).toString();
+      setGeneratedCode(code);
+      
+      // Try to send verification code via Supabase edge function
+      const { error } = await supabase.functions.invoke('send-verification-email', {
+        body: { 
+          email, 
+          code 
+        }
+      });
+      
       if (error) {
+        console.error("Error sending verification email:", error);
         throw error;
       }
-      toast.success('Logged in successfully!');
       
-      // Navigate based on redirectAfterAuth or default to /discover
-      const redirectPath = localStorage.getItem('redirectAfterAuth') || '/discover';
-      navigate(redirectPath, { replace: true });
+      // Show verification code input
+      setShowCodeInput(true);
+      toast.success('Verification code sent to your email');
+      
+      // Store email in localStorage for persistence
+      localStorage.setItem('authContact', email);
     } catch (error: any) {
-      console.error('Login error:', error);
-      toast.error(error.message || 'Failed to log in');
+      console.error("Error:", error);
+      
+      // For development, show the code in toast for easier testing
+      if (process.env.NODE_ENV === 'development') {
+        toast.success(`Development: Your code is ${generatedCode}`);
+        setShowCodeInput(true);
+      } else {
+        toast.error('Failed to send verification code. Please try again.');
+      }
     } finally {
-      setIsSubmitting(false);
+      setIsLoading(false);
     }
   };
 
-  const handleSignup = async (data: z.infer<typeof signupSchema>) => {
-    setIsSubmitting(true);
-    
+  const handleVerifyCode = async () => {
+    if (verificationCode.length !== 4) {
+      toast.error('Please enter a valid 4-digit code');
+      return;
+    }
+
+    setIsLoading(true);
+
     try {
-      await signUp(data.email, data.password);
-      toast.success('Account created! Please check your email for verification.');
-      // Switch back to login mode after successful signup
-      setAuthMode('login');
+      if (verificationCode === generatedCode) {
+        // Sign up user with empty password (using email verification instead)
+        const success = await signUp(email, "");
+        
+        if (success) {
+          // Set auth state in localStorage
+          localStorage.setItem('isAuthenticated', 'true');
+          localStorage.setItem('authMethod', 'email');
+          localStorage.setItem('emailVerificationCompleted', 'true');
+          
+          // Create or update user profile with verified status
+          try {
+            const { data: { user } } = await supabase.auth.getUser();
+            
+            if (user) {
+              await supabase.from('profiles').upsert(
+                { 
+                  id: user.id,
+                  email: email,
+                  email_verified: true,
+                  name: email.split('@')[0]
+                },
+                { onConflict: 'id' }
+              );
+            }
+          } catch (profileError) {
+            console.error("Error updating profile:", profileError);
+          }
+          
+          // Redirect to onboarding
+          toast.success('Email verified successfully!');
+          navigate('/onboarding', { replace: true });
+        } else {
+          toast.error('Failed to complete signup');
+        }
+      } else {
+        toast.error('Invalid verification code. Please try again.');
+      }
     } catch (error: any) {
-      console.error('Signup error:', error);
-      toast.error(error.message || 'Failed to create account');
+      console.error("Verification error:", error);
+      toast.error(error.message || 'Verification failed');
     } finally {
-      setIsSubmitting(false);
+      setIsLoading(false);
     }
   };
-
-  const handleForgotPassword = async (data: { email: string }) => {
-    setIsSubmitting(true);
-    
-    try {
-      await resetPassword(data.email);
-      toast.success('Password reset link sent to your email');
-      // Switch back to login mode after password reset email sent
-      setAuthMode('login');
-    } catch (error: any) {
-      console.error('Password reset error:', error);
-      toast.error(error.message || 'Failed to send reset link');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  // Handle Google sign-in
-  const handleGoogleSignIn = async () => {
-    try {
-      await signInWithGoogle();
-      // Note: No need to navigate here as the auth state change will handle it
-    } catch (error: any) {
-      console.error('Google login error:', error);
-      toast.error(error.message || 'Failed to sign in with Google');
-    }
-  };
-
-  if (isAuthenticated) {
-    return <AlreadyLoggedIn />;
-  }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-island-dark via-island to-island-dark p-4">
-      <div className="w-full max-w-md">
-        {authMode === 'forgot' ? (
-          <Card className="bg-island-dark/80 backdrop-blur-md border-island-light text-white">
-            <CardHeader>
-              <CardTitle className="text-gradient">Reset Password</CardTitle>
-              <CardDescription className="text-gray-300">
-                Enter your email to receive a password reset link
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Form {...forgotForm}>
-                <form onSubmit={forgotForm.handleSubmit(handleForgotPassword)} className="space-y-4">
-                  <FormField
-                    control={forgotForm.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Email</FormLabel>
-                        <FormControl>
-                          <Input 
-                            {...field} 
-                            type="email" 
-                            placeholder="your@email.com"
-                            className="bg-island-light/20 border-island-light"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <Button 
-                    type="submit" 
-                    className="w-full bg-love hover:bg-love-dark"
-                    disabled={isSubmitting}
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Sending...
-                      </>
-                    ) : (
-                      <>
-                        Send Reset Link
-                        <ArrowRight className="ml-2 h-4 w-4" />
-                      </>
-                    )}
-                  </Button>
-                </form>
-              </Form>
-            </CardContent>
-            <CardFooter className="flex justify-center">
-              <Button 
-                variant="link" 
-                className="text-love hover:text-love-light"
-                onClick={() => setAuthMode('login')}
-              >
-                Back to login
-              </Button>
-            </CardFooter>
-          </Card>
-        ) : (
-          <Card className="bg-island-dark/80 backdrop-blur-md border-island-light text-white">
-            <CardHeader>
-              <CardTitle className="text-gradient">
-                {authMode === 'login' ? 'Welcome Back' : 'Create Account'}
-              </CardTitle>
-              <CardDescription className="text-gray-300">
-                {authMode === 'login' 
-                  ? 'Sign in to access your dating journey'
-                  : 'Join the dating community today'
-                }
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Tabs 
-                value={authMode} 
-                onValueChange={(value) => setAuthMode(value as 'login' | 'signup')}
-                className="w-full"
-              >
-                <TabsList className="grid grid-cols-2 mb-6 bg-island-light/20">
-                  <TabsTrigger value="login">Login</TabsTrigger>
-                  <TabsTrigger value="signup">Sign Up</TabsTrigger>
-                </TabsList>
-                <TabsContent value="login">
-                  <Form {...loginForm}>
-                    <form onSubmit={loginForm.handleSubmit(handleLogin)} className="space-y-4">
-                      <FormField
-                        control={loginForm.control}
-                        name="email"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Email</FormLabel>
-                            <FormControl>
-                              <Input 
-                                {...field} 
-                                type="email" 
-                                placeholder="your@email.com"
-                                className="bg-island-light/20 border-island-light"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={loginForm.control}
-                        name="password"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Password</FormLabel>
-                            <FormControl>
-                              <Input 
-                                {...field} 
-                                type="password" 
-                                placeholder="••••••••"
-                                className="bg-island-light/20 border-island-light"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <Button 
-                        type="submit" 
-                        className="w-full bg-love hover:bg-love-dark"
-                        disabled={isSubmitting}
-                      >
-                        {isSubmitting ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Logging in...
-                          </>
-                        ) : (
-                          'Log In'
-                        )}
-                      </Button>
-                    </form>
-                  </Form>
-                  <div className="mt-4 text-center">
-                    <Button 
-                      variant="link" 
-                      className="text-love hover:text-love-light"
-                      onClick={() => setAuthMode('forgot')}
-                    >
-                      <LockKeyhole className="mr-2 h-4 w-4" />
-                      Forgot password?
-                    </Button>
-                  </div>
-                </TabsContent>
-                <TabsContent value="signup">
-                  <Form {...signupForm}>
-                    <form onSubmit={signupForm.handleSubmit(handleSignup)} className="space-y-4">
-                      <FormField
-                        control={signupForm.control}
-                        name="email"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Email</FormLabel>
-                            <FormControl>
-                              <Input 
-                                {...field} 
-                                type="email" 
-                                placeholder="your@email.com"
-                                className="bg-island-light/20 border-island-light"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={signupForm.control}
-                        name="password"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Password</FormLabel>
-                            <FormControl>
-                              <Input 
-                                {...field} 
-                                type="password" 
-                                placeholder="••••••••"
-                                className="bg-island-light/20 border-island-light"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={signupForm.control}
-                        name="confirmPassword"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Confirm Password</FormLabel>
-                            <FormControl>
-                              <Input 
-                                {...field} 
-                                type="password" 
-                                placeholder="••••••••"
-                                className="bg-island-light/20 border-island-light"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <Button 
-                        type="submit" 
-                        className="w-full bg-love hover:bg-love-dark"
-                        disabled={isSubmitting}
-                      >
-                        {isSubmitting ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Creating account...
-                          </>
-                        ) : (
-                          'Sign Up'
-                        )}
-                      </Button>
-                    </form>
-                  </Form>
-                </TabsContent>
-              </Tabs>
-              
-              <div className="relative my-6">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-island-light"></div>
-                </div>
-                <div className="relative flex justify-center text-xs">
-                  <span className="bg-island-dark px-2 text-muted-foreground">or continue with</span>
-                </div>
-              </div>
-              
-              <SocialLoginButton 
-                provider="google" 
-                onLogin={handleGoogleSignIn}
-                isLoginMode={authMode === 'login'} 
-                className="w-full"
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-island-dark via-island to-island-dark p-4">
+      <div className="glass-card w-full max-w-md p-6 rounded-xl shadow-lg">
+        <h1 className="text-2xl font-bold text-center text-gradient mb-8">Sign In / Sign Up</h1>
+        
+        {!showCodeInput ? (
+          <form onSubmit={handleSendVerificationCode} className="space-y-6">
+            <div>
+              <label htmlFor="email" className="block text-white text-lg mb-2">Email</label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="email@example.com"
+                className="bg-island-light/20 border-island-light text-white h-12"
               />
-            </CardContent>
-          </Card>
+            </div>
+            
+            <Button 
+              type="submit" 
+              className="w-full bg-love hover:bg-love-dark h-12 text-lg"
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <span className="flex items-center justify-center">
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Sending...
+                </span>
+              ) : "Send verification code"}
+            </Button>
+          </form>
+        ) : (
+          <div className="space-y-6">
+            <p className="text-center text-white mb-4">
+              Enter the 4-digit code sent to:
+              <span className="block font-medium mt-1">{email}</span>
+            </p>
+            
+            <Input
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              maxLength={4}
+              value={verificationCode}
+              onChange={(e) => setVerificationCode(e.target.value.replace(/[^0-9]/g, '').slice(0, 4))}
+              placeholder="Enter verification code"
+              className="bg-island-light/20 border-island-light text-white text-center text-xl h-12"
+            />
+            
+            <Button 
+              onClick={handleVerifyCode}
+              className="w-full bg-love hover:bg-love-dark h-12 text-lg"
+              disabled={isLoading || verificationCode.length !== 4}
+            >
+              {isLoading ? (
+                <span className="flex items-center justify-center">
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Verifying...
+                </span>
+              ) : "Verify & Continue"}
+            </Button>
+            
+            <div className="text-center">
+              <button 
+                onClick={() => handleSendVerificationCode({ preventDefault: () => {} } as React.FormEvent)}
+                className="text-love hover:underline text-sm"
+                type="button"
+                disabled={isLoading}
+              >
+                Didn't receive a code? Send again
+              </button>
+            </div>
+          </div>
         )}
       </div>
     </div>

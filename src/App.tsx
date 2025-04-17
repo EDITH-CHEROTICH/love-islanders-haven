@@ -1,8 +1,9 @@
+
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes, useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '@/context/auth';
 import Login from '@/pages/Login';
-import Profile from '@/pages/Profile'; // Changed from ProfilePage to Profile
+import Profile from '@/pages/Profile';
 import Discover from '@/pages/Discover';
 import Verify from '@/pages/Verify';
 import Settings from '@/pages/Settings';
@@ -20,8 +21,6 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import Streaks from '@/pages/Streaks';
 import Matches from '@/pages/Matches';
-
-// Don't forget to add the Onboarding component to your routes
 import Onboarding from './pages/Onboarding';
 
 function App() {
@@ -42,18 +41,28 @@ function App() {
 
   // Handle redirect after auth changes
   useEffect(() => {
-    const redirectPath = localStorage.getItem('redirectAfterAuth');
-    if (redirectPath && isAuthenticated) {
-      localStorage.removeItem('redirectAfterAuth');
-      navigate(redirectPath, { replace: true });
+    if (isAuthenticated && !loading) {
+      // Check if the user needs to complete onboarding
+      const checkOnboarding = async () => {
+        try {
+          // Check if user has completed onboarding
+          const { data: onboardingData, error } = await supabase
+            .from('profile_onboarding')
+            .select('completed')
+            .eq('profile_id', user?.id)
+            .single();
+            
+          if (error || !onboardingData || !onboardingData.completed) {
+            navigate('/onboarding', { replace: true });
+          }
+        } catch (error) {
+          console.error("Error checking onboarding status:", error);
+        }
+      };
+      
+      checkOnboarding();
     }
-    
-    const shouldRedirectToLogin = localStorage.getItem('shouldRedirectToLogin');
-    if (shouldRedirectToLogin === 'true' && !isAuthenticated && !loading) {
-      localStorage.removeItem('shouldRedirectToLogin');
-      navigate('/login', { replace: true });
-    }
-  }, [isAuthenticated, loading, navigate]);
+  }, [isAuthenticated, loading, user, navigate]);
 
   // Custom PrivateRoute component
   const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
@@ -84,10 +93,16 @@ function App() {
         <>
           <Routes>
             <Route path="/login" element={isAuthenticated ? <Navigate to="/discover" replace /> : <Login />} />
-            <Route path="/signup" element={isAuthenticated ? <Navigate to="/discover" replace /> : <Signup />} />
             <Route path="/verify" element={isAuthenticated ? <Navigate to="/discover" replace /> : <Verify />} />
             
-            <Route path="/onboarding" element={<Onboarding />} />
+            <Route
+              path="/onboarding"
+              element={
+                <PrivateRoute>
+                  <Onboarding />
+                </PrivateRoute>
+              }
+            />
             
             <Route
               path="/profile"

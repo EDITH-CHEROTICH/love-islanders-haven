@@ -1,53 +1,48 @@
 
-import { Fragment } from 'react';
+import React from 'react';
+
+type Step = 'basics' | 'photos' | 'lifestyle' | 'personality' | 'preferences';
 
 interface OnboardingProgressProps {
+  steps: Step[];
   currentStep: string;
-  steps: string[];
 }
 
-export const OnboardingProgress = ({ currentStep, steps }: OnboardingProgressProps) => {
-  const getStepLabel = (step: string) => {
-    switch(step) {
-      case 'basics': return 'Basics';
-      case 'photos': return 'Photos';
-      case 'lifestyle': return 'Lifestyle';
-      case 'personality': return 'About You';
-      case 'preferences': return 'Preferences';
-      default: return step.charAt(0).toUpperCase() + step.slice(1);
-    }
-  };
+export const OnboardingProgress = ({ steps, currentStep }: OnboardingProgressProps) => {
+  const currentIndex = steps.indexOf(currentStep as Step);
   
   return (
-    <div className="w-full mb-8">
-      <div className="flex justify-between items-center">
+    <div className="mb-8">
+      <div className="flex items-center justify-between">
         {steps.map((step, index) => (
-          <Fragment key={step}>
+          <React.Fragment key={step}>
             <div className="flex flex-col items-center">
               <div 
-                className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${
-                  currentStep === step 
+                className={`w-8 h-8 rounded-full flex items-center justify-center 
+                  ${index <= currentIndex 
                     ? 'bg-love text-white' 
-                    : (steps.indexOf(currentStep) > index) 
-                      ? 'bg-green-500 text-white' 
-                      : 'bg-gray-700 text-gray-300'
-                }`}
+                    : 'bg-island-light/50 text-island-light'}`}
               >
-                {steps.indexOf(currentStep) > index ? '✓' : (index + 1)}
+                {index + 1}
               </div>
-              <span className="text-xs mt-1 text-white">{getStepLabel(step)}</span>
+              <span className={`text-xs mt-1 ${index <= currentIndex ? 'text-white' : 'text-island-light'}`}>
+                {step.charAt(0).toUpperCase() + step.slice(1)}
+              </span>
             </div>
             
             {index < steps.length - 1 && (
-              <div className={`flex-1 h-0.5 mx-1 ${
-                steps.indexOf(currentStep) > index 
-                  ? 'bg-green-500' 
-                  : 'bg-gray-700'
-              }`} />
+              <div 
+                className={`flex-1 h-0.5 mx-1 
+                  ${index < currentIndex 
+                    ? 'bg-love' 
+                    : 'bg-island-light/50'}`}
+              />
             )}
-          </Fragment>
+          </React.Fragment>
         ))}
       </div>
     </div>
   );
 };
+
+export default OnboardingProgress;

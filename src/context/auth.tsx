@@ -1,7 +1,6 @@
 
 import { createContext, useContext, useState, useEffect } from 'react';
 import { AuthChangeEvent, Session, User } from '@supabase/supabase-js';
-
 import { supabase } from '@/integrations/supabase/client';
 
 interface AuthContextType {
@@ -67,14 +66,29 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setIsAuthenticated(!!session);
         setLoading(false);
 
-        // Store redirect path in localStorage to be used after auth
+        // Check if we need to redirect to onboarding
         if (session && event === 'SIGNED_IN') {
-          const redirectPath = localStorage.getItem('redirectAfterAuth');
-          if (redirectPath) {
-            // Don't remove the redirectAfterAuth here, let the component that handles 
-            // navigation remove it after successful navigation
-            // The actual navigation will be handled in the component that renders this redirect
-            console.log('Auth state changed, redirect path:', redirectPath);
+          try {
+            const { data: onboardingData } = await supabase
+              .from('profile_onboarding')
+              .select('completed')
+              .eq('profile_id', session.user.id)
+              .single();
+              
+            if (!onboardingData || !onboardingData.completed) {
+              // Create onboarding record if it doesn't exist
+              if (!onboardingData) {
+                await supabase
+                  .from('profile_onboarding')
+                  .insert({ 
+                    profile_id: session.user.id,
+                    completed: false,
+                    current_step: 'basics'
+                  });
+              }
+            }
+          } catch (error) {
+            console.error("Error checking onboarding status:", error);
           }
         }
       }
@@ -98,22 +112,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return { error };
       }
 
-      if (data.user) {
-        // Check if the user should be redirected to onboarding
-        const { data: onboardingData } = await supabase
-          .from('profile_onboarding')
-          .select('completed')
-          .eq('profile_id', data.user.id)
-          .single();
-          
-        // If onboarding doesn't exist or is not completed, redirect to onboarding
-        if (!onboardingData || !onboardingData.completed) {
-          localStorage.setItem('redirectAfterAuth', '/onboarding');
-        } else {
-          localStorage.setItem('redirectAfterAuth', '/discover');
-        }
-      }
-      
       return {};
     } catch (error: any) {
       console.error('Sign-in error:', error);
@@ -126,34 +124,74 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const signUp = async (email: string, password: string) => {
     try {
       setLoading(true);
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/verify`,
-        },
-      });
+      
+      // For passwordless auth or if using verification code system
+      let signUpResult;
+      if (!password) {
+        signUpResult = await supabase.auth.signInWithOtp({
+          email,
+          options: {
+            shouldCreateUser: true
+          }
+        });
+      } else {
+        signUpResult = await supabase.auth.signUp({
+          email,
+          password,
+        });
+      }
+      
+      const { data, error } = signUpResult;
 
       if (error) {
+        console.error("Signup error:", error);
         throw error;
       }
       
-      // When successful, set redirect to onboarding instead of /profile
+      // Create a profile if user was created
       if (data.user) {
-        localStorage.setItem('redirectAfterAuth', '/onboarding');
+        try {
+          // Check if profile already exists
+          const { data: existingProfile } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('id', data.user.id)
+            .maybeSingle();
+            
+          if (!existingProfile) {
+            // Create profile
+            await supabase
+              .from('profiles')
+              .insert({
+                id: data.user.id,
+                email: email,
+                name: email.split('@')[0],
+                email_verified: true
+              });
+          }
+          
+          // Create onboarding entry
+          await supabase
+            .from('profile_onboarding')
+            .insert({
+              profile_id: data.user.id,
+              completed: false,
+              current_step: 'basics'
+            })
+            .onConflict('profile_id')
+            .ignore();
+            
+        } catch (profileError) {
+          console.error("Error creating profile:", profileError);
+        }
       }
-
-      // Store signup info for verification
+      
+      // Set auth in localStorage
+      localStorage.setItem('isAuthenticated', 'true');
       localStorage.setItem('authMethod', 'email');
       localStorage.setItem('authContact', email);
-
-      // Generate a verification code (4 digits)
-      const verificationCode = Math.floor(1000 + Math.random() * 9000).toString();
-      localStorage.setItem('verificationCode', verificationCode);
-
-      console.log('Verification code:', verificationCode);
       
-      return true;
+      return !!data.user;
     } catch (error: any) {
       console.error('Sign-up error:', error);
       throw error;
@@ -162,78 +200,59 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const signOut = async () => {
+  const signInWithGoogle = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        throw error;
-      }
-      localStorage.removeItem('isAuthenticated');
-      localStorage.removeItem('redirectAfterAuth');
-      
-      // We'll handle the actual navigation in App.tsx or other components
-      localStorage.setItem('shouldRedirectToLogin', 'true');
-    } catch (error: any) {
-      console.error('Sign-out error:', error);
-      throw error;
+      await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
     } finally {
       setLoading(false);
     }
   };
 
   const resetPassword = async (email: string) => {
+    setLoading(true);
     try {
-      setLoading(true);
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: window.location.origin,
+      await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
       });
-      if (error) {
-        throw error;
-      }
-    } catch (error: any) {
-      console.error('Password reset error:', error);
-      throw error;
     } finally {
       setLoading(false);
     }
   };
 
-  const signInWithGoogle = async () => {
+  const signOut = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: window.location.origin + '/onboarding',
-        },
-      });
-      if (error) {
-        throw error;
-      }
-    } catch (error: any) {
-      console.error('Google sign-in error:', error);
-      throw error;
+      await supabase.auth.signOut();
+      localStorage.removeItem('emailVerificationCompleted');
+      localStorage.removeItem('isAuthenticated');
+      localStorage.removeItem('authMethod');
+      localStorage.removeItem('authContact');
     } finally {
       setLoading(false);
     }
-  };
-
-  const value: AuthContextType = {
-    user,
-    session,
-    isAuthenticated,
-    loading,
-    networkError,
-    signIn,
-    signUp,
-    signOut,
-    resetPassword,
-    signInWithGoogle,
   };
 
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider
+      value={{
+        user,
+        session,
+        isAuthenticated,
+        loading,
+        networkError,
+        signIn,
+        signUp,
+        signOut,
+        resetPassword,
+        signInWithGoogle
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
