@@ -9,7 +9,7 @@ const api = axios.create({
     'Content-Type': 'application/json',
   },
   withCredentials: true, // Enable credentials for cross-origin requests
-  timeout: 10000, // Add a timeout to prevent hanging requests
+  timeout: 15000, // Increase timeout to prevent premature timeouts
 });
 
 // Add interceptor to add auth token to requests
@@ -18,14 +18,22 @@ api.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+  config.headers['Accept'] = 'application/json';
   return config;
 });
 
-// Add response interceptor to handle common errors
+// Add response interceptor for better error handling
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log('API Response:', response.status, response.statusText);
+    return response;
+  },
   (error) => {
-    console.log('API Error:', error);
+    console.error('API Error:', {
+      message: error.message,
+      status: error.response?.status,
+      data: error.response?.data
+    });
     return Promise.reject(error);
   }
 );

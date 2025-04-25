@@ -31,18 +31,22 @@ const Login = () => {
     try {
       console.log('Attempting login with:', { email });
       const response = await authApi.login(email, password);
-      console.log('Login response:', response);
+      console.log('Login response successful:', response);
       
-      // Store the access token
-      localStorage.setItem('access_token', response.access_token);
-      localStorage.setItem('user', JSON.stringify(response.user));
-      
-      toast.success('Successfully logged in!');
-      
-      // Add a small delay before redirecting to ensure localStorage is set
-      setTimeout(() => {
+      if (response && response.access_token) {
+        // Store the access token and user data
+        localStorage.setItem('access_token', response.access_token);
+        localStorage.setItem('user', JSON.stringify(response.user));
+        
+        toast.success('Successfully logged in!');
+        
+        // Redirect to discover page immediately
         navigate('/discover', { replace: true });
-      }, 100);
+      } else {
+        // Handle case where response is successful but missing token
+        console.error("Login response missing token:", response);
+        toast.error('Authentication error. Please try again.');
+      }
     } catch (error: any) {
       console.error("Login error:", error);
       const errorMessage = error.response?.data?.message || 'Failed to log in. Please try again.';

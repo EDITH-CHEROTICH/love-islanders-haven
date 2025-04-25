@@ -1,3 +1,4 @@
+
 import api from './client';
 
 export interface AuthResponse {
@@ -26,7 +27,7 @@ export const authApi = {
         email,
         password,
       });
-      console.log('Auth API: Login response received');
+      console.log('Auth API: Login response received', response.status, response.statusText);
       return response.data;
     } catch (error) {
       console.error('Auth API: Login error', error);
