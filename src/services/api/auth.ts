@@ -1,4 +1,3 @@
-
 import api from './client';
 
 export interface AuthResponse {
@@ -21,20 +20,32 @@ export interface UserProfile {
 
 export const authApi = {
   login: async (email: string, password: string) => {
-    const response = await api.post<AuthResponse>('/api/v1/auth/signin', {
-      email,
-      password,
-    });
-    return response.data;
+    try {
+      console.log('Auth API: Sending login request');
+      const response = await api.post<AuthResponse>('/api/v1/auth/signin', {
+        email,
+        password,
+      });
+      console.log('Auth API: Login response received');
+      return response.data;
+    } catch (error) {
+      console.error('Auth API: Login error', error);
+      throw error;
+    }
   },
 
   register: async (email: string, password: string, name: string) => {
-    const response = await api.post<UserProfile>('/api/v1/auth/signup', {
-      email,
-      password,
-      name,
-    });
-    return response.data;
+    try {
+      const response = await api.post<UserProfile>('/api/v1/auth/signup', {
+        email,
+        password,
+        name,
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Auth API: Registration error', error);
+      throw error;
+    }
   },
 
   logout: async () => {

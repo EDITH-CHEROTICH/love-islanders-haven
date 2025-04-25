@@ -9,6 +9,7 @@ const api = axios.create({
     'Content-Type': 'application/json',
   },
   withCredentials: true, // Enable credentials for cross-origin requests
+  timeout: 10000, // Add a timeout to prevent hanging requests
 });
 
 // Add interceptor to add auth token to requests
@@ -19,5 +20,14 @@ api.interceptors.request.use((config) => {
   }
   return config;
 });
+
+// Add response interceptor to handle common errors
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    console.log('API Error:', error);
+    return Promise.reject(error);
+  }
+);
 
 export default api;

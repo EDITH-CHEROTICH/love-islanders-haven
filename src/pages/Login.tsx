@@ -29,17 +29,24 @@ const Login = () => {
     setIsLoading(true);
     
     try {
+      console.log('Attempting login with:', { email });
       const response = await authApi.login(email, password);
+      console.log('Login response:', response);
       
       // Store the access token
       localStorage.setItem('access_token', response.access_token);
       localStorage.setItem('user', JSON.stringify(response.user));
       
       toast.success('Successfully logged in!');
-      navigate('/discover');
+      
+      // Add a small delay before redirecting to ensure localStorage is set
+      setTimeout(() => {
+        navigate('/discover', { replace: true });
+      }, 100);
     } catch (error: any) {
       console.error("Login error:", error);
-      toast.error(error.response?.data?.message || 'Failed to log in. Please try again.');
+      const errorMessage = error.response?.data?.message || 'Failed to log in. Please try again.';
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
