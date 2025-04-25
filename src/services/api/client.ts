@@ -27,11 +27,20 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
-    console.error('API Error:', {
-      message: error.message,
-      status: error.response?.status,
-      data: error.response?.data
-    });
+    if (error.response) {
+      // The server responded with a status code outside the 2xx range
+      console.error('API Error Response:', {
+        status: error.response.status,
+        data: error.response.data,
+        headers: error.response.headers
+      });
+    } else if (error.request) {
+      // The request was made but no response was received
+      console.error('API No Response:', error.request);
+    } else {
+      // Something happened in setting up the request
+      console.error('API Request Error:', error.message);
+    }
     return Promise.reject(error);
   }
 );

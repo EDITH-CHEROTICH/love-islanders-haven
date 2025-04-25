@@ -31,7 +31,7 @@ const Login = () => {
     try {
       console.log('Attempting login with:', { email });
       const response = await authApi.login(email, password);
-      console.log('Login response successful:', response);
+      console.log('Login response:', response);
       
       if (response && response.access_token) {
         // Store the access token and user data

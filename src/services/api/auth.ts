@@ -21,31 +21,55 @@ export interface UserProfile {
 
 export const authApi = {
   login: async (email: string, password: string) => {
-    const response = await api.post<AuthResponse>('/api/v1/auth/signin', {
-      email,
-      password,
-    });
-    return response.data;
+    try {
+      console.log('Auth API: Attempting login with', { email });
+      const response = await api.post<AuthResponse>('/api/v1/auth/signin', {
+        email,
+        password,
+      });
+      console.log('Auth API: Login successful', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Auth API: Login error', error);
+      throw error;
+    }
   },
 
   register: async (email: string, password: string, name: string) => {
-    const response = await api.post<UserProfile>('/api/v1/auth/signup', {
-      email,
-      password,
-      name,
-    });
-    return response.data;
+    try {
+      console.log('Auth API: Attempting registration with', { email, name });
+      const response = await api.post<UserProfile>('/api/v1/auth/signup', {
+        email,
+        password,
+        name,
+      });
+      console.log('Auth API: Registration successful', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Auth API: Registration error', error);
+      throw error;
+    }
   },
 
   verifyEmail: async (token: string) => {
-    const response = await api.post<{ message: string }>('/api/v1/auth/verify-email', {
-      token,
-    });
-    return response.data;
+    try {
+      const response = await api.post<{ message: string }>('/api/v1/auth/verify-email', {
+        token,
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Auth API: Email verification error', error);
+      throw error;
+    }
   },
 
   logout: async () => {
-    const response = await api.post<{ message: string }>('/api/v1/auth/logout');
-    return response.data;
+    try {
+      const response = await api.post<{ message: string }>('/api/v1/auth/logout');
+      return response.data;
+    } catch (error) {
+      console.error('Auth API: Logout error', error);
+      throw error;
+    }
   },
 };
