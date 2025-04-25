@@ -21,7 +21,7 @@ export interface UserProfile {
 
 export const authApi = {
   login: async (email: string, password: string) => {
-    const response = await api.post<AuthResponse>('/api/v1/auth/login', {
+    const response = await api.post<AuthResponse>('/api/v1/auth/signin', {
       email,
       password,
     });
@@ -29,7 +29,7 @@ export const authApi = {
   },
 
   register: async (email: string, password: string, name: string) => {
-    const response = await api.post<UserProfile>('/api/v1/auth/register', {
+    const response = await api.post<UserProfile>('/api/v1/auth/signup', {
       email,
       password,
       name,

@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes, useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '@/context/auth';
@@ -94,6 +93,7 @@ function App() {
         <>
           <Routes>
             <Route path="/login" element={isAuthenticated ? <Navigate to="/discover" replace /> : <Login />} />
+            <Route path="/signup" element={isAuthenticated ? <Navigate to="/discover" replace /> : <Signup />} />
             <Route path="/verify" element={isAuthenticated ? <Navigate to="/discover" replace /> : <Verify />} />
             
             <Route

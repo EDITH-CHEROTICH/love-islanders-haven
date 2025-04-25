@@ -35,6 +35,7 @@ const Signup = () => {
     setIsLoading(true);
     
     try {
+      // Register the user using the updated endpoint
       await authApi.register(email, password, name);
       
       // After successful registration, log the user in
