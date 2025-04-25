@@ -8,6 +8,7 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true, // Enable credentials for cross-origin requests
 });
 
 // Add interceptor to add auth token to requests
