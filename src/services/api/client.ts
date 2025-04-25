@@ -8,11 +8,10 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  withCredentials: true, // Enable credentials for cross-origin requests
-  timeout: 15000, // Increase timeout to prevent premature timeouts
+  withCredentials: true,
+  timeout: 15000,
 });
 
-// Add interceptor to add auth token to requests
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('access_token');
   if (token) {
@@ -22,7 +21,6 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Add response interceptor for better error handling
 api.interceptors.response.use(
   (response) => {
     console.log('API Response:', response.status, response.statusText);

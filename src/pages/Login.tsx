@@ -43,7 +43,6 @@ const Login = () => {
         // Redirect to discover page immediately
         navigate('/discover', { replace: true });
       } else {
-        // Handle case where response is successful but missing token
         console.error("Login response missing token:", response);
         toast.error('Authentication error. Please try again.');
       }
