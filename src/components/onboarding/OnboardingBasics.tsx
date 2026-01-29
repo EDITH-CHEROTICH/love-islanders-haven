@@ -1,14 +1,10 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, CalendarIcon } from 'lucide-react';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
-import { cn } from '@/lib/utils';
-import { format } from 'date-fns';
+import { Loader2 } from 'lucide-react';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import DateOfBirthPicker from './DateOfBirthPicker';
 
 interface OnboardingBasicsProps {
   initialData: any;
@@ -41,28 +37,23 @@ export function OnboardingBasics({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!name.trim()) {
-      return; // Form validation should prevent this
-    }
-    
-    if (!date) {
-      return; // Form validation should prevent this
+    if (!name.trim() || !date) {
+      return;
     }
     
     const age = calculateAge(date);
-    if (age < 18) {
-      return; // Form validation should prevent this
-    }
     
     await onNext({
       name,
-      dob: date?.toISOString().split('T')[0], // Format as YYYY-MM-DD
+      dob: date?.toISOString().split('T')[0],
       age,
       gender,
       gender_preference: genderPreference,
       show_age: true
     });
   };
+
+  const isValid = name.trim() && date;
 
   return (
     <div className="space-y-6 animate-fadeIn">
@@ -78,62 +69,23 @@ export function OnboardingBasics({
             id="name"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Enter your name"
+            placeholder="Enter your first name"
             required
             className="bg-island-light/20 border-island-light text-white"
           />
         </div>
         
-        <div className="space-y-2">
-          <Label className="text-white">When were you born?</Label>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className={cn(
-                  "w-full justify-start text-left font-normal",
-                  !date && "text-muted-foreground",
-                  "bg-island-light/20 border-island-light text-white"
-                )}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {date ? format(date, "PPP") : <span>Pick your date of birth</span>}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="single"
-                selected={date}
-                onSelect={setDate}
-                disabled={(date) => {
-                  // Disable future dates
-                  return date > new Date() || 
-                  // Disable dates less than 18 years ago
-                  calculateAge(date) < 18 ||
-                  // Disable dates more than 100 years ago
-                  calculateAge(date) > 100;
-                }}
-                initialFocus
-              />
-              {date && calculateAge(date) < 18 && (
-                <p className="px-4 py-2 text-sm text-red-500">
-                  You must be at least 18 years old
-                </p>
-              )}
-            </PopoverContent>
-          </Popover>
-          
-          {date && (
-            <p className="text-sm text-muted-foreground">
-              Age: {calculateAge(date)} years old
-            </p>
-          )}
-        </div>
+        <DateOfBirthPicker 
+          value={date} 
+          onChange={setDate}
+          minAge={18}
+          maxAge={100}
+        />
         
         <div className="space-y-3">
           <Label className="text-white">I am a</Label>
           <RadioGroup 
-            defaultValue={gender} 
+            value={gender} 
             onValueChange={setGender}
             className="grid grid-cols-3 gap-4"
           >
@@ -145,7 +97,7 @@ export function OnboardingBasics({
               />
               <Label
                 htmlFor="male"
-                className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-island-light/20 p-4 hover:bg-island-light/30 hover:text-accent-foreground peer-data-[state=checked]:border-love peer-data-[state=checked]:text-love [&:has([data-state=checked])]:border-love"
+                className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-island-light/20 p-4 hover:bg-island-light/30 hover:text-accent-foreground peer-data-[state=checked]:border-love peer-data-[state=checked]:text-love cursor-pointer"
               >
                 <span>Male</span>
               </Label>
@@ -158,7 +110,7 @@ export function OnboardingBasics({
               />
               <Label
                 htmlFor="female"
-                className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-island-light/20 p-4 hover:bg-island-light/30 hover:text-accent-foreground peer-data-[state=checked]:border-love peer-data-[state=checked]:text-love [&:has([data-state=checked])]:border-love"
+                className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-island-light/20 p-4 hover:bg-island-light/30 hover:text-accent-foreground peer-data-[state=checked]:border-love peer-data-[state=checked]:text-love cursor-pointer"
               >
                 <span>Female</span>
               </Label>
@@ -171,7 +123,7 @@ export function OnboardingBasics({
               />
               <Label
                 htmlFor="other"
-                className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-island-light/20 p-4 hover:bg-island-light/30 hover:text-accent-foreground peer-data-[state=checked]:border-love peer-data-[state=checked]:text-love [&:has([data-state=checked])]:border-love"
+                className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-island-light/20 p-4 hover:bg-island-light/30 hover:text-accent-foreground peer-data-[state=checked]:border-love peer-data-[state=checked]:text-love cursor-pointer"
               >
                 <span>Other</span>
               </Label>
@@ -182,7 +134,7 @@ export function OnboardingBasics({
         <div className="space-y-3">
           <Label className="text-white">I want to see</Label>
           <RadioGroup 
-            defaultValue={genderPreference} 
+            value={genderPreference} 
             onValueChange={setGenderPreference}
             className="grid grid-cols-3 gap-4"
           >
@@ -194,7 +146,7 @@ export function OnboardingBasics({
               />
               <Label
                 htmlFor="see-male"
-                className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-island-light/20 p-4 hover:bg-island-light/30 hover:text-accent-foreground peer-data-[state=checked]:border-love peer-data-[state=checked]:text-love [&:has([data-state=checked])]:border-love"
+                className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-island-light/20 p-4 hover:bg-island-light/30 hover:text-accent-foreground peer-data-[state=checked]:border-love peer-data-[state=checked]:text-love cursor-pointer"
               >
                 <span>Men</span>
               </Label>
@@ -207,7 +159,7 @@ export function OnboardingBasics({
               />
               <Label
                 htmlFor="see-female"
-                className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-island-light/20 p-4 hover:bg-island-light/30 hover:text-accent-foreground peer-data-[state=checked]:border-love peer-data-[state=checked]:text-love [&:has([data-state=checked])]:border-love"
+                className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-island-light/20 p-4 hover:bg-island-light/30 hover:text-accent-foreground peer-data-[state=checked]:border-love peer-data-[state=checked]:text-love cursor-pointer"
               >
                 <span>Women</span>
               </Label>
@@ -220,7 +172,7 @@ export function OnboardingBasics({
               />
               <Label
                 htmlFor="see-both"
-                className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-island-light/20 p-4 hover:bg-island-light/30 hover:text-accent-foreground peer-data-[state=checked]:border-love peer-data-[state=checked]:text-love [&:has([data-state=checked])]:border-love"
+                className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-island-light/20 p-4 hover:bg-island-light/30 hover:text-accent-foreground peer-data-[state=checked]:border-love peer-data-[state=checked]:text-love cursor-pointer"
               >
                 <span>Everyone</span>
               </Label>
@@ -231,7 +183,7 @@ export function OnboardingBasics({
         <Button 
           type="submit" 
           className="w-full bg-love hover:bg-love-dark text-white"
-          disabled={isSubmitting || !name || !date || calculateAge(date || new Date()) < 18}
+          disabled={isSubmitting || !isValid}
         >
           {isSubmitting ? (
             <span className="flex items-center">

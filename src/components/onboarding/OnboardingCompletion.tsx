@@ -1,55 +1,91 @@
-
-import { Check } from 'lucide-react';
+import { Check, Heart, MessageCircle, Search, Sparkles } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 export const OnboardingCompletion = () => {
+  const [showConfetti, setShowConfetti] = useState(false);
+  
+  useEffect(() => {
+    setShowConfetti(true);
+    const timer = setTimeout(() => setShowConfetti(false), 3000);
+    return () => clearTimeout(timer);
+  }, []);
+  
   return (
-    <div className="bg-island-dark/80 backdrop-blur-sm rounded-lg p-6 text-white animate-fade-in shadow-lg border border-island-light/30 flex flex-col items-center py-12">
-      <div className="w-16 h-16 rounded-full bg-green-500 flex items-center justify-center mb-6">
-        <Check className="h-8 w-8 text-white" />
+    <div className="bg-island-dark/80 backdrop-blur-sm rounded-lg p-6 text-white animate-fade-in shadow-lg border border-island-light/30 flex flex-col items-center py-12 relative overflow-hidden">
+      {/* Animated confetti effect */}
+      {showConfetti && (
+        <div className="absolute inset-0 pointer-events-none">
+          {[...Array(20)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute animate-bounce"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 0.5}s`,
+                animationDuration: `${1 + Math.random()}s`
+              }}
+            >
+              <Sparkles className="h-4 w-4 text-love opacity-60" />
+            </div>
+          ))}
+        </div>
+      )}
+      
+      <div className="w-20 h-20 rounded-full bg-gradient-to-br from-love to-love-dark flex items-center justify-center mb-6 animate-pulse">
+        <Heart className="h-10 w-10 text-white fill-white" />
       </div>
       
-      <h1 className="text-2xl font-bold mb-2 text-gradient text-center">Profile Complete!</h1>
+      <h1 className="text-3xl font-bold mb-2 text-center bg-gradient-to-r from-love to-love-light bg-clip-text text-transparent">
+        You're All Set!
+      </h1>
       
-      <p className="text-gray-300 mb-6 text-center">
-        You're all set! Your dating profile has been created and you're ready to start exploring matches.
+      <p className="text-gray-300 mb-8 text-center max-w-xs">
+        Your profile is ready. Time to start swiping and meeting amazing people!
       </p>
       
-      <div className="bg-island-light/10 rounded-lg p-4 mb-6 w-full">
-        <h3 className="text-lg font-medium mb-2">What happens next?</h3>
-        <ul className="space-y-3">
-          <li className="flex items-start">
-            <div className="mr-2 bg-green-500 rounded-full p-0.5 mt-0.5">
-              <Check className="h-3 w-3 text-white" />
-            </div>
-            <span className="text-sm">Browse profiles in the Discover section</span>
-          </li>
-          <li className="flex items-start">
-            <div className="mr-2 bg-green-500 rounded-full p-0.5 mt-0.5">
-              <Check className="h-3 w-3 text-white" />
-            </div>
-            <span className="text-sm">Like profiles that interest you</span>
-          </li>
-          <li className="flex items-start">
-            <div className="mr-2 bg-green-500 rounded-full p-0.5 mt-0.5">
-              <Check className="h-3 w-3 text-white" />
-            </div>
-            <span className="text-sm">Start conversations when you match</span>
-          </li>
-          <li className="flex items-start">
-            <div className="mr-2 bg-green-500 rounded-full p-0.5 mt-0.5">
-              <Check className="h-3 w-3 text-white" />
-            </div>
-            <span className="text-sm">Edit your profile anytime in Settings</span>
-          </li>
-        </ul>
+      <div className="w-full space-y-4 mb-8">
+        <div className="flex items-center gap-4 p-4 rounded-lg bg-island-light/10">
+          <div className="w-10 h-10 rounded-full bg-love/20 flex items-center justify-center">
+            <Search className="h-5 w-5 text-love" />
+          </div>
+          <div>
+            <h3 className="font-medium">Discover</h3>
+            <p className="text-sm text-gray-400">Browse and swipe on profiles</p>
+          </div>
+        </div>
+        
+        <div className="flex items-center gap-4 p-4 rounded-lg bg-island-light/10">
+          <div className="w-10 h-10 rounded-full bg-love/20 flex items-center justify-center">
+            <Heart className="h-5 w-5 text-love" />
+          </div>
+          <div>
+            <h3 className="font-medium">Match</h3>
+            <p className="text-sm text-gray-400">Like someone? They might like you too!</p>
+          </div>
+        </div>
+        
+        <div className="flex items-center gap-4 p-4 rounded-lg bg-island-light/10">
+          <div className="w-10 h-10 rounded-full bg-love/20 flex items-center justify-center">
+            <MessageCircle className="h-5 w-5 text-love" />
+          </div>
+          <div>
+            <h3 className="font-medium">Connect</h3>
+            <p className="text-sm text-gray-400">Chat and get to know each other</p>
+          </div>
+        </div>
       </div>
       
-      <div className="flex items-center justify-center w-full">
+      <div className="flex flex-col items-center">
         <div className="animate-pulse flex flex-col items-center">
-          <p className="text-sm text-gray-400">Redirecting you to discover...</p>
-          <div className="mt-2 w-16 h-1 bg-love rounded-full"></div>
+          <div className="w-8 h-8 rounded-full bg-love flex items-center justify-center mb-2">
+            <Sparkles className="h-4 w-4 text-white" />
+          </div>
+          <p className="text-sm text-gray-400">Taking you to discover...</p>
         </div>
       </div>
     </div>
   );
 };
+
+export default OnboardingCompletion;

@@ -1,10 +1,10 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { OnboardingProgress } from '@/components/onboarding/OnboardingProgress';
 import { OnboardingBasics } from '@/components/onboarding/OnboardingBasics';
 import { OnboardingPhotos } from '@/components/onboarding/OnboardingPhotos';
+import { OnboardingInterests } from '@/components/onboarding/OnboardingInterests';
 import { OnboardingLifestyle } from '@/components/onboarding/OnboardingLifestyle';
 import { OnboardingPersonality } from '@/components/onboarding/OnboardingPersonality';
 import { OnboardingPreferences } from '@/components/onboarding/OnboardingPreferences';
@@ -13,9 +13,19 @@ import { updateOnboardingProgress } from '@/services/profiles/onboarding';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 
-type OnboardingStep = 'basics' | 'photos' | 'lifestyle' | 'personality' | 'preferences' | 'completed';
+type OnboardingStep = 'basics' | 'photos' | 'interests' | 'lifestyle' | 'personality' | 'preferences' | 'completed';
 
-const steps: OnboardingStep[] = ['basics', 'photos', 'lifestyle', 'personality', 'preferences', 'completed'];
+const steps: OnboardingStep[] = ['basics', 'photos', 'interests', 'lifestyle', 'personality', 'preferences', 'completed'];
+
+const stepLabels: Record<OnboardingStep, string> = {
+  basics: 'Basics',
+  photos: 'Photos',
+  interests: 'Interests',
+  lifestyle: 'Lifestyle',
+  personality: 'Personality',
+  preferences: 'Preferences',
+  completed: 'Done'
+};
 
 export const Onboarding = () => {
   const [currentStep, setCurrentStep] = useState<OnboardingStep>('basics');
@@ -26,7 +36,6 @@ export const Onboarding = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Check if user is authenticated
     const checkAuth = async () => {
       const { data } = await supabase.auth.getSession();
       if (!data.session) {
@@ -34,7 +43,6 @@ export const Onboarding = () => {
         return;
       }
       
-      // Check for existing onboarding progress
       try {
         const { data: onboardingData } = await supabase
           .from('profile_onboarding')
@@ -42,18 +50,15 @@ export const Onboarding = () => {
           .eq('profile_id', data.session.user.id)
           .single();
         
-        // If onboarding exists and is completed, redirect to discover
         if (onboardingData?.completed) {
           navigate('/discover', { replace: true });
           return;
         }
         
-        // If onboarding exists and has a current step, set it
         if (onboardingData?.current_step) {
           setCurrentStep(onboardingData.current_step as OnboardingStep);
         }
         
-        // Get existing profile data
         const { data: profileData } = await supabase
           .from('profiles')
           .select('*')
@@ -61,10 +66,17 @@ export const Onboarding = () => {
           .single();
           
         if (profileData) {
-          setProfileData(profileData);
+          setProfileData({ ...profileData, id: data.session.user.id });
+        } else {
+          setProfileData({ id: data.session.user.id });
         }
       } catch (error) {
         console.error("Error loading onboarding data:", error);
+        // Still allow continuing if no onboarding record exists
+        const { data: user } = await supabase.auth.getUser();
+        if (user.user) {
+          setProfileData({ id: user.user.id });
+        }
       } finally {
         setIsLoading(false);
       }
@@ -77,43 +89,55 @@ export const Onboarding = () => {
     setIsSaving(true);
     
     try {
-      // Update profile data state
       const updatedProfileData = { ...profileData, ...stepData };
       setProfileData(updatedProfileData);
       
-      // Save data to Supabase
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update(stepData)
-        .eq('id', profileData.id);
-        
-      if (updateError) throw updateError;
+      // Filter out fields that don't exist in profiles table
+      const profileFields = ['name', 'bio', 'age', 'location', 'interests', 'avatar_url', 'verified', 'email_verified'];
+      const profileUpdate: any = {};
       
-      // Find next step index
+      for (const key of Object.keys(stepData)) {
+        if (profileFields.includes(key)) {
+          profileUpdate[key] = stepData[key];
+        }
+      }
+      
+      // Only update if there are valid profile fields
+      if (Object.keys(profileUpdate).length > 0) {
+        const { error: updateError } = await supabase
+          .from('profiles')
+          .update(profileUpdate)
+          .eq('id', profileData.id);
+          
+        if (updateError) {
+          console.error('Profile update error:', updateError);
+        }
+      }
+      
       const currentIndex = steps.indexOf(currentStep);
       const nextStep = steps[currentIndex + 1] as OnboardingStep;
       
-      // Update onboarding progress
-      const completedSteps = [...(profileData.completed_steps || []), currentStep];
-      await updateOnboardingProgress({
-        current_step: nextStep,
-        completed_steps: completedSteps,
-        completed: nextStep === 'completed'
-      });
+      try {
+        await updateOnboardingProgress({
+          current_step: nextStep,
+          completed: nextStep === 'completed'
+        });
+      } catch (onboardingError) {
+        console.error('Onboarding progress update error:', onboardingError);
+      }
       
-      // Move to next step
       setCurrentStep(nextStep);
       
       if (nextStep === 'completed') {
         toast({
-          title: "Profile Completed!",
-          description: "Your dating profile has been set up successfully.",
+          title: "Profile Completed! 🎉",
+          description: "You're ready to start meeting people.",
         });
         
-        // Redirect to discover page after a delay
+        // Redirect immediately after showing toast
         setTimeout(() => {
           navigate('/discover', { replace: true });
-        }, 3000);
+        }, 2000);
       }
     } catch (error: any) {
       console.error("Error saving onboarding data:", error);
@@ -133,14 +157,16 @@ export const Onboarding = () => {
       const previousStep = steps[currentIndex - 1] as OnboardingStep;
       setCurrentStep(previousStep);
       
-      // Update onboarding progress
-      await updateOnboardingProgress({
-        current_step: previousStep
-      });
+      try {
+        await updateOnboardingProgress({
+          current_step: previousStep
+        });
+      } catch (error) {
+        console.error('Error updating onboarding progress:', error);
+      }
     }
   };
   
-  // Show loading state
   if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center bg-island-dark">
@@ -149,7 +175,6 @@ export const Onboarding = () => {
     );
   }
   
-  // Render the current step
   const renderStep = () => {
     switch (currentStep) {
       case 'basics':
@@ -162,6 +187,13 @@ export const Onboarding = () => {
         return <OnboardingPhotos 
           profileId={profileData.id} 
           onNext={handleNext} 
+          onBack={handleBack}
+          isSubmitting={isSaving}
+        />;
+      case 'interests':
+        return <OnboardingInterests
+          initialData={profileData}
+          onNext={handleNext}
           onBack={handleBack}
           isSubmitting={isSaving}
         />;
@@ -198,7 +230,8 @@ export const Onboarding = () => {
       <div className="container max-w-md mx-auto px-4">
         <OnboardingProgress 
           currentStep={currentStep} 
-          steps={steps.filter(step => step !== 'completed')} 
+          steps={steps.filter(step => step !== 'completed')}
+          stepLabels={stepLabels}
         />
         {renderStep()}
       </div>
