@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
@@ -6,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 import { authApi } from '@/services/api/auth';
+import { supabase } from '@/integrations/supabase/client';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -30,25 +30,42 @@ const Login = () => {
     
     try {
       console.log('Attempting login with:', { email });
-      const response = await authApi.login(email, password);
-      console.log('Login response:', response);
       
-      if (response && response.access_token) {
-        // Store the access token and user data
-        localStorage.setItem('access_token', response.access_token);
-        localStorage.setItem('user', JSON.stringify(response.user));
+      // Try external API login first
+      try {
+        const response = await authApi.login(email, password);
+        console.log('External API login response:', response);
         
+        if (response && response.access_token) {
+          localStorage.setItem('access_token', response.access_token);
+          localStorage.setItem('user', JSON.stringify(response.user));
+          toast.success('Successfully logged in!');
+          navigate('/discover', { replace: true });
+          return;
+        }
+      } catch (apiError) {
+        console.log('External API login failed, trying Cloud auth...');
+      }
+      
+      // Fallback to Cloud authentication
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      
+      if (error) {
+        console.error('Cloud auth error:', error);
+        toast.error(error.message || 'Failed to log in. Please try again.');
+        return;
+      }
+      
+      if (data.session) {
         toast.success('Successfully logged in!');
-        
-        // Redirect to discover page immediately
         navigate('/discover', { replace: true });
-      } else {
-        console.error("Login response missing token:", response);
-        toast.error('Authentication error. Please try again.');
       }
     } catch (error: any) {
       console.error("Login error:", error);
-      const errorMessage = error.response?.data?.message || 'Failed to log in. Please try again.';
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to log in. Please try again.';
       toast.error(errorMessage);
     } finally {
       setIsLoading(false);
