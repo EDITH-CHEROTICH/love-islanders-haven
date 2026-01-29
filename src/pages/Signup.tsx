@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
@@ -6,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 import { authApi } from '@/services/api/auth';
+import { supabase } from '@/integrations/supabase/client';
 
 const Signup = () => {
   const [name, setName] = useState('');
@@ -35,21 +35,72 @@ const Signup = () => {
     setIsLoading(true);
     
     try {
-      // Register the user using the updated endpoint
-      await authApi.register(email, password, name);
+      let externalApiSuccess = false;
       
-      // After successful registration, log the user in
-      const loginResponse = await authApi.login(email, password);
+      // Try external API signup first
+      try {
+        await authApi.register(email, password, name);
+        const loginResponse = await authApi.login(email, password);
+        
+        localStorage.setItem('access_token', loginResponse.access_token);
+        localStorage.setItem('user', JSON.stringify(loginResponse.user));
+        externalApiSuccess = true;
+      } catch (apiError) {
+        console.log('External API signup failed, trying Cloud auth...');
+      }
       
-      // Store the access token
-      localStorage.setItem('access_token', loginResponse.access_token);
-      localStorage.setItem('user', JSON.stringify(loginResponse.user));
+      // Also create Cloud auth account for syncing
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/`,
+          data: {
+            name: name,
+          }
+        }
+      });
+      
+      if (error && !externalApiSuccess) {
+        console.error('Cloud auth error:', error);
+        toast.error(error.message || 'Failed to create account. Please try again.');
+        return;
+      }
+      
+      // Create profile in Cloud database
+      if (data.user) {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert({
+            id: data.user.id,
+            email: email,
+            name: name,
+            email_verified: true
+          });
+          
+        if (profileError) {
+          console.error('Profile creation error:', profileError);
+        }
+        
+        // Create onboarding entry
+        const { error: onboardingError } = await supabase
+          .from('profile_onboarding')
+          .insert({
+            profile_id: data.user.id,
+            completed: false,
+            current_step: 'basics'
+          });
+          
+        if (onboardingError) {
+          console.error('Onboarding creation error:', onboardingError);
+        }
+      }
       
       toast.success('Account created successfully!');
       navigate('/onboarding');
     } catch (error: any) {
       console.error("Signup error:", error);
-      toast.error(error.response?.data?.message || 'Failed to create account. Please try again.');
+      toast.error(error.response?.data?.message || error.message || 'Failed to create account. Please try again.');
     } finally {
       setIsLoading(false);
     }

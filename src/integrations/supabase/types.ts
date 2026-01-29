@@ -14,7 +14,86 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      profile_onboarding: {
+        Row: {
+          completed: boolean | null
+          created_at: string
+          current_step: string | null
+          id: string
+          profile_id: string
+          updated_at: string
+        }
+        Insert: {
+          completed?: boolean | null
+          created_at?: string
+          current_step?: string | null
+          id?: string
+          profile_id: string
+          updated_at?: string
+        }
+        Update: {
+          completed?: boolean | null
+          created_at?: string
+          current_step?: string | null
+          id?: string
+          profile_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profile_onboarding_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          age: number | null
+          avatar_url: string | null
+          bio: string | null
+          created_at: string
+          email: string | null
+          email_verified: boolean | null
+          id: string
+          interests: string[] | null
+          location: string | null
+          name: string | null
+          updated_at: string
+          verified: boolean | null
+        }
+        Insert: {
+          age?: number | null
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          email?: string | null
+          email_verified?: boolean | null
+          id: string
+          interests?: string[] | null
+          location?: string | null
+          name?: string | null
+          updated_at?: string
+          verified?: boolean | null
+        }
+        Update: {
+          age?: number | null
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          email?: string | null
+          email_verified?: boolean | null
+          id?: string
+          interests?: string[] | null
+          location?: string | null
+          name?: string | null
+          updated_at?: string
+          verified?: boolean | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
