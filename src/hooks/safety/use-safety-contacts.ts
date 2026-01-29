@@ -34,7 +34,17 @@ export function useSafetyContacts() {
       
       if (error) throw error;
       
-      setSafetyContacts(data as SafetyContact[]);
+      // Map database fields to interface fields
+      const contacts = (data || []).map(item => ({
+        id: item.id,
+        user_id: item.user_id,
+        name: (item as any).name || item.contact_name || '',
+        phone_number: (item as any).phone_number || item.contact_phone || '',
+        email: item.contact_email || undefined,
+        created_at: item.created_at
+      })) as SafetyContact[];
+      
+      setSafetyContacts(contacts);
     } catch (error) {
       console.error('Error fetching safety contacts:', error);
       toast.error('Failed to load safety contacts');
@@ -58,20 +68,31 @@ export function useSafetyContacts() {
         .insert([
           {
             user_id: user.id,
+            contact_name: contact.name,
+            contact_phone: contact.phone_number,
+            contact_email: contact.email,
             name: contact.name,
-            phone_number: contact.phone_number,
-            email: contact.email
-          }
+            phone_number: contact.phone_number
+          } as any
         ])
         .select();
       
       if (error) throw error;
       
-      setSafetyContacts(prev => [data![0] as SafetyContact, ...prev]);
+      const newContact = {
+        id: data![0].id,
+        user_id: data![0].user_id,
+        name: contact.name,
+        phone_number: contact.phone_number,
+        email: contact.email,
+        created_at: data![0].created_at
+      } as SafetyContact;
+      
+      setSafetyContacts(prev => [newContact, ...prev]);
       
       toast.success(`${contact.name} has been added as a safety contact`);
       
-      return data![0] as SafetyContact;
+      return newContact;
     } catch (error) {
       console.error('Error adding safety contact:', error);
       toast.error('Failed to add safety contact');

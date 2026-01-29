@@ -35,16 +35,19 @@ export function useDatePlans() {
             user_id: user.id,
             location: plan.location,
             date_time: plan.date_time,
+            title: plan.location, // Use location as title for compatibility
             notes: plan.notes,
-            contact_id: plan.contact_id,
             location_sharing_enabled: plan.location_sharing_enabled
-          }
+          } as any
         ])
         .select();
       
       if (error) throw error;
       
-      const newPlan = data![0] as DatePlan;
+      const newPlan = {
+        ...data![0],
+        location_sharing_enabled: (data![0] as any).location_sharing_enabled ?? false
+      } as DatePlan;
       setDatePlans(prev => [newPlan, ...prev]);
       
       toast.success(`Date plan for ${new Date(plan.date_time).toLocaleDateString()} has been scheduled`);
@@ -77,8 +80,13 @@ export function useDatePlans() {
       
       if (error) throw error;
       
-      setDatePlans(data as DatePlan[]);
-      return data as DatePlan[];
+      const plans = (data || []).map(item => ({
+        ...item,
+        location_sharing_enabled: (item as any).location_sharing_enabled ?? false
+      })) as DatePlan[];
+      
+      setDatePlans(plans);
+      return plans;
     } catch (error) {
       console.error('Error fetching date plans:', error);
       toast.error('Failed to load date plans');

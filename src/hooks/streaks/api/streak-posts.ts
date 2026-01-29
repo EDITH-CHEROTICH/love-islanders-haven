@@ -8,8 +8,8 @@ import { StreakData, CreateStreakParams } from "../types";
  */
 export const fetchStreakPosts = async (): Promise<StreakData[]> => {
   try {
-    const { data, error } = await supabase
-      .from('streaks')
+    const { data, error } = await (supabase
+      .from('streaks' as any)
       .select(`
         id,
         user_id,
@@ -23,7 +23,7 @@ export const fetchStreakPosts = async (): Promise<StreakData[]> => {
         profiles:user_id (name)
       `)
       .order('created_at', { ascending: false })
-      .limit(20);
+      .limit(20) as any);
 
     if (error) {
       console.error("Error fetching streak posts:", error);
@@ -35,7 +35,7 @@ export const fetchStreakPosts = async (): Promise<StreakData[]> => {
     }
     
     // Handle possible error with profiles relation by providing a default
-    return data.map(item => {
+    return data.map((item: any) => {
       // Create a fallback profile object
       const defaultProfile = { name: 'Unknown User' };
       
@@ -97,9 +97,9 @@ export const createStreakPost = async ({
     };
     
     // Insert streak post
-    const { error } = await supabase
-      .from('streaks')
-      .insert(postData);
+    const { error } = await (supabase
+      .from('streaks' as any)
+      .insert(postData) as any);
       
     if (error) {
       throw error;

@@ -87,11 +87,14 @@ export type Database = {
       }
       date_plans: {
         Row: {
+          contact_id: string | null
           created_at: string
           date_time: string | null
           description: string | null
           id: string
           location: string | null
+          location_sharing_enabled: boolean | null
+          notes: string | null
           partner_name: string | null
           status: string | null
           title: string
@@ -99,11 +102,14 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          contact_id?: string | null
           created_at?: string
           date_time?: string | null
           description?: string | null
           id?: string
           location?: string | null
+          location_sharing_enabled?: boolean | null
+          notes?: string | null
           partner_name?: string | null
           status?: string | null
           title: string
@@ -111,11 +117,14 @@ export type Database = {
           user_id: string
         }
         Update: {
+          contact_id?: string | null
           created_at?: string
           date_time?: string | null
           description?: string | null
           id?: string
           location?: string | null
+          location_sharing_enabled?: boolean | null
+          notes?: string | null
           partner_name?: string | null
           status?: string | null
           title?: string
@@ -123,6 +132,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "date_plans_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "safety_contacts"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "date_plans_user_id_fkey"
             columns: ["user_id"]
@@ -301,6 +317,7 @@ export type Database = {
           interests: string[] | null
           location: string | null
           name: string | null
+          streak_count: number | null
           updated_at: string
           verified: boolean | null
         }
@@ -315,6 +332,7 @@ export type Database = {
           interests?: string[] | null
           location?: string | null
           name?: string | null
+          streak_count?: number | null
           updated_at?: string
           verified?: boolean | null
         }
@@ -329,6 +347,7 @@ export type Database = {
           interests?: string[] | null
           location?: string | null
           name?: string | null
+          streak_count?: number | null
           updated_at?: string
           verified?: boolean | null
         }
@@ -342,6 +361,8 @@ export type Database = {
           created_at: string
           id: string
           is_primary: boolean | null
+          name: string | null
+          phone_number: string | null
           user_id: string
         }
         Insert: {
@@ -351,6 +372,8 @@ export type Database = {
           created_at?: string
           id?: string
           is_primary?: boolean | null
+          name?: string | null
+          phone_number?: string | null
           user_id: string
         }
         Update: {
@@ -360,11 +383,93 @@ export type Database = {
           created_at?: string
           id?: string
           is_primary?: boolean | null
+          name?: string | null
+          phone_number?: string | null
           user_id?: string
         }
         Relationships: [
           {
             foreignKeyName: "safety_contacts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      streak_likes: {
+        Row: {
+          created_at: string
+          id: string
+          streak_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          streak_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          streak_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "streak_likes_streak_id_fkey"
+            columns: ["streak_id"]
+            isOneToOne: false
+            referencedRelation: "streaks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "streak_likes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      streaks: {
+        Row: {
+          caption: string | null
+          comments_count: number | null
+          content: string
+          created_at: string
+          expires_at: string | null
+          id: string
+          likes_count: number | null
+          streak_count: number | null
+          user_id: string
+        }
+        Insert: {
+          caption?: string | null
+          comments_count?: number | null
+          content: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          likes_count?: number | null
+          streak_count?: number | null
+          user_id: string
+        }
+        Update: {
+          caption?: string | null
+          comments_count?: number | null
+          content?: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          likes_count?: number | null
+          streak_count?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "streaks_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"

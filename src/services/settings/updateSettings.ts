@@ -1,7 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { UserSettings } from "./types";
-import { Json } from "@/integrations/supabase/types";
 
 // Update specific settings category
 export const updateSettingsCategory = async <T extends keyof UserSettings>(
@@ -24,32 +23,30 @@ export const updateSettingsCategory = async <T extends keyof UserSettings>(
     
     const userId = userData.user.id;
     
+    // Map settings category to simple table columns
+    let updateData: Record<string, any> = {
+      updated_at: new Date().toISOString()
+    };
+    
+    if (category === 'account_settings' && settings) {
+      updateData.theme = (settings as any).theme || 'system';
+    } else if (category === 'privacy_settings' && settings) {
+      updateData.show_online_status = (settings as any).show_online_status ?? true;
+      updateData.location_sharing = (settings as any).location_sharing ?? false;
+    } else if (category === 'communication_settings' && settings) {
+      updateData.notifications_enabled = (settings as any).notifications_enabled ?? true;
+    }
+    
     // First check if a settings record exists
     const { data: existingSettings, error: fetchError } = await supabase
       .from('user_settings')
-      .select('id, ' + category)
-      .eq('id', userId)
+      .select('id')
+      .eq('user_id', userId)
       .single();
       
     if (fetchError && fetchError.code !== 'PGRST116') {
       console.error(`Error checking settings for ${category}:`, fetchError);
       return false;
-    }
-    
-    // Special handling for nested objects like dealBreakers
-    // If we're updating a category with nested objects, make sure we merge properly
-    let finalSettings = settings;
-    if (existingSettings && typeof settings === 'object' && settings !== null) {
-      // Create a safe typed copy of the existing category settings
-      const existingCategorySettings = existingSettings[category as string] as unknown as Partial<UserSettings[T]>;
-      
-      if (existingCategorySettings) {
-        // For match_preferences, we want to do a full replacement not a merge
-        // since sliders directly set the full value range
-        finalSettings = { ...settings };
-      }
-      
-      console.log(`Final settings for ${category}:`, finalSettings);
     }
       
     if (!existingSettings) {
@@ -58,9 +55,8 @@ export const updateSettingsCategory = async <T extends keyof UserSettings>(
       const { error: insertError } = await supabase
         .from('user_settings')
         .insert({
-          id: userId,
-          [category]: finalSettings as Json,
-          updated_at: new Date().toISOString()
+          user_id: userId,
+          ...updateData
         });
         
       if (insertError) {
@@ -72,11 +68,8 @@ export const updateSettingsCategory = async <T extends keyof UserSettings>(
       console.log(`Updating existing settings for ${category}`);
       const { error: updateError } = await supabase
         .from('user_settings')
-        .update({ 
-          [category]: finalSettings as Json,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', userId);
+        .update(updateData)
+        .eq('user_id', userId);
         
       if (updateError) {
         console.error(`Error updating ${category}:`, updateError);

@@ -21,7 +21,7 @@ export const fetchUserSettings = async (): Promise<UserSettings> => {
     const { data, error } = await supabase
       .from('user_settings')
       .select('*')
-      .eq('id', userId)
+      .eq('user_id', userId)
       .single();
     
     if (error) {
@@ -45,16 +45,26 @@ export const fetchUserSettings = async (): Promise<UserSettings> => {
     
     console.log('Retrieved settings:', data);
     
-    // Safely merge with defaults to ensure all fields are present
+    // Map basic settings to our structure
     return {
-      account_settings: safelyMergeSettings(defaultSettings.account_settings, data.account_settings),
-      privacy_settings: safelyMergeSettings(defaultSettings.privacy_settings, data.privacy_settings),
-      match_preferences: safelyMergeSettings(defaultSettings.match_preferences, data.match_preferences),
-      communication_settings: safelyMergeSettings(defaultSettings.communication_settings, data.communication_settings),
-      ai_companion_settings: safelyMergeSettings(defaultSettings.ai_companion_settings, data.ai_companion_settings || {}),
-      accessibility_settings: safelyMergeSettings(defaultSettings.accessibility_settings, data.accessibility_settings || {}),
-      security_settings: safelyMergeSettings(defaultSettings.security_settings, data.security_settings),
-      app_customization: safelyMergeSettings(defaultSettings.app_customization, data.app_customization)
+      account_settings: {
+        ...defaultSettings.account_settings,
+        theme: (data.theme as 'light' | 'dark' | 'system') || 'system'
+      },
+      privacy_settings: {
+        ...defaultSettings.privacy_settings,
+        show_online_status: data.show_online_status ?? true,
+        location_sharing: data.location_sharing ?? false
+      },
+      match_preferences: defaultSettings.match_preferences,
+      communication_settings: {
+        ...defaultSettings.communication_settings,
+        notifications_enabled: data.notifications_enabled ?? true
+      },
+      ai_companion_settings: defaultSettings.ai_companion_settings,
+      accessibility_settings: defaultSettings.accessibility_settings,
+      security_settings: defaultSettings.security_settings,
+      app_customization: defaultSettings.app_customization
     };
   } catch (error) {
     console.error('Error in fetchUserSettings:', error);

@@ -4,6 +4,7 @@ import { Json } from "@/integrations/supabase/types";
 // Types for all settings categories
 export interface AccountSettings {
   email?: string;
+  theme?: 'light' | 'dark' | 'system';
 }
 
 export interface PrivacySettings {
@@ -13,6 +14,8 @@ export interface PrivacySettings {
   locationPrecision?: 'exact' | 'approximate' | 'city';
   shareActivityStatus?: boolean;
   lastActiveVisibility?: boolean;
+  show_online_status?: boolean;
+  location_sharing?: boolean;
 }
 
 export interface MatchPreferences {
@@ -32,6 +35,7 @@ export interface CommunicationSettings {
   typingIndicators?: boolean;
   filterOffensive?: boolean;
   filterSpam?: boolean;
+  notifications_enabled?: boolean;
 }
 
 export interface AICompanionSettings {
