@@ -1,11 +1,9 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Upload, Plus, Trash2, RotateCw, Loader2 } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, RotateCw, Loader2, Image, Film, AlertCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { uploadProfileImage, fetchCurrentUserProfileImages } from '@/services/profiles/media';
+import { uploadProfileImage } from '@/services/profiles/media';
 import { useToast } from '@/hooks/use-toast';
-import { v4 as uuidv4 } from 'uuid';
 
 interface OnboardingPhotosProps {
   profileId: string;
@@ -14,18 +12,40 @@ interface OnboardingPhotosProps {
   isSubmitting: boolean;
 }
 
+interface MediaItem {
+  url: string;
+  type: 'image' | 'video';
+}
+
+const MIN_PHOTOS = 4;
+const MAX_MEDIA = 10;
+const MAX_VIDEOS = 2;
+
 export const OnboardingPhotos = ({ profileId, onNext, onBack, isSubmitting }: OnboardingPhotosProps) => {
-  const [photos, setPhotos] = useState<string[]>([]);
+  const [media, setMedia] = useState<MediaItem[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const { toast } = useToast();
+  
+  const photoCount = media.filter(m => m.type === 'image').length;
+  const videoCount = media.filter(m => m.type === 'video').length;
   
   useEffect(() => {
     // Load existing photos
     const loadPhotos = async () => {
       try {
-        const images = await fetchCurrentUserProfileImages();
-        setPhotos(images);
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+        
+        const { data: images } = await supabase
+          .from('profile_images')
+          .select('url')
+          .eq('profile_id', user.id)
+          .order('position');
+          
+        if (images) {
+          setMedia(images.map(img => ({ url: img.url, type: 'image' as const })));
+        }
       } catch (error) {
         console.error("Error loading photos:", error);
       }
@@ -34,13 +54,13 @@ export const OnboardingPhotos = ({ profileId, onNext, onBack, isSubmitting }: On
     loadPhotos();
   }, []);
   
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, type: 'image' | 'video') => {
     if (!e.target.files || e.target.files.length === 0) return;
     
     const file = e.target.files[0];
     
-    // Validate file
-    if (!file.type.startsWith('image/')) {
+    // Validate file type
+    if (type === 'image' && !file.type.startsWith('image/')) {
       toast({
         title: "Invalid file type",
         description: "Please select an image file",
@@ -49,10 +69,40 @@ export const OnboardingPhotos = ({ profileId, onNext, onBack, isSubmitting }: On
       return;
     }
     
-    if (file.size > 5 * 1024 * 1024) { // 5MB max
+    if (type === 'video' && !file.type.startsWith('video/')) {
+      toast({
+        title: "Invalid file type",
+        description: "Please select a video file",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Check limits
+    if (media.length >= MAX_MEDIA) {
+      toast({
+        title: "Limit reached",
+        description: `You can only have up to ${MAX_MEDIA} photos and videos combined`,
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    if (type === 'video' && videoCount >= MAX_VIDEOS) {
+      toast({
+        title: "Video limit reached",
+        description: `You can only have up to ${MAX_VIDEOS} videos`,
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Size validation
+    const maxSize = type === 'video' ? 50 * 1024 * 1024 : 5 * 1024 * 1024;
+    if (file.size > maxSize) {
       toast({
         title: "File too large",
-        description: "Image must be less than 5MB",
+        description: type === 'video' ? "Video must be less than 50MB" : "Image must be less than 5MB",
         variant: "destructive"
       });
       return;
@@ -62,7 +112,6 @@ export const OnboardingPhotos = ({ profileId, onNext, onBack, isSubmitting }: On
     setUploadProgress(0);
     
     try {
-      // Simulate progress for better UX
       const progressInterval = setInterval(() => {
         setUploadProgress(prev => {
           const newProgress = prev !== null ? Math.min(prev + 10, 90) : 10;
@@ -70,109 +119,140 @@ export const OnboardingPhotos = ({ profileId, onNext, onBack, isSubmitting }: On
         });
       }, 300);
       
-      // Upload the image
-      const position = photos.length;
+      const position = media.length;
       const imageUrl = await uploadProfileImage(file);
       
       clearInterval(progressInterval);
       setUploadProgress(100);
       
-      // Add the new photo to the list
-      setPhotos(prevPhotos => [...prevPhotos, imageUrl]);
+      setMedia(prev => [...prev, { url: imageUrl, type }]);
       
       toast({
-        title: "Photo uploaded",
-        description: "Your photo has been added to your profile",
+        title: `${type === 'video' ? 'Video' : 'Photo'} uploaded`,
+        description: `Your ${type} has been added to your profile`,
       });
     } catch (error: any) {
-      console.error("Error uploading photo:", error);
+      console.error("Error uploading:", error);
       toast({
         title: "Upload failed",
-        description: error.message || "Failed to upload photo",
+        description: error.message || "Failed to upload file",
         variant: "destructive"
       });
     } finally {
       setIsUploading(false);
       setUploadProgress(null);
-      // Clear the input
       e.target.value = '';
     }
   };
   
-  const handleDeletePhoto = async (index: number) => {
+  const handleDeleteMedia = async (index: number) => {
     try {
-      const photoToDelete = photos[index];
+      const itemToDelete = media[index];
       
-      // Remove from Supabase
-      const { error } = await supabase
-        .from('profile_images')
-        .delete()
-        .eq('url', photoToDelete);
-        
-      if (error) throw error;
+      if (itemToDelete.type === 'image') {
+        const { error } = await supabase
+          .from('profile_images')
+          .delete()
+          .eq('url', itemToDelete.url);
+        if (error) throw error;
+      }
       
-      // Remove from state
-      setPhotos(prevPhotos => prevPhotos.filter((_, i) => i !== index));
+      setMedia(prev => prev.filter((_, i) => i !== index));
       
       toast({
-        title: "Photo removed",
-        description: "The photo has been removed from your profile",
+        title: "Removed",
+        description: "The file has been removed from your profile",
       });
     } catch (error: any) {
-      console.error("Error deleting photo:", error);
+      console.error("Error deleting:", error);
       toast({
         title: "Delete failed",
-        description: error.message || "Failed to delete photo",
+        description: error.message || "Failed to delete file",
         variant: "destructive"
       });
     }
   };
   
   const handleContinue = () => {
-    if (photos.length < 1) {
+    if (photoCount < MIN_PHOTOS) {
       toast({
-        title: "Photos required",
-        description: "Please add at least one photo to continue",
+        title: "More photos needed",
+        description: `Please add at least ${MIN_PHOTOS} photos to continue`,
         variant: "destructive"
       });
       return;
     }
     
-    onNext({ images: photos });
+    const images = media.filter(m => m.type === 'image').map(m => m.url);
+    const videos = media.filter(m => m.type === 'video').map(m => m.url);
+    
+    onNext({ images, videos });
   };
+  
+  const remainingSlots = MAX_MEDIA - media.length;
+  const emptySlots = Math.max(0, MIN_PHOTOS - media.length);
   
   return (
     <div className="bg-island-dark/80 backdrop-blur-sm rounded-lg p-6 text-white animate-fade-in shadow-lg border border-island-light/30">
       <h1 className="text-2xl font-bold mb-2 text-gradient">Add Your Photos</h1>
-      <p className="text-gray-300 mb-6">Add photos to showcase yourself. You can rearrange them later.</p>
+      <p className="text-gray-300 mb-4">Add at least {MIN_PHOTOS} photos. You can also add up to {MAX_VIDEOS} videos.</p>
+      
+      {/* Requirements indicator */}
+      <div className="flex items-center gap-2 mb-4 p-3 rounded-lg bg-island-light/10">
+        <AlertCircle className="h-4 w-4 text-love shrink-0" />
+        <p className="text-sm">
+          {photoCount < MIN_PHOTOS ? (
+            <span className="text-love">Add {MIN_PHOTOS - photoCount} more photo{MIN_PHOTOS - photoCount > 1 ? 's' : ''} to continue</span>
+          ) : (
+            <span className="text-green-400">✓ Minimum photos added! You can add {remainingSlots} more.</span>
+          )}
+        </p>
+      </div>
       
       <div className="grid grid-cols-3 gap-3 mb-6">
-        {/* Display existing photos */}
-        {photos.map((photo, index) => (
-          <div key={index} className="relative aspect-square bg-island-light/10 rounded-lg overflow-hidden">
-            <img 
-              src={photo} 
-              alt={`Profile ${index + 1}`}
-              className="w-full h-full object-cover"
-            />
+        {/* Display existing media */}
+        {media.map((item, index) => (
+          <div key={index} className="relative aspect-square bg-island-light/10 rounded-lg overflow-hidden group">
+            {item.type === 'video' ? (
+              <div className="relative w-full h-full">
+                <video 
+                  src={item.url}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute top-2 left-2 bg-black/60 rounded-full p-1">
+                  <Film className="h-4 w-4" />
+                </div>
+              </div>
+            ) : (
+              <img 
+                src={item.url} 
+                alt={`Profile ${index + 1}`}
+                className="w-full h-full object-cover"
+              />
+            )}
             <button
-              onClick={() => handleDeletePhoto(index)}
-              className="absolute bottom-2 right-2 bg-red-500/80 hover:bg-red-600 p-1 rounded-full"
-              aria-label="Delete photo"
+              onClick={() => handleDeleteMedia(index)}
+              className="absolute bottom-2 right-2 bg-red-500/80 hover:bg-red-600 p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+              aria-label="Delete"
             >
-              <Trash2 className="h-5 w-5" />
+              <Trash2 className="h-4 w-4" />
             </button>
+            {index === 0 && (
+              <div className="absolute top-2 left-2 bg-love/90 text-xs px-2 py-0.5 rounded">
+                Main
+              </div>
+            )}
           </div>
         ))}
         
-        {/* Upload button */}
-        {photos.length < 6 && (
+        {/* Photo upload button */}
+        {media.length < MAX_MEDIA && (
           <label className="relative aspect-square bg-island-light/10 rounded-lg border-2 border-dashed border-island-light/30 flex flex-col items-center justify-center cursor-pointer hover:bg-island-light/20 transition-colors">
             <input
               type="file"
               accept="image/*"
               className="sr-only"
-              onChange={handleFileChange}
+              onChange={(e) => handleFileChange(e, 'image')}
               disabled={isUploading}
             />
             {isUploading ? (
@@ -187,42 +267,50 @@ export const OnboardingPhotos = ({ profileId, onNext, onBack, isSubmitting }: On
                     </div>
                   )}
                 </div>
-                <span className="text-xs mt-2">Uploading...</span>
               </div>
             ) : (
               <>
-                <Plus className="h-8 w-8 text-love" />
-                <span className="text-sm mt-1">Add Photo</span>
+                <Image className="h-6 w-6 text-love mb-1" />
+                <Plus className="h-4 w-4 text-love" />
+                <span className="text-xs mt-1">Photo</span>
               </>
             )}
           </label>
         )}
         
-        {/* Placeholder slots */}
-        {photos.length < 5 && Array.from({ length: 5 - photos.length }).map((_, index) => (
+        {/* Video upload button */}
+        {media.length < MAX_MEDIA && videoCount < MAX_VIDEOS && (
+          <label className="relative aspect-square bg-island-light/10 rounded-lg border-2 border-dashed border-love/30 flex flex-col items-center justify-center cursor-pointer hover:bg-island-light/20 transition-colors">
+            <input
+              type="file"
+              accept="video/*"
+              className="sr-only"
+              onChange={(e) => handleFileChange(e, 'video')}
+              disabled={isUploading}
+            />
+            <Film className="h-6 w-6 text-love mb-1" />
+            <Plus className="h-4 w-4 text-love" />
+            <span className="text-xs mt-1">Video</span>
+          </label>
+        )}
+        
+        {/* Placeholder slots to show required minimum */}
+        {Array.from({ length: Math.max(0, emptySlots - 2) }).map((_, index) => (
           <div 
             key={`placeholder-${index}`}
             className="aspect-square bg-island-light/5 rounded-lg border border-island-light/10 flex items-center justify-center"
           >
-            <span className="text-gray-500 text-xs">Photo {photos.length + index + 2}</span>
+            <span className="text-gray-500 text-xs">Photo {media.length + index + 3}</span>
           </div>
         ))}
       </div>
       
-      {photos.length > 0 ? (
-        <p className="text-sm text-gray-400 mb-6">
-          {photos.length === 1 
-            ? "Great start! Profiles with 3+ photos get more matches."
-            : photos.length < 4
-            ? "Looking good! Adding more photos increases your chances."
-            : "Perfect! Your profile looks complete."
-          }
-        </p>
-      ) : (
-        <p className="text-sm text-gray-400 mb-6">
-          Adding photos is essential. Profiles with photos get 10x more matches!
-        </p>
-      )}
+      {/* Media count summary */}
+      <div className="flex justify-between text-sm text-gray-400 mb-6">
+        <span>{photoCount} photo{photoCount !== 1 ? 's' : ''}</span>
+        <span>{videoCount}/{MAX_VIDEOS} video{videoCount !== 1 ? 's' : ''}</span>
+        <span>{media.length}/{MAX_MEDIA} total</span>
+      </div>
       
       <div className="flex space-x-3">
         <Button 
@@ -239,7 +327,7 @@ export const OnboardingPhotos = ({ profileId, onNext, onBack, isSubmitting }: On
           type="button" 
           onClick={handleContinue}
           className="flex-1 bg-love hover:bg-love-dark"
-          disabled={photos.length === 0 || isUploading || isSubmitting}
+          disabled={photoCount < MIN_PHOTOS || isUploading || isSubmitting}
         >
           {isSubmitting ? (
             <>
@@ -252,3 +340,5 @@ export const OnboardingPhotos = ({ profileId, onNext, onBack, isSubmitting }: On
     </div>
   );
 };
+
+export default OnboardingPhotos;
