@@ -16,7 +16,14 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
-import { FeedbackItem } from '@/services/profiles/types';
+
+interface FeedbackItem {
+  id: string;
+  feedback: string;
+  created_at: string;
+  category: string;
+  status: string;
+}
 
 const getCategoryColor = (category: string) => {
   switch (category) {
@@ -69,14 +76,14 @@ const FeedbackPage = () => {
 
         if (error) throw error;
         
-        // Make sure data matches our FeedbackItem type
+        // Map database fields to our interface
         if (data) {
           const typedFeedback = data.map(item => ({
             id: item.id,
-            feedback: item.feedback,
+            feedback: item.feedback_content,
             created_at: item.created_at,
-            category: item.category || 'general',
-            status: item.status || 'new'
+            category: item.feedback_type || 'general',
+            status: 'new' // Default status since we don't have it in DB
           })) as FeedbackItem[];
           
           setFeedbackItems(typedFeedback);

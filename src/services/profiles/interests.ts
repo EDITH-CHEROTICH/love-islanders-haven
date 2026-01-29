@@ -1,6 +1,10 @@
 
 import { supabase } from "@/integrations/supabase/client";
 
+/**
+ * Save user interests to their profile
+ * Note: Using the profiles.interests array field instead of separate tables
+ */
 export const saveUserInterests = async (interests: string[]) => {
   const user = supabase.auth.getUser();
   const userId = (await user).data.user?.id;
@@ -9,49 +13,24 @@ export const saveUserInterests = async (interests: string[]) => {
     throw new Error('User not authenticated');
   }
 
-  // First, fetch all interest IDs
-  const { data: interestData, error: interestError } = await supabase
-    .from('interests')
-    .select('id, name')
-    .in('name', interests);
+  // Update the interests array on the profiles table
+  const { error } = await supabase
+    .from('profiles')
+    .update({ interests: interests })
+    .eq('id', userId);
 
-  if (interestError) {
-    console.error('Error fetching interests:', interestError);
-    throw interestError;
-  }
-
-  // Delete existing profile interests
-  const { error: deleteError } = await supabase
-    .from('profile_interests')
-    .delete()
-    .eq('profile_id', userId);
-
-  if (deleteError) {
-    console.error('Error deleting existing interests:', deleteError);
-    throw deleteError;
-  }
-
-  // Insert new profile interests
-  const profileInterests = interestData.map(interest => ({
-    profile_id: userId,
-    interest_id: interest.id
-  }));
-
-  if (profileInterests.length > 0) {
-    const { error: insertError } = await supabase
-      .from('profile_interests')
-      .insert(profileInterests);
-
-    if (insertError) {
-      console.error('Error saving interests:', insertError);
-      throw insertError;
-    }
+  if (error) {
+    console.error('Error saving interests:', error);
+    throw error;
   }
 
   return true;
 };
 
-export const fetchProfileInterests = async (profileId?: string) => {
+/**
+ * Fetch interests for a profile
+ */
+export const fetchProfileInterests = async (profileId?: string): Promise<string[]> => {
   const user = supabase.auth.getUser();
   const userId = profileId || (await user).data.user?.id;
 
@@ -60,14 +39,15 @@ export const fetchProfileInterests = async (profileId?: string) => {
   }
 
   const { data, error } = await supabase
-    .from('profile_interests')
-    .select('interests(name)')
-    .eq('profile_id', userId);
+    .from('profiles')
+    .select('interests')
+    .eq('id', userId)
+    .single();
 
   if (error) {
     console.error('Error fetching interests:', error);
     throw error;
   }
 
-  return data.map(item => item.interests.name);
+  return data?.interests || [];
 };

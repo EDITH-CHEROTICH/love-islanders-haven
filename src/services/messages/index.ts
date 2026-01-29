@@ -54,7 +54,17 @@ export const sendMessage = async (matchId: string, content: string, contentType:
     throw error;
   }
 
-  return data as Message;
+  // Map database fields to our interface
+  return {
+    id: data.id,
+    content: data.content,
+    sender_id: data.sender_id,
+    match_id: data.match_id,
+    sent_at: data.created_at,
+    read: data.is_read,
+    content_type: data.content_type as 'text' | 'image' | 'audio',
+    media_url: data.media_url
+  } as Message;
 };
 
 export const getMessagesForMatch = async (matchId: string) => {
@@ -98,14 +108,24 @@ export const getMessagesForMatch = async (matchId: string) => {
     .from('messages')
     .select('*')
     .eq('match_id', matchId)
-    .order('sent_at', { ascending: true });
+    .order('created_at', { ascending: true });
 
   if (error) {
     console.error('Error fetching messages:', error);
     throw error;
   }
 
-  return data as Message[];
+  // Map database fields to our interface
+  return (data || []).map(item => ({
+    id: item.id,
+    content: item.content,
+    sender_id: item.sender_id,
+    match_id: item.match_id,
+    sent_at: item.created_at,
+    read: item.is_read,
+    content_type: item.content_type as 'text' | 'image' | 'audio',
+    media_url: item.media_url
+  })) as Message[];
 };
 
 export const markMessagesAsRead = async (matchId: string) => {
@@ -124,7 +144,7 @@ export const markMessagesAsRead = async (matchId: string) => {
 
   const { error } = await supabase
     .from('messages')
-    .update({ read: true })
+    .update({ is_read: true })
     .eq('match_id', matchId)
     .neq('sender_id', userId);
 
@@ -152,7 +172,7 @@ export const getUnreadMessageCount = async (matchId?: string) => {
   let query = supabase
     .from('messages')
     .select('id', { count: 'exact' })
-    .eq('read', false)
+    .eq('is_read', false)
     .neq('sender_id', userId);
   
   if (matchId) {

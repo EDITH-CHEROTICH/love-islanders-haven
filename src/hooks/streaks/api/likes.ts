@@ -5,12 +5,12 @@ import { supabase } from "@/integrations/supabase/client";
 export const likeStreakPost = async (userId: string, postId: string) => {
   try {
     // Check if user already liked this post
-    const { data: existingLike, error: checkError } = await supabase
-      .from('streak_likes')
+    const { data: existingLike, error: checkError } = await (supabase
+      .from('streak_likes' as any)
       .select('id')
       .eq('streak_id', postId)
       .eq('user_id', userId)
-      .maybeSingle();
+      .maybeSingle() as any);
       
     if (checkError) {
       console.error("Error checking if user already liked post:", checkError);
@@ -22,12 +22,12 @@ export const likeStreakPost = async (userId: string, postId: string) => {
     }
     
     // Add a new like
-    const { error } = await supabase
-      .from('streak_likes')
+    const { error } = await (supabase
+      .from('streak_likes' as any)
       .insert({
         streak_id: postId,
         user_id: userId
-      });
+      }) as any);
       
     if (error) {
       console.error("Error liking post:", error);
@@ -35,21 +35,21 @@ export const likeStreakPost = async (userId: string, postId: string) => {
     }
     
     // Get the current likes count
-    const { data: currentStreakData, error: getError } = await supabase
-      .from('streaks')
+    const { data: currentStreakData, error: getError } = await (supabase
+      .from('streaks' as any)
       .select('likes_count')
       .eq('id', postId)
-      .single();
+      .single() as any);
       
     if (getError) {
       console.error("Error getting current likes count:", getError);
     } else {
       // Update likes_count in streaks table with the new value
-      const newCount = (currentStreakData.likes_count || 0) + 1;
-      const { error: updateError } = await supabase
-        .from('streaks')
+      const newCount = (currentStreakData?.likes_count || 0) + 1;
+      const { error: updateError } = await (supabase
+        .from('streaks' as any)
         .update({ likes_count: newCount })
-        .eq('id', postId);
+        .eq('id', postId) as any);
         
       if (updateError) {
         console.error("Error incrementing likes count:", updateError);

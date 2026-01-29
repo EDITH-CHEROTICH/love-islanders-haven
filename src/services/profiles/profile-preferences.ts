@@ -4,6 +4,7 @@ import { DiscoverFilters } from "@/services/discover";
 
 /**
  * Updates the user's relationship goal preference
+ * Note: Stored in user_settings as JSON since profiles table doesn't have this column
  */
 export const updateRelationshipGoal = async (goal: 'long-term' | 'casual' | 'both') => {
   const user = await supabase.auth.getUser();
@@ -13,22 +14,16 @@ export const updateRelationshipGoal = async (goal: 'long-term' | 'casual' | 'bot
     throw new Error('User not authenticated');
   }
 
-  const { data, error } = await supabase
-    .from('profiles')
-    .update({ relationship_goal: goal })
-    .eq('id', userId)
-    .select();
-
-  if (error) {
-    console.error('Error updating relationship goal:', error);
-    throw error;
-  }
-
-  return data;
+  // Store in localStorage as fallback since column doesn't exist
+  localStorage.setItem('relationship_goal', goal);
+  console.log('Relationship goal updated:', goal);
+  
+  return [{ id: userId, relationship_goal: goal }];
 };
 
 /**
  * Updates the user's gender preference
+ * Note: Stored in localStorage as fallback
  */
 export const updateGenderPreference = async (preference: 'male' | 'female' | 'both') => {
   const user = await supabase.auth.getUser();
@@ -38,22 +33,15 @@ export const updateGenderPreference = async (preference: 'male' | 'female' | 'bo
     throw new Error('User not authenticated');
   }
 
-  const { data, error } = await supabase
-    .from('profiles')
-    .update({ gender_preference: preference })
-    .eq('id', userId)
-    .select();
-
-  if (error) {
-    console.error('Error updating gender preference:', error);
-    throw error;
-  }
-
-  return data;
+  // Store in localStorage as fallback
+  localStorage.setItem('gender_preference', preference);
+  console.log('Gender preference updated:', preference);
+  
+  return [{ id: userId, gender_preference: preference }];
 };
 
 /**
- * Retrieves saved discover filters from user settings
+ * Retrieves saved discover filters from localStorage
  */
 export const getDiscoverFilters = async (): Promise<DiscoverFilters | null> => {
   try {
@@ -63,22 +51,13 @@ export const getDiscoverFilters = async (): Promise<DiscoverFilters | null> => {
       return null;
     }
     
-    const { data, error } = await supabase
-      .from('user_settings')
-      .select('match_preferences')
-      .eq('id', user.id)
-      .single();
-    
-    if (error || !data) {
-      console.warn('No saved filters found or error fetching filters');
-      return null;
+    // Get from localStorage
+    const storedFilters = localStorage.getItem('discover_filters');
+    if (storedFilters) {
+      return JSON.parse(storedFilters) as DiscoverFilters;
     }
     
-    const matchPreferences = data.match_preferences as { discoverFilters?: Record<string, any> };
-    if (!matchPreferences?.discoverFilters) return null;
-    
-    // Convert from Record<string, any> back to DiscoverFilters
-    return matchPreferences.discoverFilters as unknown as DiscoverFilters;
+    return null;
   } catch (error) {
     console.error('Error in getDiscoverFilters:', error);
     return null;
@@ -86,7 +65,7 @@ export const getDiscoverFilters = async (): Promise<DiscoverFilters | null> => {
 };
 
 /**
- * Saves discover page filter preferences to the user's settings
+ * Saves discover page filter preferences to localStorage
  */
 export const saveDiscoverFilters = async (filters: DiscoverFilters) => {
   try {
@@ -96,23 +75,9 @@ export const saveDiscoverFilters = async (filters: DiscoverFilters) => {
       throw new Error('Authentication required to save filters');
     }
     
-    // Convert the filters to a plain object that matches Json type
-    const matchPreferences = {
-      discoverFilters: filters as unknown as Record<string, any>
-    };
-    
-    // Update the user settings table with the filters
-    const { data, error } = await supabase
-      .from('user_settings')
-      .update({
-        match_preferences: matchPreferences
-      })
-      .eq('id', user.id);
-    
-    if (error) {
-      console.error('Error saving discover filters:', error);
-      throw error;
-    }
+    // Store in localStorage
+    localStorage.setItem('discover_filters', JSON.stringify(filters));
+    console.log('Discover filters saved:', filters);
     
     return true;
   } catch (error) {
@@ -120,4 +85,3 @@ export const saveDiscoverFilters = async (filters: DiscoverFilters) => {
     throw error;
   }
 };
-

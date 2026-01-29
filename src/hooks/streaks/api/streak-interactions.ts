@@ -8,24 +8,24 @@ import { TopStreakUser, UserStreakStatus } from "../types";
 export const likeStreakPost = async (userId: string, postId: string): Promise<boolean> => {
   try {
     // Check if user already liked this post
-    const { data: existingLike } = await supabase
-      .from('streak_likes')
+    const { data: existingLike } = await (supabase
+      .from('streak_likes' as any)
       .select('id')
       .eq('user_id', userId)
       .eq('streak_id', postId)
-      .maybeSingle();
+      .maybeSingle() as any);
       
     if (existingLike) {
       return false; // User already liked this post
     }
     
     // Create like record
-    const { error } = await supabase
-      .from('streak_likes')
+    const { error } = await (supabase
+      .from('streak_likes' as any)
       .insert({
         user_id: userId,
         streak_id: postId
-      });
+      }) as any);
       
     if (error) {
       throw error;
@@ -46,13 +46,13 @@ export const checkUserDailyPost = async (userId: string): Promise<UserStreakStat
   today.setHours(0, 0, 0, 0);
   
   try {
-    const { data, error } = await supabase
-      .from('streaks')
+    const { data, error } = await (supabase
+      .from('streaks' as any)
       .select('streak_count')
       .eq('user_id', userId)
       .gte('created_at', today.toISOString())
       .order('created_at', { ascending: false })
-      .limit(1);
+      .limit(1) as any);
       
     if (error) {
       throw error;
@@ -73,12 +73,12 @@ export const checkUserDailyPost = async (userId: string): Promise<UserStreakStat
  */
 export const getTopStreaks = async (limit = 3): Promise<TopStreakUser[]> => {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await (supabase
       .from('profiles')
       .select('id, name, streak_count')
       .order('streak_count', { ascending: false })
       .gt('streak_count', 0)
-      .limit(limit);
+      .limit(limit) as any);
       
     if (error) {
       throw error;
@@ -88,7 +88,7 @@ export const getTopStreaks = async (limit = 3): Promise<TopStreakUser[]> => {
       return [];
     }
     
-    return data.map(profile => ({
+    return data.map((profile: any) => ({
       id: profile.id,
       name: profile.name || 'Anonymous',
       count: profile.streak_count || 0,
@@ -105,11 +105,11 @@ export const getTopStreaks = async (limit = 3): Promise<TopStreakUser[]> => {
  */
 export const getUserLatestStreakCount = async (userId: string): Promise<number> => {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await (supabase
       .from('profiles')
       .select('streak_count')
       .eq('id', userId)
-      .single();
+      .single() as any);
       
     if (error) {
       throw error;

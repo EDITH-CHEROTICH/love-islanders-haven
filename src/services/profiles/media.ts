@@ -13,7 +13,7 @@ export const saveProfileImage = async (
   try {
     const { data, error: authError } = await supabase.auth.getSession();
     
-    // For development or when Supabase auth is not fully available
+    // For development or when auth is not fully available
     const userId = data?.session?.user?.id || 
                   (localStorage.getItem('isAuthenticated') === 'true' ? 'dev-user-123' : null);
     
@@ -46,7 +46,6 @@ export const deleteProfileImage = async (imageUrl: string) => {
   try {
     const { data, error: authError } = await supabase.auth.getSession();
     
-    // For development or when Supabase auth is not fully available
     const userId = data?.session?.user?.id || 
                   (localStorage.getItem('isAuthenticated') === 'true' ? 'dev-user-123' : null);
     
@@ -71,17 +70,21 @@ export const deleteProfileImage = async (imageUrl: string) => {
 
 /**
  * Save a video URL to a user's profile
+ * Note: Videos are stored as part of profile images with a video content type
  */
 export const saveProfileVideo = async (videoUrl: string) => {
   try {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('User not authenticated');
 
+    // Store videos in profile_images table with a special position indicator
     const { error } = await supabase
-      .from('profile_videos')
+      .from('profile_images')
       .insert({
         profile_id: user.id,
-        url: videoUrl
+        url: videoUrl,
+        position: 999, // Special position for videos
+        is_visible: true
       });
 
     if (error) throw error;
@@ -99,7 +102,6 @@ export const uploadProfileImage = async (file: File): Promise<string> => {
   try {
     const { data, error: authError } = await supabase.auth.getSession();
     
-    // For development or when Supabase auth is not fully available
     const userId = data?.session?.user?.id || 
                   (localStorage.getItem('isAuthenticated') === 'true' ? 'dev-user-123' : null);
     
@@ -110,12 +112,8 @@ export const uploadProfileImage = async (file: File): Promise<string> => {
     const fileName = `${uuidv4()}.${fileExt}`;
     const filePath = `${userId}/${fileName}`;
     
-    // Check if storage bucket exists
-    const { data: buckets } = await supabase.storage.listBuckets();
-    const bucketExists = buckets?.some(bucket => bucket.name === 'profile-images');
-    
-    // Use public bucket if it exists, otherwise fallback
-    const bucketName = bucketExists ? 'profile-images' : 'profile-images';
+    // Use profile-images bucket
+    const bucketName = 'profile-images';
     
     // Upload to storage
     const { error: uploadError, data: uploadData } = await supabase.storage
@@ -152,6 +150,7 @@ export const fetchVisibleProfileImages = async (profileId: string): Promise<stri
       .select('url')
       .eq('profile_id', profileId)
       .eq('is_visible', true)
+      .lt('position', 999) // Exclude videos
       .order('position', { ascending: true });
       
     if (error) {
@@ -178,6 +177,7 @@ export const fetchCurrentUserProfileImages = async (): Promise<string[]> => {
       .from('profile_images')
       .select('url')
       .eq('profile_id', user.id)
+      .lt('position', 999) // Exclude videos
       .order('position', { ascending: true });
       
     if (error) {
@@ -202,7 +202,6 @@ export const updateProfileImagePosition = async (
   try {
     const { data, error: authError } = await supabase.auth.getSession();
     
-    // For development or when Supabase auth is not fully available
     const userId = data?.session?.user?.id || 
                   (localStorage.getItem('isAuthenticated') === 'true' ? 'dev-user-123' : null);
     
@@ -236,7 +235,6 @@ export const updateProfileImageVisibility = async (
   try {
     const { data, error: authError } = await supabase.auth.getSession();
     
-    // For development or when Supabase auth is not fully available
     const userId = data?.session?.user?.id || 
                   (localStorage.getItem('isAuthenticated') === 'true' ? 'dev-user-123' : null);
     

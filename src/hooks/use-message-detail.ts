@@ -24,11 +24,10 @@ export const useMessageDetail = (matchId: string) => {
         .from('matches')
         .select(`
           id,
-          user1_id,
-          user2_id,
-          matched_at,
-          user1:user1_id(id, name, avatar_url),
-          user2:user2_id(id, name, avatar_url)
+          user_id,
+          matched_user_id,
+          created_at,
+          status
         `)
         .eq('id', matchId)
         .single();
@@ -39,11 +38,18 @@ export const useMessageDetail = (matchId: string) => {
       
       // Determine which user is the other person in the match
       if (data) {
-        const otherUserData = data.user1_id === user?.id 
-          ? data.user2 
-          : data.user1;
+        const otherUserId = data.user_id === user?.id 
+          ? data.matched_user_id 
+          : data.user_id;
         
-        setOtherUser(otherUserData);
+        // Fetch the other user's profile
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('id, name, avatar_url')
+          .eq('id', otherUserId)
+          .single();
+          
+        setOtherUser(profileData);
       }
     } catch (error) {
       console.error("Error fetching match details:", error);
@@ -65,10 +71,10 @@ export const useMessageDetail = (matchId: string) => {
     try {
       const { error } = await supabase
         .from('messages')
-        .update({ read: true })
+        .update({ is_read: true })
         .eq('match_id', matchId)
         .neq('sender_id', user.id)
-        .eq('read', false);
+        .eq('is_read', false);
         
       if (error) throw error;
       

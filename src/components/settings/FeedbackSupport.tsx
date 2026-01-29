@@ -9,7 +9,6 @@ import { useState } from 'react';
 import { useAuth } from '@/context/auth';
 import { supabase } from '@/integrations/supabase/client';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { FeedbackItem } from '@/services/profiles/types';
 
 const FeedbackSupport = () => {
   const [feedback, setFeedback] = useState('');
@@ -35,9 +34,9 @@ const FeedbackSupport = () => {
         .from('user_feedback')
         .insert({
           user_id: user.id,
-          feedback: feedback.trim(),
-          category: category
-        });
+          feedback_content: feedback.trim(),
+          feedback_type: category
+        } as any);
         
       if (error) throw error;
       

@@ -39,20 +39,9 @@ export const fetchProfileById = async (id: string) => {
  * Fetch profiles for discover page with filtering
  */
 export const fetchDiscoverProfiles = async (filters: DiscoverFilters = {}) => {
-  let query = supabase
+  const { data, error } = await supabase
     .from('profiles')
     .select('*');
-  
-  // Apply filters if provided
-  if (filters.gender) {
-    query = query.eq('gender', filters.gender);
-  }
-  
-  if (filters.minAge && filters.maxAge) {
-    query = query.gte('age', filters.minAge).lte('age', filters.maxAge);
-  }
-  
-  const { data, error } = await query;
   
   if (error) {
     console.error('Error fetching discover profiles:', error);
@@ -68,18 +57,28 @@ export const fetchDiscoverProfiles = async (filters: DiscoverFilters = {}) => {
 export const recordSwipeAction = async (userId: string, profileId: string, action: 'like' | 'pass') => {
   try {
     if (action === 'like') {
+      // Use swipes table instead of likes
       const { error } = await supabase
-        .from('likes')
+        .from('swipes')
         .insert({
-          liker_id: userId,
-          liked_id: profileId,
-          is_like: true
+          user_id: userId,
+          swiped_user_id: profileId,
+          direction: 'right'
+        });
+      
+      if (error) throw error;
+    } else {
+      // Record pass as left swipe
+      const { error } = await supabase
+        .from('swipes')
+        .insert({
+          user_id: userId,
+          swiped_user_id: profileId,
+          direction: 'left'
         });
       
       if (error) throw error;
     }
-    
-    // Could implement 'pass' logic here if needed
     
     return true;
   } catch (error) {
@@ -97,32 +96,11 @@ export const fetchMatches = async (userId: string) => {
     .select(`
       id,
       created_at,
-      profiles!matches_user_one_fkey (
-        id,
-        name,
-        avatar_url,
-        age,
-        gender,
-        city,
-        country,
-        bio,
-        interests,
-        height_cm
-      ),
-      profiles!matches_user_two_fkey (
-        id,
-        name,
-        avatar_url,
-        age,
-        gender,
-        city,
-        country,
-        bio,
-        interests,
-        height_cm
-      )
+      user_id,
+      matched_user_id,
+      status
     `)
-    .or(`user_one.eq.${userId},user_two.eq.${userId}`);
+    .or(`user_id.eq.${userId},matched_user_id.eq.${userId}`);
     
   if (error) {
     console.error('Error fetching matches:', error);
@@ -136,7 +114,9 @@ export const fetchMatches = async (userId: string) => {
  * Format a profile for display
  */
 export const formatProfileForDisplay = (profile: any) => {
-  const interests = profile.interests ? JSON.parse(profile.interests) : [];
+  const interests = profile.interests ? 
+    (Array.isArray(profile.interests) ? profile.interests : JSON.parse(profile.interests)) 
+    : [];
   
   return {
     id: profile.id,

@@ -47,19 +47,20 @@ export const fetchProfileStats = async (timeRange: 'week' | 'month' | 'year'): P
   const startDateStr = startDate.toISOString();
   const endDateStr = now.toISOString();
   
-  // Get profile views (from likes table as a proxy since we don't have a dedicated views table)
+  // Get profile views using swipes table as proxy
   const { count: viewsCount } = await supabase
-    .from('likes')
+    .from('swipes')
     .select('*', { count: 'exact', head: true })
-    .eq('liked_id', userId)
+    .eq('swiped_user_id', userId)
     .gte('created_at', startDateStr)
     .lte('created_at', endDateStr);
   
-  // Get likes received
+  // Get likes received (right swipes on this user)
   const { count: likesCount } = await supabase
-    .from('likes')
+    .from('swipes')
     .select('*', { count: 'exact', head: true })
-    .eq('liked_id', userId)
+    .eq('swiped_user_id', userId)
+    .eq('direction', 'right')
     .gte('created_at', startDateStr)
     .lte('created_at', endDateStr);
   
@@ -67,22 +68,17 @@ export const fetchProfileStats = async (timeRange: 'week' | 'month' | 'year'): P
   const { count: matchesCount } = await supabase
     .from('matches')
     .select('*', { count: 'exact', head: true })
-    .or(`user1_id.eq.${userId},user2_id.eq.${userId}`)
-    .gte('matched_at', startDateStr)
-    .lte('matched_at', endDateStr);
+    .or(`user_id.eq.${userId},matched_user_id.eq.${userId}`)
+    .gte('created_at', startDateStr)
+    .lte('created_at', endDateStr);
   
   // Get message response stats
   const { data: messages } = await supabase
     .from('messages')
-    .select(`
-      id,
-      sender_id,
-      sent_at,
-      match_id
-    `)
+    .select(`id, sender_id, created_at, match_id`)
     .eq('sender_id', userId)
-    .gte('sent_at', startDateStr)
-    .lte('sent_at', endDateStr);
+    .gte('created_at', startDateStr)
+    .lte('created_at', endDateStr);
   
   // Count response messages
   const messageResponses = messages?.length || 0;
@@ -93,7 +89,7 @@ export const fetchProfileStats = async (timeRange: 'week' | 'month' | 'year'): P
   const responseRate = messageResponses > 0 ? 75 : 0; // percentage
   
   // Calculate conversion rate (matches / likes)
-  const conversionRate = likesCount > 0 ? (matchesCount / likesCount) * 100 : 0;
+  const conversionRate = (likesCount || 0) > 0 ? ((matchesCount || 0) / (likesCount || 1)) * 100 : 0;
   
   return {
     views: viewsCount || 0,
@@ -115,7 +111,6 @@ export const fetchDemographics = async (): Promise<DemographicData> => {
   
   // In a real app, this would be derived from actual profile views data
   // For now, we'll return realistic mock data
-  // In the future, you could create a profile_views table to track this information
   
   return {
     age: [
