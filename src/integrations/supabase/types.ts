@@ -14,6 +14,246 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_chat_history: {
+        Row: {
+          created_at: string
+          id: string
+          message_content: string
+          message_type: string | null
+          role: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message_content: string
+          message_type?: string | null
+          role: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message_content?: string
+          message_type?: string | null
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_chat_history_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      blocked_users: {
+        Row: {
+          blocked_user_id: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          blocked_user_id: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          blocked_user_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blocked_users_blocked_user_id_fkey"
+            columns: ["blocked_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blocked_users_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      date_plans: {
+        Row: {
+          created_at: string
+          date_time: string | null
+          description: string | null
+          id: string
+          location: string | null
+          partner_name: string | null
+          status: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          date_time?: string | null
+          description?: string | null
+          id?: string
+          location?: string | null
+          partner_name?: string | null
+          status?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          date_time?: string | null
+          description?: string | null
+          id?: string
+          location?: string | null
+          partner_name?: string | null
+          status?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "date_plans_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      matches: {
+        Row: {
+          created_at: string
+          id: string
+          matched_user_id: string
+          status: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          matched_user_id: string
+          status?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          matched_user_id?: string
+          status?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "matches_matched_user_id_fkey"
+            columns: ["matched_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "matches_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      messages: {
+        Row: {
+          content: string
+          content_type: string | null
+          created_at: string
+          id: string
+          is_read: boolean | null
+          match_id: string
+          media_url: string | null
+          sender_id: string
+        }
+        Insert: {
+          content: string
+          content_type?: string | null
+          created_at?: string
+          id?: string
+          is_read?: boolean | null
+          match_id: string
+          media_url?: string | null
+          sender_id: string
+        }
+        Update: {
+          content?: string
+          content_type?: string | null
+          created_at?: string
+          id?: string
+          is_read?: boolean | null
+          match_id?: string
+          media_url?: string | null
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profile_images: {
+        Row: {
+          created_at: string
+          id: string
+          is_visible: boolean | null
+          position: number | null
+          profile_id: string
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_visible?: boolean | null
+          position?: number | null
+          profile_id: string
+          url: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_visible?: boolean | null
+          position?: number | null
+          profile_id?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profile_images_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profile_onboarding: {
         Row: {
           completed: boolean | null
@@ -93,6 +333,156 @@ export type Database = {
           verified?: boolean | null
         }
         Relationships: []
+      }
+      safety_contacts: {
+        Row: {
+          contact_email: string | null
+          contact_name: string
+          contact_phone: string | null
+          created_at: string
+          id: string
+          is_primary: boolean | null
+          user_id: string
+        }
+        Insert: {
+          contact_email?: string | null
+          contact_name: string
+          contact_phone?: string | null
+          created_at?: string
+          id?: string
+          is_primary?: boolean | null
+          user_id: string
+        }
+        Update: {
+          contact_email?: string | null
+          contact_name?: string
+          contact_phone?: string | null
+          created_at?: string
+          id?: string
+          is_primary?: boolean | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "safety_contacts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      swipes: {
+        Row: {
+          created_at: string
+          direction: string
+          id: string
+          swiped_user_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          direction: string
+          id?: string
+          swiped_user_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          direction?: string
+          id?: string
+          swiped_user_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "swipes_swiped_user_id_fkey"
+            columns: ["swiped_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "swipes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_feedback: {
+        Row: {
+          created_at: string
+          feedback_content: string
+          feedback_type: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          feedback_content: string
+          feedback_type: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          feedback_content?: string
+          feedback_type?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_feedback_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_settings: {
+        Row: {
+          created_at: string
+          id: string
+          location_sharing: boolean | null
+          notifications_enabled: boolean | null
+          show_online_status: boolean | null
+          theme: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          location_sharing?: boolean | null
+          notifications_enabled?: boolean | null
+          show_online_status?: boolean | null
+          theme?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          location_sharing?: boolean | null
+          notifications_enabled?: boolean | null
+          show_online_status?: boolean | null
+          theme?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_settings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
