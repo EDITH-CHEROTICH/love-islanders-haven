@@ -226,8 +226,8 @@ export const Onboarding = () => {
   };
   
   return (
-    <div className="min-h-screen bg-gradient-to-b from-island-dark via-island to-island-dark py-8 overflow-y-auto">
-      <div className="container max-w-md mx-auto px-4 pb-12">
+    <div className="fixed inset-0 bg-gradient-to-b from-island-dark via-island to-island-dark overflow-y-auto z-50">
+      <div className="container max-w-md mx-auto px-4 py-8 pb-16">
         <OnboardingProgress 
           currentStep={currentStep} 
           steps={steps.filter(step => step !== 'completed')}
