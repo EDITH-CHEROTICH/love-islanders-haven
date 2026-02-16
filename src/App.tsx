@@ -1,6 +1,6 @@
 
 import React, { useEffect } from 'react';
-import { BrowserRouter as Router, Route, Routes, useNavigate, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, useNavigate, Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/auth';
 import { supabase } from '@/integrations/supabase/client';
 import Login from '@/pages/Login';
@@ -27,6 +27,7 @@ import Onboarding from './pages/Onboarding';
 function App() {
   const { isAuthenticated, loading, user } = useAuth();
   const online = useOnline();
+  const location = useLocation();
   const { toast } = useToast();
   const navigate = useNavigate();
   
@@ -185,8 +186,8 @@ function App() {
             <Route path="/" element={<Navigate to="/discover" replace />} />
           </Routes>
           
-          {/* Conditionally render MobileNavigation */}
-          {isAuthenticated && user && (
+          {/* Hide MobileNavigation on onboarding */}
+          {isAuthenticated && user && location.pathname !== '/onboarding' && (
             <MobileNavigation />
           )}
           
