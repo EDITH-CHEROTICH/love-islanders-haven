@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Plus, Trash2, RotateCw, Loader2, Image, Film, AlertCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { uploadProfileImage } from '@/services/profiles/media';
+import { uploadProfileImage, saveProfileImage } from '@/services/profiles/media';
 import { useToast } from '@/hooks/use-toast';
 
 interface OnboardingPhotosProps {
@@ -121,6 +121,9 @@ export const OnboardingPhotos = ({ profileId, onNext, onBack, isSubmitting }: On
       
       const position = media.length;
       const imageUrl = await uploadProfileImage(file);
+      
+      // Save image record to profile_images table
+      await saveProfileImage(imageUrl, position, true);
       
       clearInterval(progressInterval);
       setUploadProgress(100);
