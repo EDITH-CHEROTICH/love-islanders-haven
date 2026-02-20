@@ -111,8 +111,10 @@ export const OnboardingPhotos = ({ profileId, onNext, onBack, isSubmitting }: On
     setIsUploading(true);
     setUploadProgress(0);
     
+    let progressInterval: ReturnType<typeof setInterval> | null = null;
+    
     try {
-      const progressInterval = setInterval(() => {
+      progressInterval = setInterval(() => {
         setUploadProgress(prev => {
           const newProgress = prev !== null ? Math.min(prev + 10, 90) : 10;
           return newProgress;
@@ -122,18 +124,24 @@ export const OnboardingPhotos = ({ profileId, onNext, onBack, isSubmitting }: On
       const position = media.length;
       const imageUrl = await uploadProfileImage(file);
       
-      // Save image record to profile_images table
-      await saveProfileImage(imageUrl, position, true);
-      
-      clearInterval(progressInterval);
+      // Update UI immediately after storage upload succeeds
+      if (progressInterval) clearInterval(progressInterval);
+      progressInterval = null;
       setUploadProgress(100);
-      
       setMedia(prev => [...prev, { url: imageUrl, type }]);
       
       toast({
         title: `${type === 'video' ? 'Video' : 'Photo'} uploaded`,
         description: `Your ${type} has been added to your profile`,
       });
+
+      // Save to DB after UI is updated (non-blocking for UX)
+      try {
+        await saveProfileImage(imageUrl, position, true);
+      } catch (dbError) {
+        console.error("Failed to save image record to DB:", dbError);
+      }
+
     } catch (error: any) {
       console.error("Error uploading:", error);
       toast({
@@ -142,6 +150,7 @@ export const OnboardingPhotos = ({ profileId, onNext, onBack, isSubmitting }: On
         variant: "destructive"
       });
     } finally {
+      if (progressInterval) clearInterval(progressInterval);
       setIsUploading(false);
       setUploadProgress(null);
       e.target.value = '';
