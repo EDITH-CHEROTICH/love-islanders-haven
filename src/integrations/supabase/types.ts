@@ -308,48 +308,120 @@ export type Database = {
       profiles: {
         Row: {
           age: number | null
+          age_range_max: number | null
+          age_range_min: number | null
           avatar_url: string | null
           bio: string | null
+          city: string | null
+          communication_style: string | null
+          country: string | null
           created_at: string
+          display_name: string | null
+          distance_preference: number | null
+          dob: string | null
+          drinking_habit: string | null
+          education: string | null
           email: string | null
           email_verified: boolean | null
+          exercise: string | null
+          gender: string | null
+          gender_preference: string | null
+          height_cm: number | null
+          hometown: string | null
           id: string
           interests: string[] | null
           location: string | null
+          love_language: string | null
           name: string | null
+          occupation: string | null
+          onboarding_completed: boolean | null
+          pronouns: string | null
+          relationship_goal: string | null
+          show_age: boolean | null
+          show_me_verified_only: boolean | null
+          smoking_habit: string | null
           streak_count: number | null
           updated_at: string
           verified: boolean | null
+          zodiac_sign: string | null
         }
         Insert: {
           age?: number | null
+          age_range_max?: number | null
+          age_range_min?: number | null
           avatar_url?: string | null
           bio?: string | null
+          city?: string | null
+          communication_style?: string | null
+          country?: string | null
           created_at?: string
+          display_name?: string | null
+          distance_preference?: number | null
+          dob?: string | null
+          drinking_habit?: string | null
+          education?: string | null
           email?: string | null
           email_verified?: boolean | null
+          exercise?: string | null
+          gender?: string | null
+          gender_preference?: string | null
+          height_cm?: number | null
+          hometown?: string | null
           id: string
           interests?: string[] | null
           location?: string | null
+          love_language?: string | null
           name?: string | null
+          occupation?: string | null
+          onboarding_completed?: boolean | null
+          pronouns?: string | null
+          relationship_goal?: string | null
+          show_age?: boolean | null
+          show_me_verified_only?: boolean | null
+          smoking_habit?: string | null
           streak_count?: number | null
           updated_at?: string
           verified?: boolean | null
+          zodiac_sign?: string | null
         }
         Update: {
           age?: number | null
+          age_range_max?: number | null
+          age_range_min?: number | null
           avatar_url?: string | null
           bio?: string | null
+          city?: string | null
+          communication_style?: string | null
+          country?: string | null
           created_at?: string
+          display_name?: string | null
+          distance_preference?: number | null
+          dob?: string | null
+          drinking_habit?: string | null
+          education?: string | null
           email?: string | null
           email_verified?: boolean | null
+          exercise?: string | null
+          gender?: string | null
+          gender_preference?: string | null
+          height_cm?: number | null
+          hometown?: string | null
           id?: string
           interests?: string[] | null
           location?: string | null
+          love_language?: string | null
           name?: string | null
+          occupation?: string | null
+          onboarding_completed?: boolean | null
+          pronouns?: string | null
+          relationship_goal?: string | null
+          show_age?: boolean | null
+          show_me_verified_only?: boolean | null
+          smoking_habit?: string | null
           streak_count?: number | null
           updated_at?: string
           verified?: boolean | null
+          zodiac_sign?: string | null
         }
         Relationships: []
       }
