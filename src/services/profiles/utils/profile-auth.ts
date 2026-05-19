@@ -25,7 +25,7 @@ export async function getAuthenticatedUserId(): Promise<string | null> {
     if (authError) {
       console.log('Authentication error:', authError.message);
       // For development and testing, continue if localStorage shows authenticated
-      if (localStorage.getItem('isAuthenticated') === 'true' || process.env.NODE_ENV === 'development') {
+      if (localStorage.getItem('isAuthenticated') === 'true' || import.meta.env.MODE === 'development') {
         console.log('Using development authentication from localStorage');
         // Don't return a fake ID here, just signify we're in dev mode
         return null;
@@ -40,7 +40,7 @@ export async function getAuthenticatedUserId(): Promise<string | null> {
     console.error('Error checking authentication:', error);
     
     // For development purposes, don't return a fake ID
-    if (localStorage.getItem('isAuthenticated') === 'true' || process.env.NODE_ENV === 'development') {
+    if (localStorage.getItem('isAuthenticated') === 'true' || import.meta.env.MODE === 'development') {
       console.log('Development mode activated, not using real database');
       return null;
     }
@@ -56,7 +56,7 @@ export function isEffectivelyAuthenticated(): boolean {
   // For mobile, we need to check more thoroughly
   if (typeof window !== 'undefined') {
     const hasLocalAuth = localStorage.getItem('isAuthenticated') === 'true';
-    const isDev = process.env.NODE_ENV === 'development';
+    const isDev = import.meta.env.MODE === 'development';
     
     // When on mobile or in development, be more lenient with auth checks
     if (hasLocalAuth && (window.matchMedia('(max-width: 768px)').matches || isDev)) {
@@ -67,5 +67,5 @@ export function isEffectivelyAuthenticated(): boolean {
   // Default to checking Supabase session
   return supabase.auth.getSession() !== null || 
          localStorage.getItem('isAuthenticated') === 'true' ||
-         process.env.NODE_ENV === 'development';
+         import.meta.env.MODE === 'development';
 }

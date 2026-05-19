@@ -15,12 +15,10 @@ export function createFallbackProfile(userId: string = 'dev-user-123', email?: s
     relationship_goal: 'both',
     verified: false,
     email_verified: true,
-    images: [],
     show_age: true,
     age: 25,
     dob: new Date().toISOString(), // Use ISO string instead of Date object
     streak_count: 0,
-    videos: []
   };
 
   console.log("Created fallback profile for development:", developmentProfile);
@@ -50,8 +48,6 @@ export function transformProfileData(data: any): SupabaseProfile {
     email_verified: data.email_verified || false,
     streak_count: data.streak_count || 0,
     interests,
-    images: [], // Images are loaded separately
-    videos: data.videos || []
   };
 }
 

@@ -11,7 +11,7 @@ export const updateUserProfile = async (profileData: Partial<SupabaseProfile>) =
     
     // For development or when Supabase auth is not fully available
     let userId = user?.id;
-    const devMode = !userId && (localStorage.getItem('isAuthenticated') === 'true' || process.env.NODE_ENV === 'development');
+    const devMode = !userId && (localStorage.getItem('isAuthenticated') === 'true' || import.meta.env.MODE === 'development');
     
     if (!userId && !devMode) {
       toast.error("Authentication required to update profile");
@@ -72,7 +72,7 @@ export const updateDisplayPreferences = async (name: string, showAge: boolean) =
     
     // Check if in development mode
     const { data: { user } } = await supabase.auth.getUser();
-    const devMode = !user?.id && (localStorage.getItem('isAuthenticated') === 'true' || process.env.NODE_ENV === 'development');
+    const devMode = !user?.id && (localStorage.getItem('isAuthenticated') === 'true' || import.meta.env.MODE === 'development');
     
     if (devMode) {
       console.log('Development mode: Simulating display preferences update');

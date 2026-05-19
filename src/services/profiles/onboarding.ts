@@ -3,7 +3,6 @@ import { supabase } from '@/integrations/supabase/client';
 
 export interface OnboardingProgressData {
   current_step?: string;
-  completed_steps?: string[];
   completed?: boolean;
 }
 

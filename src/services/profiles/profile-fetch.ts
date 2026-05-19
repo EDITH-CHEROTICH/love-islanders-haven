@@ -172,7 +172,6 @@ function transformProfileData(rawData: any): SupabaseProfile {
     interests,
     streak_count: rawData.streak_count || 0,
     email_verified: rawData.email_verified || false,
-    images: []
   };
 }
 
@@ -183,7 +182,6 @@ function createFallbackProfile(userId = 'dev-user-123', email?: string | null): 
   return {
     id: userId,
     name: email?.split('@')[0] || 'Development User',
-    images: [],
     bio: 'This is a fallback profile for development and offline use.',
     verified: false,
     gender_preference: 'both' as 'male' | 'female' | 'both',

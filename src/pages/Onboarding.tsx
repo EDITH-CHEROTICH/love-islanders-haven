@@ -92,36 +92,49 @@ export const Onboarding = () => {
       const updatedProfileData = { ...profileData, ...stepData };
       setProfileData(updatedProfileData);
       
-      // Filter out fields that don't exist in profiles table
-      const profileFields = ['name', 'bio', 'age', 'location', 'interests', 'avatar_url', 'verified', 'email_verified'];
+      // Whitelist of valid profile columns (matches DB schema)
+      const profileFields = new Set([
+        'name', 'display_name', 'bio', 'age', 'dob', 'gender', 'gender_preference',
+        'location', 'city', 'country', 'hometown', 'pronouns', 'avatar_url',
+        'interests', 'height_cm', 'occupation', 'education', 'exercise',
+        'drinking_habit', 'smoking_habit', 'relationship_goal', 'communication_style',
+        'love_language', 'zodiac_sign', 'age_range_min', 'age_range_max',
+        'distance_preference', 'show_me_verified_only', 'show_age',
+        'verified', 'email_verified', 'onboarding_completed',
+      ]);
       const profileUpdate: any = {};
-      
       for (const key of Object.keys(stepData)) {
-        if (profileFields.includes(key)) {
+        if (profileFields.has(key) && stepData[key] !== undefined) {
           profileUpdate[key] = stepData[key];
         }
       }
-      
-      // Only update if there are valid profile fields
-      if (Object.keys(profileUpdate).length > 0) {
-        const { error: updateError } = await supabase
-          .from('profiles')
-          .update(profileUpdate)
-          .eq('id', profileData.id);
-          
-        if (updateError) {
-          console.error('Profile update error:', updateError);
-        }
-      }
-      
+
       const currentIndex = steps.indexOf(currentStep);
       const nextStep = steps[currentIndex + 1] as OnboardingStep;
-      
+      if (nextStep === 'completed') {
+        profileUpdate.onboarding_completed = true;
+      }
+
+      if (Object.keys(profileUpdate).length > 0) {
+        // Upsert to be safe in case the row doesn't exist yet
+        const { error: upsertError } = await supabase
+          .from('profiles')
+          .upsert({ id: profileData.id, ...profileUpdate }, { onConflict: 'id' });
+
+        if (upsertError) {
+          console.error('Profile upsert error:', upsertError);
+          throw upsertError;
+        }
+      }
+
+      // Ensure onboarding tracking row exists, then update step
       try {
-        await updateOnboardingProgress({
-          current_step: nextStep,
-          completed: nextStep === 'completed'
-        });
+        await supabase
+          .from('profile_onboarding')
+          .upsert(
+            { profile_id: profileData.id, current_step: nextStep, completed: nextStep === 'completed' },
+            { onConflict: 'profile_id' }
+          );
       } catch (onboardingError) {
         console.error('Onboarding progress update error:', onboardingError);
       }

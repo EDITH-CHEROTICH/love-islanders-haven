@@ -20,7 +20,7 @@ const AdSense: React.FC<AdSenseProps> = ({
   useEffect(() => {
     try {
       // Skip in development environment to avoid errors
-      if (process.env.NODE_ENV === 'development') {
+      if (import.meta.env.MODE === 'development') {
         console.log('AdSense disabled in development environment');
         return;
       }

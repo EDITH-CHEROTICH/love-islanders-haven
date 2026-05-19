@@ -68,7 +68,7 @@ export const updateSettingsCategory = async <T extends keyof UserSettings>(
       console.log(`Updating existing settings for ${category}`);
       const { error: updateError } = await supabase
         .from('user_settings')
-        .update(updateData)
+        .update(updateData as any)
         .eq('user_id', userId);
         
       if (updateError) {

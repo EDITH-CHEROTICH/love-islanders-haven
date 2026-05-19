@@ -12,7 +12,7 @@ export const useMessageContainer = ({ matchId, currentUserId }: UseMessageContai
   const [isSending, setIsSending] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [channel, setChannel] = useState<any>(null);
-  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   
   // Mark messages as read when component mounts
   useEffect(() => {

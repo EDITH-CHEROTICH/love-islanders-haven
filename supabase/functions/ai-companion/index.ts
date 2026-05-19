@@ -1,85 +1,95 @@
+import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
 
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import "https://deno.land/x/xhr@0.1.0/mod.ts";
+interface RequestBody {
+  message: string;
+  userId?: string | null;
+  userEmail?: string | null;
+  conversationHistory?: { role: 'user' | 'assistant' | 'system'; content: string }[];
+}
 
-// Import utility functions
-import { handleCorsPreflightRequest, validateRequestBody } from './utils/middleware.ts';
-import { createSuccessResponse, createErrorResponse } from './utils/responseHandler.ts';
-import { initializeSupabaseClient, fetchUserContextData } from './services/userDataService.ts';
-import { processConversationWithN8n } from './services/aiConversationService.ts';
-import { corsHeaders } from './utils/constants.ts';
+const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
 
-// Initialize Supabase client
-const supabase = initializeSupabaseClient();
+const SYSTEM_PROMPT = `You are Isla, a warm, witty and supportive dating companion inside a dating app called Love Islanders.
+Help the user with dating advice, conversation starters, profile feedback, confidence and emotional support.
+Be concise (2-4 short paragraphs max), playful and encouraging. Never give medical, legal or financial advice.`;
 
-serve(async (req) => {
+Deno.serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders });
+  }
+
   try {
-    console.log("Received request to AI companion");
-    
-    // Debug: Log request method and headers
-    console.log("Request method:", req.method);
-    console.log("Request headers:", Object.fromEntries(req.headers.entries()));
-    
-    // Handle CORS preflight requests
-    const corsResponse = handleCorsPreflightRequest(req);
-    if (corsResponse) {
-      console.log("Returning CORS preflight response");
-      return corsResponse;
+    const body = (await req.json()) as RequestBody;
+    if (!body?.message || typeof body.message !== 'string') {
+      return new Response(JSON.stringify({ error: 'message is required' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
-    
-    // Validate and parse the request body
-    const validation = await validateRequestBody(req);
-    if (!validation.isValid) {
-      console.error("Request validation failed:", validation.errorResponse.status);
-      return validation.errorResponse;
+
+    if (!LOVABLE_API_KEY) {
+      return new Response(
+        JSON.stringify({
+          response: "I'm in demo mode right now — the AI key isn't configured. But tell me what's on your dating mind and I'll do my best!",
+          demo: true,
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
-    
-    const { message, conversationHistory, userId, userEmail } = validation.data;
-    
-    console.log("Request params:", { 
-      message: message ? message.substring(0, 20) + "..." : "Missing", 
-      historyLength: conversationHistory.length,
-      userId: userId ? userId.substring(0, 8) + "..." : "Missing",
-      userEmail: userEmail ? userEmail.substring(0, 5) + "..." : "Missing"
+
+    const history = (body.conversationHistory ?? []).slice(-10).map((m) => ({
+      role: m.role === 'assistant' ? 'assistant' : 'user',
+      content: String(m.content ?? ''),
+    }));
+
+    const aiRes = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-2.5-flash',
+        messages: [
+          { role: 'system', content: SYSTEM_PROMPT },
+          ...history,
+          { role: 'user', content: body.message },
+        ],
+      }),
     });
 
-    // Check if OpenAI API key is configured
-    const openAIKey = Deno.env.get('OPENAI_API_KEY');
-    if (!openAIKey) {
-      console.error("OpenAI API key is not configured");
-      return createErrorResponse(new Error("OpenAI API key is not configured. Please add it to the Edge Function secrets."), 500);
+    if (!aiRes.ok) {
+      const errTxt = await aiRes.text();
+      console.error('Lovable AI error', aiRes.status, errTxt);
+      if (aiRes.status === 429) {
+        return new Response(JSON.stringify({ error: 'Rate limit exceeded. Please wait a moment.' }), {
+          status: 429,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      if (aiRes.status === 402) {
+        return new Response(JSON.stringify({ error: 'AI credits exhausted. Please top up in Lovable settings.' }), {
+          status: 402,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      return new Response(JSON.stringify({ error: 'AI request failed' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
-    
-    // Fetch user context data if userId is provided
-    const {
-      userMemoryContext,
-      userProfile,
-      userStreakActivity
-    } = await fetchUserContextData(supabase, userId);
-    
-    // Debug: Log the context data
-    console.log("Context data retrieved:", {
-      hasMemoryContext: !!userMemoryContext,
-      hasProfile: !!userProfile,
-      streakActivityCount: userStreakActivity?.length || 0
-    });
-    
-    // Process the conversation and generate an AI response using n8n
-    const result = await processConversationWithN8n(
-      message,
-      conversationHistory,
-      userId,
-      supabase,
-      userMemoryContext,
-      userStreakActivity,
-      userProfile,
-      userEmail
-    );
 
-    console.log("Successfully generated AI response");
-    return createSuccessResponse(result);
-  } catch (error) {
-    console.error("Error in AI companion edge function:", error);
-    return createErrorResponse(error);
+    const data = await aiRes.json();
+    const response = data?.choices?.[0]?.message?.content ?? "Sorry, I couldn't think of anything to say.";
+
+    return new Response(JSON.stringify({ response }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  } catch (err) {
+    console.error('ai-companion error', err);
+    return new Response(JSON.stringify({ error: (err as Error).message }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
   }
 });

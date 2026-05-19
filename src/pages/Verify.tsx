@@ -150,7 +150,7 @@ const Verify = () => {
         console.error("Failed to send email:", emailError);
         
         // For development, show the code directly
-        if (process.env.NODE_ENV === 'development') {
+        if (import.meta.env.MODE === 'development') {
           toast({
             title: "New Code Sent (Development)",
             description: `Your new verification code is: ${newVerificationCode}`,

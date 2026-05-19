@@ -33,7 +33,7 @@ const Profile = () => {
   // Always consider authenticated in development mode
   const effectivelyAuthenticated = isAuthenticated || 
     localStorage.getItem('isAuthenticated') === 'true' || 
-    process.env.NODE_ENV === 'development';
+    import.meta.env.MODE === 'development';
 
   if (!effectivelyAuthenticated) {
     return <ProfileAuthRequired />;

@@ -50,7 +50,7 @@ const ProfileDisplayPreferences = ({
       console.error('Error saving display preferences:', error);
       
       // Ensure we don't show raw DB errors to the user
-      const errorMessage = process.env.NODE_ENV === 'development' 
+      const errorMessage = import.meta.env.MODE === 'development' 
         ? error.message 
         : "Failed to save your preferences. Please try again.";
       

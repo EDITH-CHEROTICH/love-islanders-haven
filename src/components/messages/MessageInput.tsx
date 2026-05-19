@@ -21,7 +21,7 @@ const MessageInput = ({ onSendMessage, isSending, onTypingStatus, matchId }: Mes
   const [mediaPreview, setMediaPreview] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadType, setUploadType] = useState<'image' | 'audio' | null>(null);
-  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { toast } = useToast();
   
   // Handle typing notification

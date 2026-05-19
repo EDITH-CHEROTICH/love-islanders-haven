@@ -120,6 +120,5 @@ function transformProfileData(rawData: any): SupabaseProfile {
     streak_count: rawData.streak_count || 0,
     email_verified: rawData.email_verified || false,
     // Include other fields from SupabaseProfile as needed
-    images: []
   };
 }
