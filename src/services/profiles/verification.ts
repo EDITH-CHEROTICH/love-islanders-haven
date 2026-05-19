@@ -10,7 +10,7 @@ export const updateVerificationStatus = async (userId: string, status: boolean) 
     console.log('Updating verification status for user', userId, 'to', status);
     
     // For development or when Supabase auth is not fully available
-    if (process.env.NODE_ENV === 'development' || localStorage.getItem('isAuthenticated') === 'true') {
+    if (import.meta.env.MODE === 'development' || localStorage.getItem('isAuthenticated') === 'true') {
       console.log('Development mode: Simulating verification update');
       
       // If in development mode, still attempt the update
@@ -76,7 +76,7 @@ export const updateEmailVerificationStatus = async (userId: string, status: bool
     console.log('Updating email verification status for user', userId, 'to', status);
     
     // For development or when Supabase auth is not fully available
-    if (process.env.NODE_ENV === 'development' || localStorage.getItem('isAuthenticated') === 'true') {
+    if (import.meta.env.MODE === 'development' || localStorage.getItem('isAuthenticated') === 'true') {
       console.log('Development mode: Simulating email verification update');
       
       // Try the update first

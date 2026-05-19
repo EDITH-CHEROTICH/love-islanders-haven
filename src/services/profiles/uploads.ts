@@ -13,7 +13,7 @@ export const uploadProfileImage = async (file: File, position: number = 0): Prom
   let userId = data.session?.user.id;
   
   // If no userId but localStorage shows authenticated, create a development user ID
-  if (!userId && (localStorage.getItem('isAuthenticated') === 'true' || process.env.NODE_ENV === 'development')) {
+  if (!userId && (localStorage.getItem('isAuthenticated') === 'true' || import.meta.env.MODE === 'development')) {
     console.log('Using development user ID for uploads');
     userId = 'dev-user-123';
   }

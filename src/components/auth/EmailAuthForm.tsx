@@ -57,7 +57,7 @@ const EmailAuthForm = ({ onEmailSubmit }: EmailAuthFormProps) => {
         console.error("Failed to send email via edge function:", emailError);
         
         // For development, show the code in toast for easier testing
-        if (process.env.NODE_ENV === 'development') {
+        if (import.meta.env.MODE === 'development') {
           toast.success("Development mode: Code generated", {
             description: `Verification code: ${verificationCode}`,
           });
@@ -75,7 +75,7 @@ const EmailAuthForm = ({ onEmailSubmit }: EmailAuthFormProps) => {
       console.error("Error sending verification email:", error);
       
       // For development, show the code in toast for easier testing
-      if (process.env.NODE_ENV === 'development') {
+      if (import.meta.env.MODE === 'development') {
         const devCode = Math.floor(1000 + Math.random() * 9000).toString();
         toast.success("Development mode: Code generated", {
           description: `Verification code: ${devCode}`,

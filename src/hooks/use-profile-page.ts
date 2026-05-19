@@ -77,7 +77,7 @@ export function useProfilePage() {
       setError(error?.message || 'Failed to load profile data');
       
       // For development purposes, provide a default profile even on error
-      if (localStorage.getItem('isAuthenticated') === 'true' || process.env.NODE_ENV === 'development') {
+      if (localStorage.getItem('isAuthenticated') === 'true' || import.meta.env.MODE === 'development') {
         console.log('Creating default profile due to error');
         setProfile({
           name: user?.email?.split('@')[0] || 'Development User',

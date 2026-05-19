@@ -97,7 +97,7 @@ const EmailVerificationHandler = ({
         console.error("Error sending verification email:", error);
         
         // For development purposes, show the code in the toast
-        if (process.env.NODE_ENV === 'development') {
+        if (import.meta.env.MODE === 'development') {
           toast.success(`Development mode: Use this verification code: ${generatedCode}`);
         } else {
           toast.error("Failed to send verification code. Please try again.");

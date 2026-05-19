@@ -34,7 +34,7 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
   
   // For development purposes, bypass verification after timeout
   useEffect(() => {
-    if (loadingTimeout && process.env.NODE_ENV === 'development') {
+    if (loadingTimeout && import.meta.env.MODE === 'development') {
       console.log('Loading timeout detected in development mode - bypassing auth guard');
       setIsVerifying(false);
       setIsEmailVerified(true);
@@ -74,7 +74,7 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
     checkEmailVerification();
     
     // For development mode, don't get stuck in verification state
-    if (process.env.NODE_ENV === 'development') {
+    if (import.meta.env.MODE === 'development') {
       const timer = setTimeout(() => {
         setIsVerifying(false);
       }, 2000);
