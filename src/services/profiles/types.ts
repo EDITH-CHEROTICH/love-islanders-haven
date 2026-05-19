@@ -3,21 +3,38 @@ export interface SupabaseProfile {
   id: string;
   name: string;
   email?: string;
-  age: number;
-  location: string;
-  bio: string;
-  images?: string[]; // Make optional since it's handled separately in the database
-  interests?: string[]; // Make optional since it's handled separately in the database
+  age?: number;
+  location?: string;
+  bio?: string;
+  avatar_url?: string;
+  interests?: string[];
   verified?: boolean;
-  relationship_goal?: 'long-term' | 'casual' | 'both';
-  videos?: string[];
-  gender?: 'male' | 'female' | 'other';
-  gender_preference?: 'male' | 'female' | 'both';
-  dob?: string; // Changed from Date to string to match Supabase expectations
+  relationship_goal?: string;
+  gender?: string;
+  gender_preference?: string;
+  dob?: string;
   show_age?: boolean;
   email_verified?: boolean;
   streak_count?: number;
-  // Remove height_unit and other properties that don't exist in our database structure
+  height_cm?: number;
+  occupation?: string;
+  education?: string;
+  exercise?: string;
+  drinking_habit?: string;
+  smoking_habit?: string;
+  communication_style?: string;
+  love_language?: string;
+  zodiac_sign?: string;
+  hometown?: string;
+  pronouns?: string;
+  city?: string;
+  country?: string;
+  display_name?: string;
+  age_range_min?: number;
+  age_range_max?: number;
+  distance_preference?: number;
+  show_me_verified_only?: boolean;
+  onboarding_completed?: boolean;
 }
 
 export interface Like {
