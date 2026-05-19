@@ -36,19 +36,48 @@ export const fetchProfileById = async (id: string) => {
 };
 
 /**
- * Fetch profiles for discover page with filtering
+ * Fetch profiles for discover page with filtering.
+ * Excludes the current user, anyone they've already swiped on, and anyone they've blocked.
  */
 export const fetchDiscoverProfiles = async (filters: DiscoverFilters = {}) => {
-  const { data, error } = await supabase
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  // Build list of user ids to exclude
+  const [{ data: swipes }, { data: blocks }] = await Promise.all([
+    supabase.from('swipes').select('swiped_user_id').eq('user_id', user.id),
+    supabase.from('blocked_users').select('blocked_user_id').eq('user_id', user.id),
+  ]);
+  const excludeIds = new Set<string>([
+    user.id,
+    ...((swipes ?? []).map((s) => s.swiped_user_id)),
+    ...((blocks ?? []).map((b) => b.blocked_user_id)),
+  ]);
+
+  let query = supabase
     .from('profiles')
-    .select('*');
-  
+    .select('*, profile_images(url, position, is_visible)')
+    .eq('onboarding_completed', true);
+
+  if (filters.minAge) query = query.gte('age', filters.minAge);
+  if (filters.maxAge) query = query.lte('age', filters.maxAge);
+  if (filters.gender) query = query.eq('gender', filters.gender);
+
+  const { data, error } = await query.limit(50);
   if (error) {
     console.error('Error fetching discover profiles:', error);
     return [];
   }
-  
-  return data || [];
+
+  return (data ?? [])
+    .filter((p: any) => !excludeIds.has(p.id))
+    .map((p: any) => ({
+      ...p,
+      images: (p.profile_images ?? [])
+        .filter((img: any) => img.is_visible !== false)
+        .sort((a: any, b: any) => (a.position ?? 0) - (b.position ?? 0))
+        .map((img: any) => img.url),
+    }));
 };
 
 /**
