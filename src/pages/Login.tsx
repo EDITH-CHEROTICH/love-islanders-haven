@@ -4,7 +4,6 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
-import { authApi } from '@/services/api/auth';
 import { supabase } from '@/integrations/supabase/client';
 
 const Login = () => {
@@ -15,72 +14,46 @@ const Login = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
       toast.error('Please enter a valid email address');
       return;
     }
-
     if (!password) {
       toast.error('Please enter your password');
       return;
     }
 
     setIsLoading(true);
-    
     try {
-      console.log('Attempting login with:', { email });
-      
-      // Try external API login first
-      try {
-        const response = await authApi.login(email, password);
-        console.log('External API login response:', response);
-        
-        if (response && response.access_token) {
-          localStorage.setItem('access_token', response.access_token);
-          localStorage.setItem('user', JSON.stringify(response.user));
-          toast.success('Successfully logged in!');
-          navigate('/discover', { replace: true });
-          return;
-        }
-      } catch (apiError) {
-        console.log('External API login failed, trying Cloud auth...');
-      }
-      
-      // Fallback to Cloud authentication
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-      
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) {
-        console.error('Cloud auth error:', error);
-        toast.error(error.message || 'Failed to log in. Please try again.');
+        toast.error(error.message || 'Failed to log in.');
         return;
       }
-      
       if (data.session) {
-        toast.success('Successfully logged in!');
-        navigate('/discover', { replace: true });
+        localStorage.setItem('isAuthenticated', 'true');
+        toast.success('Welcome back!');
+        // Decide destination based on onboarding status
+        const { data: ob } = await supabase
+          .from('profile_onboarding')
+          .select('completed')
+          .eq('profile_id', data.session.user.id)
+          .maybeSingle();
+        navigate(ob?.completed ? '/discover' : '/onboarding', { replace: true });
       }
-    } catch (error: any) {
-      console.error("Login error:", error);
-      const errorMessage = error.response?.data?.message || error.message || 'Failed to log in. Please try again.';
-      toast.error(errorMessage);
+    } catch (err: any) {
+      toast.error(err?.message || 'Failed to log in.');
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleSignUp = () => {
-    navigate('/signup');
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-island-dark via-island to-island-dark p-4">
       <div className="glass-card w-full max-w-md p-6 rounded-xl shadow-lg">
         <h1 className="text-2xl font-bold text-center text-gradient mb-8">Sign In</h1>
-        
+
         <form onSubmit={handleLogin} className="space-y-6">
           <div>
             <label htmlFor="email" className="block text-white text-lg mb-2">Email</label>
@@ -105,24 +78,20 @@ const Login = () => {
               className="bg-island-light/20 border-island-light text-white h-12"
             />
           </div>
-          
-          <Button 
-            type="submit" 
-            className="w-full bg-love hover:bg-love-dark h-12 text-lg"
-            disabled={isLoading}
-          >
+
+          <Button type="submit" className="w-full bg-love hover:bg-love-dark h-12 text-lg" disabled={isLoading}>
             {isLoading ? (
               <span className="flex items-center justify-center">
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Logging in...
               </span>
-            ) : "Sign In"}
+            ) : 'Sign In'}
           </Button>
 
           <div className="text-center">
-            <button 
+            <button
               type="button"
-              onClick={handleSignUp}
+              onClick={() => navigate('/signup')}
               className="text-love hover:underline text-sm"
             >
               Don't have an account? Sign up

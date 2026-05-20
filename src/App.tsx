@@ -23,6 +23,7 @@ import { Loader2 } from 'lucide-react';
 import Streaks from '@/pages/Streaks';
 import Matches from '@/pages/Matches';
 import Onboarding from './pages/Onboarding';
+import AICompanion from '@/components/companion/AICompanion';
 
 function App() {
   const { isAuthenticated, loading, user } = useAuth();
@@ -41,30 +42,31 @@ function App() {
     }
   }, [online, toast]);
 
-  // Handle redirect after auth changes
+  // Handle redirect after auth changes — but DON'T fight an in-progress nav.
   useEffect(() => {
-    if (isAuthenticated && !loading) {
-      // Check if the user needs to complete onboarding
-      const checkOnboarding = async () => {
-        try {
-          // Check if user has completed onboarding
-          const { data: onboardingData, error } = await supabase
-            .from('profile_onboarding')
-            .select('completed')
-            .eq('profile_id', user?.id)
-            .single();
-            
-          if (error || !onboardingData || !onboardingData.completed) {
-            navigate('/onboarding', { replace: true });
-          }
-        } catch (error) {
-          console.error("Error checking onboarding status:", error);
+    if (!isAuthenticated || loading || !user?.id) return;
+    // Skip if we're already on a setup/auth route
+    const path = location.pathname;
+    if (path === '/onboarding' || path === '/login' || path === '/signup' || path === '/verify') return;
+
+    const checkOnboarding = async () => {
+      try {
+        const { data: onboardingData } = await supabase
+          .from('profile_onboarding')
+          .select('completed')
+          .eq('profile_id', user.id)
+          .maybeSingle();
+
+        if (!onboardingData || !onboardingData.completed) {
+          navigate('/onboarding', { replace: true });
         }
-      };
-      
-      checkOnboarding();
-    }
-  }, [isAuthenticated, loading, user, navigate]);
+      } catch (error) {
+        console.error('Error checking onboarding status:', error);
+      }
+    };
+
+    checkOnboarding();
+  }, [isAuthenticated, loading, user, navigate, location.pathname]);
 
   // Custom PrivateRoute component
   const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
@@ -135,8 +137,8 @@ function App() {
               path="/ai-companion"
               element={
                 <PrivateRoute>
-                  <div className="min-h-screen bg-gradient-to-b from-neutral-950 via-neutral-900 to-neutral-950 flex items-center justify-center">
-                    <h1 className="text-xl text-center">AI Companion Coming Soon</h1>
+                  <div className="min-h-screen bg-gradient-to-b from-neutral-950 via-neutral-900 to-neutral-950 pb-20">
+                    <AICompanion />
                   </div>
                 </PrivateRoute>
               }
