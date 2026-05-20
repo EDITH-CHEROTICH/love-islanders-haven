@@ -55,10 +55,7 @@ export const fetchUserProfile = async () => {
       try {
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
-          .select(`
-            *,
-            profile_interests (interests(name))
-          `)
+          .select('*')
           .eq('id', userId)
           .maybeSingle();
   
