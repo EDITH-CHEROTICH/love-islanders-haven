@@ -34,7 +34,7 @@ export const fetchStreakPosts = async (): Promise<StreakData[]> => {
     }
 
     // Fetch profile names for the post authors
-    const userIds = Array.from(new Set(data.map((p: any) => p.user_id)));
+    const userIds = Array.from(new Set(data.map((p: any) => p.user_id))) as string[];
     const { data: profiles } = await supabase
       .from('profiles')
       .select('id, name')
