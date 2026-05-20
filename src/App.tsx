@@ -42,30 +42,31 @@ function App() {
     }
   }, [online, toast]);
 
-  // Handle redirect after auth changes
+  // Handle redirect after auth changes — but DON'T fight an in-progress nav.
   useEffect(() => {
-    if (isAuthenticated && !loading) {
-      // Check if the user needs to complete onboarding
-      const checkOnboarding = async () => {
-        try {
-          // Check if user has completed onboarding
-          const { data: onboardingData, error } = await supabase
-            .from('profile_onboarding')
-            .select('completed')
-            .eq('profile_id', user?.id)
-            .single();
-            
-          if (error || !onboardingData || !onboardingData.completed) {
-            navigate('/onboarding', { replace: true });
-          }
-        } catch (error) {
-          console.error("Error checking onboarding status:", error);
+    if (!isAuthenticated || loading || !user?.id) return;
+    // Skip if we're already on a setup/auth route
+    const path = location.pathname;
+    if (path === '/onboarding' || path === '/login' || path === '/signup' || path === '/verify') return;
+
+    const checkOnboarding = async () => {
+      try {
+        const { data: onboardingData } = await supabase
+          .from('profile_onboarding')
+          .select('completed')
+          .eq('profile_id', user.id)
+          .maybeSingle();
+
+        if (!onboardingData || !onboardingData.completed) {
+          navigate('/onboarding', { replace: true });
         }
-      };
-      
-      checkOnboarding();
-    }
-  }, [isAuthenticated, loading, user, navigate]);
+      } catch (error) {
+        console.error('Error checking onboarding status:', error);
+      }
+    };
+
+    checkOnboarding();
+  }, [isAuthenticated, loading, user, navigate, location.pathname]);
 
   // Custom PrivateRoute component
   const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
