@@ -34,12 +34,9 @@ export const fetchUserProfile = async () => {
     // Fetch the user's profile data
     const { data: profileData, error: profileError } = await supabase
       .from('profiles')
-      .select(`
-        *,
-        profile_interests (interests(name))
-      `)
+      .select('*')
       .eq('id', userId)
-      .single();
+      .maybeSingle();
 
     if (profileError) {
       console.error('Error fetching profile:', profileError);
