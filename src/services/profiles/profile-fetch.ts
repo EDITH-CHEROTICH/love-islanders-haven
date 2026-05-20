@@ -139,10 +139,7 @@ export const fetchUserProfile = async () => {
  * Transforms raw database data into a typed SupabaseProfile
  */
 function transformProfileData(rawData: any): SupabaseProfile {
-  // Handle profile interests
-  const interests = rawData.profile_interests 
-    ? rawData.profile_interests
-        .map((pi: any) => pi.interests?.name)
+  const interests = Array.isArray(rawData.interests) ? rawData.interests : [];
         .filter(Boolean) 
     : [];
 
