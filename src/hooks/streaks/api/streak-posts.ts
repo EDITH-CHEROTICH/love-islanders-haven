@@ -19,8 +19,7 @@ export const fetchStreakPosts = async (): Promise<StreakData[]> => {
         streak_count,
         likes_count,
         comments_count,
-        expires_at,
-        profiles:user_id (name)
+        expires_at
       `)
       .order('created_at', { ascending: false })
       .limit(20) as any);
@@ -29,34 +28,25 @@ export const fetchStreakPosts = async (): Promise<StreakData[]> => {
       console.error("Error fetching streak posts:", error);
       return [];
     }
-    
+
     if (!data || data.length === 0) {
       return [];
     }
-    
-    // Handle possible error with profiles relation by providing a default
-    return data.map((item: any) => {
-      // Create a fallback profile object
-      const defaultProfile = { name: 'Unknown User' };
-      
-      // Safely check if profiles exists, is not null, and has a name property
-      let profileData: { name: string } = defaultProfile;
-      
-      if (item.profiles !== null && 
-          item.profiles !== undefined && 
-          typeof item.profiles === 'object') {
-        // Cast to any first to check if name exists
-        const profileObj = item.profiles as any;
-        if (profileObj && 'name' in profileObj) {
-          profileData = { name: profileObj.name };
-        }
-      }
-      
-      return {
-        ...item,
-        profiles: profileData
-      } as StreakData;
-    });
+
+    // Fetch profile names for the post authors
+    const userIds = Array.from(new Set(data.map((p: any) => p.user_id)));
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('id, name')
+      .in('id', userIds);
+
+    const nameMap = new Map<string, string>();
+    (profiles || []).forEach((p: any) => nameMap.set(p.id, p.name || 'Unknown User'));
+
+    return data.map((item: any) => ({
+      ...item,
+      profiles: { name: nameMap.get(item.user_id) || 'Unknown User' },
+    })) as StreakData[];
   } catch (error) {
     console.error("Error in fetchStreakPosts:", error);
     return [];
