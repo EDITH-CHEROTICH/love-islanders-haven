@@ -23,6 +23,7 @@ import { Loader2 } from 'lucide-react';
 import Streaks from '@/pages/Streaks';
 import Matches from '@/pages/Matches';
 import Onboarding from './pages/Onboarding';
+import AICompanion from '@/components/companion/AICompanion';
 
 function App() {
   const { isAuthenticated, loading, user } = useAuth();
@@ -135,8 +136,8 @@ function App() {
               path="/ai-companion"
               element={
                 <PrivateRoute>
-                  <div className="min-h-screen bg-gradient-to-b from-neutral-950 via-neutral-900 to-neutral-950 flex items-center justify-center">
-                    <h1 className="text-xl text-center">AI Companion Coming Soon</h1>
+                  <div className="min-h-screen bg-gradient-to-b from-neutral-950 via-neutral-900 to-neutral-950 pb-20">
+                    <AICompanion />
                   </div>
                 </PrivateRoute>
               }
