@@ -55,10 +55,7 @@ export const fetchUserProfile = async () => {
       try {
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
-          .select(`
-            *,
-            profile_interests (interests(name))
-          `)
+          .select('*')
           .eq('id', userId)
           .maybeSingle();
   
@@ -142,12 +139,7 @@ export const fetchUserProfile = async () => {
  * Transforms raw database data into a typed SupabaseProfile
  */
 function transformProfileData(rawData: any): SupabaseProfile {
-  // Handle profile interests
-  const interests = rawData.profile_interests 
-    ? rawData.profile_interests
-        .map((pi: any) => pi.interests?.name)
-        .filter(Boolean) 
-    : [];
+  const interests = Array.isArray(rawData.interests) ? rawData.interests : [];
 
   // Keep dob as string from the database
   const dob = rawData.dob || undefined;
