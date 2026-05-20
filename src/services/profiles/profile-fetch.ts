@@ -140,8 +140,6 @@ export const fetchUserProfile = async () => {
  */
 function transformProfileData(rawData: any): SupabaseProfile {
   const interests = Array.isArray(rawData.interests) ? rawData.interests : [];
-        .filter(Boolean) 
-    : [];
 
   // Keep dob as string from the database
   const dob = rawData.dob || undefined;
