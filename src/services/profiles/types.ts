@@ -12,16 +12,22 @@ export interface SupabaseProfile {
   relationship_goal?: string;
   gender?: string;
   gender_preference?: string;
+  genderPreference?: string;
   dob?: string;
   show_age?: boolean;
+  showAge?: boolean;
   email_verified?: boolean;
   streak_count?: number;
   height_cm?: number;
+  heightCm?: number;
+  height?: string;
   occupation?: string;
   education?: string;
   exercise?: string;
   drinking_habit?: string;
+  drinking?: string;
   smoking_habit?: string;
+  smoking?: string;
   communication_style?: string;
   love_language?: string;
   zodiac_sign?: string;
@@ -35,6 +41,10 @@ export interface SupabaseProfile {
   distance_preference?: number;
   show_me_verified_only?: boolean;
   onboarding_completed?: boolean;
+  relationshipGoal?: string;
+  distance?: number;
+  lastActive?: string;
+  images?: string[];
 }
 
 export interface Like {

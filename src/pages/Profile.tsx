@@ -25,17 +25,11 @@ const Profile = () => {
   } = useProfilePage();
   
   // Show loading state while auth is still being determined
-  if (loading || (isLoading && (isAuthenticated || localStorage.getItem('isAuthenticated') === 'true'))) {
+  if (loading || (isLoading && isAuthenticated)) {
     return <ProfileLoadingState />;
   }
 
-  // Check authentication status from both supabase and localStorage
-  // Always consider authenticated in development mode
-  const effectivelyAuthenticated = isAuthenticated || 
-    localStorage.getItem('isAuthenticated') === 'true' || 
-    import.meta.env.MODE === 'development';
-
-  if (!effectivelyAuthenticated) {
+  if (!isAuthenticated) {
     return <ProfileAuthRequired />;
   }
 
