@@ -68,11 +68,11 @@ export const useStreaksActions = (user: any, refreshPosts: () => void) => {
       });
       
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating streak post:", error);
       toast({
         title: "Error",
-        description: "Failed to create your streak post. Please try again.",
+        description: error?.message || "Failed to create your streak post. Please try again.",
         variant: "destructive",
       });
       return false;
