@@ -36,6 +36,7 @@ export interface SupabaseProfile {
   city?: string;
   country?: string;
   display_name?: string;
+  displayName?: string;
   age_range_min?: number;
   age_range_max?: number;
   distance_preference?: number;

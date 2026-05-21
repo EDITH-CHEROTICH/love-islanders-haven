@@ -138,7 +138,6 @@ function transformProfileData(rawData: any): SupabaseProfile {
     drinking_habit: rawData.drinking_habit || '',
     smoking: rawData.smoking_habit || '',
     smoking_habit: rawData.smoking_habit || '',
-    occupation: rawData.occupation || '',
     heightCm: rawData.height_cm || undefined,
     height_cm: rawData.height_cm || undefined,
     height: rawData.height_cm ? String(rawData.height_cm) : '',
