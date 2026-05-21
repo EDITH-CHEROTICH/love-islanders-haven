@@ -42,22 +42,21 @@ function App() {
     }
   }, [online, toast]);
 
-  // Handle redirect after auth changes — but DON'T fight an in-progress nav.
+  // Handle redirect after auth changes — but DON'T fight auth screens or an in-progress nav.
   useEffect(() => {
     if (!isAuthenticated || loading || !user?.id) return;
-    // Skip if we're already on a setup/auth route
     const path = location.pathname;
     if (path === '/onboarding' || path === '/login' || path === '/signup' || path === '/verify') return;
 
     const checkOnboarding = async () => {
       try {
-        const { data: onboardingData } = await supabase
-          .from('profile_onboarding')
-          .select('completed')
-          .eq('profile_id', user.id)
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('onboarding_completed')
+          .eq('id', user.id)
           .maybeSingle();
 
-        if (!onboardingData || !onboardingData.completed) {
+        if (!profile?.onboarding_completed) {
           navigate('/onboarding', { replace: true });
         }
       } catch (error) {
@@ -96,9 +95,9 @@ function App() {
       {online ? (
         <>
           <Routes>
-            <Route path="/login" element={isAuthenticated ? <Navigate to="/discover" replace /> : <Login />} />
-            <Route path="/signup" element={isAuthenticated ? <Navigate to="/discover" replace /> : <Signup />} />
-            <Route path="/verify" element={isAuthenticated ? <Navigate to="/discover" replace /> : <Verify />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/verify" element={<Verify />} />
             
             <Route
               path="/onboarding"

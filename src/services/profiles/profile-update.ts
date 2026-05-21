@@ -2,6 +2,31 @@ import { supabase } from "@/integrations/supabase/client";
 import { SupabaseProfile } from "./types";
 import { toast } from "sonner";
 
+const PROFILE_DB_FIELDS = new Set([
+  'name', 'email', 'age', 'dob', 'show_age', 'gender', 'gender_preference', 'height_cm',
+  'occupation', 'education', 'location', 'bio', 'avatar_url', 'interests', 'verified',
+  'relationship_goal', 'email_verified', 'streak_count', 'drinking_habit', 'smoking_habit',
+  'communication_style', 'love_language', 'zodiac_sign', 'hometown', 'pronouns', 'city',
+  'country', 'display_name', 'age_range_min', 'age_range_max', 'distance_preference',
+  'show_me_verified_only', 'onboarding_completed', 'updated_at'
+]);
+
+const toProfileDbPayload = (profileData: Record<string, any>) => {
+  const normalized = {
+    ...profileData,
+    gender_preference: profileData.gender_preference ?? profileData.genderPreference,
+    relationship_goal: profileData.relationship_goal ?? profileData.relationshipGoal,
+    show_age: profileData.show_age ?? profileData.showAge,
+    height_cm: profileData.height_cm ?? profileData.heightCm,
+    drinking_habit: profileData.drinking_habit ?? profileData.drinking,
+    smoking_habit: profileData.smoking_habit ?? profileData.smoking,
+  };
+
+  return Object.fromEntries(
+    Object.entries(normalized).filter(([key, value]) => PROFILE_DB_FIELDS.has(key) && value !== undefined)
+  );
+};
+
 /**
  * Updates a user's profile information in Supabase
  */
@@ -32,7 +57,7 @@ export const updateUserProfile = async (profileData: Partial<SupabaseProfile>) =
     console.log('Updating profile with data:', profileData);
     
     // Ensure any Date objects are converted to ISO strings
-    const cleanData = { ...profileData };
+    const cleanData = toProfileDbPayload(profileData as Record<string, any>);
     Object.keys(cleanData).forEach(key => {
       const value = cleanData[key];
       // Check if value is a Date
@@ -44,7 +69,7 @@ export const updateUserProfile = async (profileData: Partial<SupabaseProfile>) =
     // Pass the profileData directly to Supabase
     const { data, error } = await supabase
       .from('profiles')
-      .update(cleanData)
+      .update(cleanData as any)
       .eq('id', userId)
       .select();
     

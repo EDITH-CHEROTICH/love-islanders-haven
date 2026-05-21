@@ -84,12 +84,8 @@ export const useAuthState = () => {
             localStorage.setItem('authContact', existingSession.user.email);
           }
         } else {
-          // Check if we have authentication in localStorage from hybrid flow
-          const isLocallyAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
-          if (isLocallyAuthenticated) {
-            const isLocallyVerified = localStorage.getItem('emailVerificationCompleted') === 'true';
-            setEmailVerified(isLocallyVerified);
-          }
+          localStorage.removeItem('isAuthenticated');
+          setEmailVerified(null);
         }
         
         setNetworkError(false);
@@ -97,13 +93,8 @@ export const useAuthState = () => {
         console.error("Error initializing auth state:", error);
         setNetworkError(true);
         
-        // Check if we have authentication in localStorage as fallback
-        const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
-        const isVerified = localStorage.getItem('emailVerificationCompleted') === 'true';
-        
-        if (isAuthenticated) {
-          setEmailVerified(isVerified);
-        }
+        localStorage.removeItem('isAuthenticated');
+        setEmailVerified(null);
       } finally {
         setLoading(false);
       }
@@ -116,8 +107,8 @@ export const useAuthState = () => {
     };
   }, []);
 
-  // Determine if the user is authenticated based on session or localStorage fallback
-  const isAuthenticated = !!user || localStorage.getItem('isAuthenticated') === 'true';
+  // Only a real backend session should unlock private routes.
+  const isAuthenticated = !!session?.user;
 
   return {
     user,

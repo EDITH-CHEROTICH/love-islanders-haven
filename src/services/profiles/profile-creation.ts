@@ -2,10 +2,35 @@
 import { supabase } from "@/integrations/supabase/client";
 import { SupabaseProfile } from "./types";
 
+const PROFILE_DB_FIELDS = new Set([
+  'id', 'name', 'email', 'age', 'dob', 'show_age', 'gender', 'gender_preference', 'height_cm',
+  'occupation', 'education', 'location', 'bio', 'avatar_url', 'interests', 'verified',
+  'relationship_goal', 'email_verified', 'streak_count', 'drinking_habit', 'smoking_habit',
+  'communication_style', 'love_language', 'zodiac_sign', 'hometown', 'pronouns', 'city',
+  'country', 'display_name', 'age_range_min', 'age_range_max', 'distance_preference',
+  'show_me_verified_only', 'onboarding_completed', 'updated_at'
+]);
+
+const toProfileDbPayload = (profileData: Record<string, any>) => {
+  const normalized = {
+    ...profileData,
+    gender_preference: profileData.gender_preference ?? profileData.genderPreference,
+    relationship_goal: profileData.relationship_goal ?? profileData.relationshipGoal,
+    show_age: profileData.show_age ?? profileData.showAge,
+    height_cm: profileData.height_cm ?? profileData.heightCm,
+    drinking_habit: profileData.drinking_habit ?? profileData.drinking,
+    smoking_habit: profileData.smoking_habit ?? profileData.smoking,
+  };
+
+  return Object.fromEntries(
+    Object.entries(normalized).filter(([key, value]) => PROFILE_DB_FIELDS.has(key) && value !== undefined)
+  );
+};
+
 /**
  * Creates a new user profile or updates an existing one
  */
-export const createUserProfile = async (profileData: Partial<SupabaseProfile>): Promise<{ data: any; error: any }> => {
+export const createUserProfile = async (profileData: Record<string, any>): Promise<{ data: any; error: any }> => {
   try {
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     
@@ -16,7 +41,7 @@ export const createUserProfile = async (profileData: Partial<SupabaseProfile>): 
     
     // Prepare profile data with user ID and ensure Date is converted to string
     const profile = {
-      ...profileData,
+      ...toProfileDbPayload(profileData),
       id: user.id,
       updated_at: new Date().toISOString(),
       // No need for instanceof check since dob should already be a string

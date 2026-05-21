@@ -20,10 +20,7 @@ export function useProfilePage() {
       return; // Don't do anything while auth is loading
     }
     
-    // Default to considering the user authenticated from localStorage
-    const localStorageAuth = localStorage.getItem('isAuthenticated') === 'true';
-    
-    if (isAuthenticated || localStorageAuth) {
+    if (isAuthenticated && user?.id) {
       loadUserProfile();
     } else if (!loading) {
       toast({
@@ -42,15 +39,12 @@ export function useProfilePage() {
     try {
       console.log('Loading user profile...');
       
-      // For development purposes, we'll consider the user authenticated if localStorage says so
-      const localStorageAuth = localStorage.getItem('isAuthenticated') === 'true';
-      
-      if (!isAuthenticated && !localStorageAuth) {
+      if (!isAuthenticated || !user?.id) {
         console.log('No authentication detected');
         throw new Error('Authentication required');
       }
       
-      console.log('Authentication status: Supabase =', isAuthenticated, 'localStorage =', localStorageAuth);
+      console.log('Authentication status: Supabase =', isAuthenticated);
       const userData = await fetchUserProfile();
       
       if (userData) {
@@ -76,17 +70,6 @@ export function useProfilePage() {
       console.error('Error loading profile:', error);
       setError(error?.message || 'Failed to load profile data');
       
-      // For development purposes, provide a default profile even on error
-      if (localStorage.getItem('isAuthenticated') === 'true' || import.meta.env.MODE === 'development') {
-        console.log('Creating default profile due to error');
-        setProfile({
-          name: user?.email?.split('@')[0] || 'Development User',
-          images: [],
-          verified: false,
-          gender_preference: 'both',
-          relationship_goal: 'both'
-        });
-      }
     } finally {
       setIsLoading(false);
     }

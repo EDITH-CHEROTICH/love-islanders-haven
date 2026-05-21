@@ -32,7 +32,7 @@ export const fetchUserProfile = async () => {
     console.log('fetchUserProfile: User authenticated, id:', userId);
 
     // Fetch the user's profile data
-    const { data: profileData, error: profileError } = await supabase
+    let { data: profileData, error: profileError } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', userId)
@@ -45,7 +45,19 @@ export const fetchUserProfile = async () => {
     
     if (!profileData) {
       console.warn('No profile found for user:', userId);
-      return null;
+      const fallbackName = user.user_metadata?.name || user.email?.split('@')[0] || 'New User';
+      const { data: createdProfile, error: createError } = await supabase
+        .from('profiles')
+        .upsert({ id: userId, email: user.email, name: fallbackName, onboarding_completed: false }, { onConflict: 'id' })
+        .select('*')
+        .single();
+
+      if (createError) {
+        console.error('Error creating missing profile:', createError);
+        throw createError;
+      }
+
+      profileData = createdProfile;
     }
     
     console.log('fetchUserProfile: Found profile data');
@@ -100,18 +112,37 @@ function transformProfileData(rawData: any): SupabaseProfile {
   return {
     id: rawData.id,
     name: rawData.name || '',
+    email: rawData.email || undefined,
+    displayName: rawData.display_name || rawData.name || '',
+    display_name: rawData.display_name || undefined,
     age: rawData.age || 0,
     location: rawData.location || '',
     bio: rawData.bio || '',
     verified: rawData.verified || false,
+    avatar_url: rawData.avatar_url || undefined,
     dob,
     gender,
+    genderPreference: genderPreference || 'both',
     gender_preference: genderPreference || 'both',
+    relationshipGoal: relationshipGoal || 'both',
     relationship_goal: relationshipGoal || 'both',
+    showAge: rawData.show_age !== undefined ? rawData.show_age : true,
     show_age: rawData.show_age !== undefined ? rawData.show_age : true,
     interests,
     streak_count: rawData.streak_count || 0,
     email_verified: rawData.email_verified || false,
+    occupation: rawData.occupation || '',
+    education: rawData.education || '',
+    exercise: rawData.exercise || '',
+    drinking: rawData.drinking_habit || '',
+    drinking_habit: rawData.drinking_habit || '',
+    smoking: rawData.smoking_habit || '',
+    smoking_habit: rawData.smoking_habit || '',
+    heightCm: rawData.height_cm || undefined,
+    height_cm: rawData.height_cm || undefined,
+    height: rawData.height_cm ? String(rawData.height_cm) : '',
+    distance: 0,
+    lastActive: rawData.updated_at || rawData.created_at || new Date().toISOString(),
     // Include other fields from SupabaseProfile as needed
   };
 }
