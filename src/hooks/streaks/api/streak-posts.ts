@@ -21,7 +21,9 @@ const uploadStreakMedia = async (userId: string, postId: string, media: string[]
       upsert: true,
     });
 
-    if (error) throw error;
+    if (error) {
+      throw new Error(`Media upload failed: ${error.message}`);
+    }
 
     const { data } = supabase.storage.from('profile-images').getPublicUrl(path);
     uploadedUrls.push(data.publicUrl);
@@ -134,7 +136,7 @@ export const createStreakPost = async ({
       .insert(postData) as any);
       
     if (error) {
-      throw error;
+      throw new Error(`Streak save failed: ${error.message}`);
     }
 
     // Get profile info
@@ -161,6 +163,6 @@ export const createStreakPost = async ({
     } as any;
   } catch (error) {
     console.error("Error creating streak post:", error);
-    return null;
+    throw error;
   }
 };
