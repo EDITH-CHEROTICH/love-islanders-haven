@@ -35,12 +35,12 @@ const Login = () => {
         localStorage.setItem('isAuthenticated', 'true');
         toast.success('Welcome back!');
         // Decide destination based on onboarding status
-        const { data: ob } = await supabase
-          .from('profile_onboarding')
-          .select('completed')
-          .eq('profile_id', data.session.user.id)
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('onboarding_completed')
+          .eq('id', data.session.user.id)
           .maybeSingle();
-        navigate(ob?.completed ? '/discover' : '/onboarding', { replace: true });
+        navigate(profile?.onboarding_completed ? '/discover' : '/onboarding', { replace: true });
       }
     } catch (err: any) {
       toast.error(err?.message || 'Failed to log in.');
