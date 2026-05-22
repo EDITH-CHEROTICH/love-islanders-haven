@@ -42,7 +42,7 @@ export const useStreaksActions = (user: any, refreshPosts: () => void) => {
         .from('profiles')
         .select('streak_count')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
       
       const currentStreakCount = userData?.streak_count || 0;
       const newStreakCount = currentStreakCount + 1;

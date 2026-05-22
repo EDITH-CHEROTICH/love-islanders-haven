@@ -149,7 +149,7 @@ export const createStreakPost = async ({
       .from('profiles')
       .select('name, avatar_url')
       .eq('id', userId)
-      .single();
+      .maybeSingle();
 
     // Return the created post with user data
     return {

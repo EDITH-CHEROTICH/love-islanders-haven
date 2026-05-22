@@ -44,18 +44,18 @@ export const sendAIMessage = async (
     }
 
     console.log('Response received from AI companion');
-    
-    if (data.demo === true) {
+
+    if (data?.demo === true) {
       console.log('AI companion is running in demo mode');
-      // Signal to the UI that we're in demo mode
       window.postMessage(JSON.stringify({ type: 'ai-companion-demo-mode' }), '*');
     }
-    
-    if (data.error) {
+
+    if (data?.error) {
       console.error('Error from AI companion:', data.error);
+      throw new Error(data.error);
     }
-    
-    return data.response;
+
+    return data?.response || "Sorry, I couldn't think of anything to say.";
   } catch (error: any) {
     console.error("Failed to send message to AI Companion:", error);
     throw new Error(error.message || "Failed to send message to AI Companion");
