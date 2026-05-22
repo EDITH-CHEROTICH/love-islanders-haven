@@ -18,7 +18,7 @@ export const useAuthState = () => {
           .from('profiles')
           .select('email_verified')
           .eq('id', userId)
-          .single();
+          .maybeSingle();
 
         if (error) {
           console.error("Error checking email verification:", error);
