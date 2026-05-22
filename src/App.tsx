@@ -2,7 +2,7 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes, useNavigate, Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/auth';
-import { supabase } from '@/integrations/supabase/client';
+
 import Login from '@/pages/Login';
 import Profile from '@/pages/Profile';
 import Discover from '@/pages/Discover';
