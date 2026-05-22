@@ -76,7 +76,7 @@ function App() {
             <Route
               path="/onboarding"
               element={
-                <PrivateRoute>
+                <PrivateRoute guardOnboarding={false}>
                   <Onboarding />
                 </PrivateRoute>
               }
