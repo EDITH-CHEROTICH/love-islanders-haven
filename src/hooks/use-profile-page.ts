@@ -32,16 +32,17 @@ export function useProfilePage() {
   const [retryCount, setRetryCount] = useState(0);
   const { toast } = useToast();
   const { isAuthenticated, user, loading, networkError } = useAuth();
+  const hasAuthenticatedUser = !!user?.id || isAuthenticated;
   
   // Load user profile when component mounts or when auth state changes
   useEffect(() => {
-    if (loading) {
+    if (loading && !hasAuthenticatedUser) {
       return; // Don't do anything while auth is loading
     }
     
-    if (isAuthenticated && user?.id) {
+    if (hasAuthenticatedUser && user?.id) {
       loadUserProfile();
-    } else if (!loading) {
+    } else {
       toast({
         title: "Authentication required",
         description: "Please log in to view and edit your profile.",
@@ -49,7 +50,7 @@ export function useProfilePage() {
       });
       setIsLoading(false);
     }
-  }, [isAuthenticated, loading, retryCount]);
+  }, [hasAuthenticatedUser, user?.id, loading, retryCount]);
   
   const loadUserProfile = async () => {
     setIsLoading(true);
@@ -58,7 +59,7 @@ export function useProfilePage() {
     try {
       console.log('Loading user profile...');
       
-      if (!isAuthenticated || !user?.id) {
+      if (!hasAuthenticatedUser || !user?.id) {
         console.log('No authentication detected');
         throw new Error('Authentication required');
       }
@@ -139,6 +140,7 @@ export function useProfilePage() {
     error,
     loading,
     isAuthenticated,
+      user,
     handleEditProfile,
     handleRetry,
     handleImagesChange,
