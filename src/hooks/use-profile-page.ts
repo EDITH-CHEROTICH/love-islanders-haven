@@ -5,6 +5,25 @@ import { useAuth } from '@/context/auth';
 import { fetchUserProfile } from '@/services/profiles/core';
 import { supabase } from '@/integrations/supabase/client';
 
+const createDefaultProfile = (email?: string | null, id?: string) => ({
+  id: id || 'local-profile',
+  name: email?.split('@')[0] || 'New User',
+  age: 0,
+  bio: '',
+  distance: 0,
+  occupation: '',
+  education: '',
+  images: [],
+  interests: [],
+  relationshipGoal: 'both' as const,
+  height: '',
+  lastActive: new Date().toISOString(),
+  verified: false,
+  location: '',
+  genderPreference: 'both' as const,
+  showAge: true,
+});
+
 export function useProfilePage() {
   const [profile, setProfile] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -51,15 +70,8 @@ export function useProfilePage() {
         console.log('Profile loaded successfully');
         setProfile(userData);
       } else {
-        // Create a default profile if none exists
         console.log('No profile found, creating default');
-        setProfile({
-          name: user?.email?.split('@')[0] || 'New User',
-          images: [],
-          verified: false,
-          gender_preference: 'both',
-          relationship_goal: 'both'
-        });
+        setProfile(createDefaultProfile(user?.email, user?.id));
         
         toast({
           title: "Complete your profile",
@@ -69,7 +81,10 @@ export function useProfilePage() {
     } catch (error: any) {
       console.error('Error loading profile:', error);
       setError(error?.message || 'Failed to load profile data');
-      
+
+      if (user?.id) {
+        setProfile(createDefaultProfile(user.email, user.id));
+      }
     } finally {
       setIsLoading(false);
     }
