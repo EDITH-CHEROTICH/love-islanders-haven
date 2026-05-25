@@ -22,7 +22,10 @@ const OnboardingGuard = ({ children }: OnboardingGuardProps) => {
     let cancelled = false;
 
     const run = async () => {
-      if (loading) return;
+      if (loading) {
+        return;
+      }
+
       if (!isAuthenticated || !user?.id) {
         setChecking(false);
         return;
@@ -35,13 +38,21 @@ const OnboardingGuard = ({ children }: OnboardingGuardProps) => {
       }
 
       try {
-        const { data: profile } = await supabase
+        const { data: profile, error } = await supabase
           .from('profiles')
           .select('onboarding_completed')
           .eq('id', user.id)
           .maybeSingle();
 
-        if (!cancelled && !profile?.onboarding_completed) {
+        if (error) {
+          console.error('OnboardingGuard profile query error:', error);
+          if (!cancelled) {
+            setChecking(false);
+          }
+          return;
+        }
+
+        if (!cancelled && profile && profile.onboarding_completed === false) {
           navigate('/onboarding', { replace: true });
           return;
         }
