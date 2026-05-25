@@ -30,18 +30,53 @@ export function useProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
+  const [authReady, setAuthReady] = useState(false);
+  const [sessionUser, setSessionUser] = useState<any>(null);
   const { toast } = useToast();
-  const { isAuthenticated, user, loading, networkError } = useAuth();
-  const hasAuthenticatedUser = !!user?.id || isAuthenticated;
+  const { networkError } = useAuth();
+
+  useEffect(() => {
+    let mounted = true;
+
+    const loadSession = async () => {
+      try {
+        const { data } = await supabase.auth.getSession();
+        if (!mounted) return;
+        setSessionUser(data.session?.user ?? null);
+      } finally {
+        if (mounted) {
+          setAuthReady(true);
+        }
+      }
+    };
+
+    void loadSession();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!mounted) return;
+      setSessionUser(session?.user ?? null);
+      setAuthReady(true);
+    });
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  const isAuthenticated = !!sessionUser?.id;
+  const user = sessionUser;
   
   // Load user profile when component mounts or when auth state changes
   useEffect(() => {
-    if (loading && !hasAuthenticatedUser) {
+    if (!authReady) {
       return; // Don't do anything while auth is loading
     }
     
-    if (hasAuthenticatedUser && user?.id) {
-      loadUserProfile();
+    if (user?.id) {
+      void loadUserProfile();
     } else {
       toast({
         title: "Authentication required",
@@ -50,7 +85,7 @@ export function useProfilePage() {
       });
       setIsLoading(false);
     }
-  }, [hasAuthenticatedUser, user?.id, loading, retryCount]);
+  }, [authReady, user?.id, retryCount]);
   
   const loadUserProfile = async () => {
     setIsLoading(true);
@@ -59,7 +94,7 @@ export function useProfilePage() {
     try {
       console.log('Loading user profile...');
       
-      if (!hasAuthenticatedUser || !user?.id) {
+      if (!user?.id) {
         console.log('No authentication detected');
         throw new Error('Authentication required');
       }
@@ -138,7 +173,7 @@ export function useProfilePage() {
     isLoading,
     isEditing,
     error,
-    loading,
+      loading: !authReady,
     isAuthenticated,
       user,
     handleEditProfile,
