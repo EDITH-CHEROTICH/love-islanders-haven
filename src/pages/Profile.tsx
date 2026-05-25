@@ -17,6 +17,7 @@ const Profile = () => {
     error,
     loading,
     isAuthenticated,
+    user,
     handleEditProfile,
     handleRetry,
     handleImagesChange,
@@ -24,13 +25,14 @@ const Profile = () => {
     handlePreferencesUpdated
   } = useProfilePage();
   const hasUsableProfile = !!profile;
+  const hasAuthenticatedUser = !!user?.id || isAuthenticated;
   
   // Show loading state while auth is still being determined
-  if (loading || (isLoading && isAuthenticated && !hasUsableProfile)) {
+  if ((loading && !hasAuthenticatedUser) || (isLoading && hasAuthenticatedUser && !hasUsableProfile)) {
     return <ProfileLoadingState />;
   }
 
-  if (!isAuthenticated) {
+  if (!hasAuthenticatedUser) {
     return <ProfileAuthRequired />;
   }
 
