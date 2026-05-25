@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { useProfilePage } from '@/hooks/use-profile-page';
+import { useAuth } from '@/context/auth';
 
 import ProfileHeader from '@/components/profile/layout/ProfileHeader';
 import ProfileTabs from '@/components/profile/layout/ProfileTabs';
@@ -29,26 +30,22 @@ const createFallbackProfile = () => ({
 });
 
 const Profile = () => {
+  const { user: authUser, isAuthenticated: authIsAuthenticated, loading: authLoading } = useAuth();
   const {
     profile,
     isLoading,
     isEditing,
     error,
-    loading,
-    isAuthenticated,
-    user,
     handleEditProfile,
     handleRetry,
     handleImagesChange,
     handleVerificationSuccess,
     handlePreferencesUpdated
   } = useProfilePage();
-  const hasUsableProfile = !!profile;
-  const hasAuthenticatedUser = !!user?.id || isAuthenticated;
+  const hasAuthenticatedUser = !!authUser?.id || authIsAuthenticated;
   const resolvedProfile = profile ?? createFallbackProfile();
   
-  // Show loading state while auth is still being determined
-  if (loading && !hasAuthenticatedUser) {
+  if (authLoading && !hasAuthenticatedUser) {
     return <ProfileLoadingState />;
   }
 
