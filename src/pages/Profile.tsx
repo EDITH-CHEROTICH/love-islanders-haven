@@ -23,9 +23,10 @@ const Profile = () => {
     handleVerificationSuccess,
     handlePreferencesUpdated
   } = useProfilePage();
+  const hasUsableProfile = !!profile;
   
   // Show loading state while auth is still being determined
-  if (loading || (isLoading && isAuthenticated)) {
+  if (loading || (isLoading && isAuthenticated && !hasUsableProfile)) {
     return <ProfileLoadingState />;
   }
 
