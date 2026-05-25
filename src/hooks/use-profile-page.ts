@@ -25,7 +25,7 @@ const createDefaultProfile = (email?: string | null, id?: string) => ({
 });
 
 export function useProfilePage() {
-  const [profile, setProfile] = useState<any>(null);
+  const [profile, setProfile] = useState<any>(() => createDefaultProfile(localStorage.getItem('authContact')));
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -76,6 +76,7 @@ export function useProfilePage() {
     }
     
     if (user?.id) {
+      setProfile((current: any) => current?.id === 'local-profile' ? createDefaultProfile(user.email, user.id) : current);
       void loadUserProfile();
     } else {
       toast({
