@@ -17,16 +17,17 @@ const OnboardingGuard = ({ children }: OnboardingGuardProps) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [checking, setChecking] = useState(true);
+  const hasAuthenticatedUser = !!user?.id || isAuthenticated;
 
   useEffect(() => {
     let cancelled = false;
 
     const run = async () => {
-      if (loading) {
+      if (loading && !hasAuthenticatedUser) {
         return;
       }
 
-      if (!isAuthenticated || !user?.id) {
+      if (!hasAuthenticatedUser || !user?.id) {
         setChecking(false);
         return;
       }
@@ -67,9 +68,9 @@ const OnboardingGuard = ({ children }: OnboardingGuardProps) => {
     return () => {
       cancelled = true;
     };
-  }, [isAuthenticated, user?.id, loading, location.pathname, navigate]);
+  }, [hasAuthenticatedUser, user?.id, loading, location.pathname, navigate]);
 
-  if (loading || checking) {
+  if ((loading && !hasAuthenticatedUser) || checking) {
     return (
       <div className="flex h-screen items-center justify-center bg-island-dark">
         <Loader2 className="h-12 w-12 animate-spin text-love" />
