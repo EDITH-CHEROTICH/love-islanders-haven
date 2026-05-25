@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -11,7 +10,8 @@ export const useAuthState = () => {
   const [emailVerified, setEmailVerified] = useState<boolean | null>(null);
 
   useEffect(() => {
-    // Function to check if the email is verified
+    let isMounted = true;
+
     const checkEmailVerification = async (userId: string) => {
       try {
         const { data, error } = await supabase
@@ -21,93 +21,90 @@ export const useAuthState = () => {
           .maybeSingle();
 
         if (error) {
-          console.error("Error checking email verification:", error);
+          console.error('Error checking email verification:', error);
           return null;
         }
 
-        return data?.email_verified;
+        return data?.email_verified ?? null;
       } catch (error) {
-        console.error("Error checking email verification:", error);
+        console.error('Error checking email verification:', error);
         return null;
       }
     };
 
-    // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, newSession) => {
-        console.log("Auth state changed:", event, newSession?.user?.id);
-        
-        setUser(newSession?.user ?? null);
-        setSession(newSession);
-        
-        if (newSession?.user) {
-          // Check if email is verified when session changes
-          const verified = await checkEmailVerification(newSession.user.id);
-          setEmailVerified(verified);
-          
-          // Store authentication status in localStorage
-          if (verified) {
-            localStorage.setItem('emailVerificationCompleted', 'true');
-            if (newSession?.user?.email) {
-              localStorage.setItem('authContact', newSession.user.email);
-            }
-          }
-          
-          localStorage.setItem('isAuthenticated', 'true');
-        } else {
-          setEmailVerified(null);
-        }
-      }
-    );
+    const applySessionState = (nextSession: Session | null) => {
+      if (!isMounted) return;
 
-    // Check for existing session
+      setUser(nextSession?.user ?? null);
+      setSession(nextSession);
+
+      if (!nextSession?.user) {
+        setEmailVerified(null);
+        localStorage.removeItem('isAuthenticated');
+        localStorage.removeItem('authContact');
+        localStorage.removeItem('emailVerificationCompleted');
+        return;
+      }
+
+      localStorage.setItem('isAuthenticated', 'true');
+      if (nextSession.user.email) {
+        localStorage.setItem('authContact', nextSession.user.email);
+      }
+
+      void checkEmailVerification(nextSession.user.id).then((verified) => {
+        if (!isMounted) return;
+
+        setEmailVerified(verified);
+        if (verified) {
+          localStorage.setItem('emailVerificationCompleted', 'true');
+        } else {
+          localStorage.removeItem('emailVerificationCompleted');
+        }
+      });
+    };
+
     const initializeAuthState = async () => {
       try {
         setLoading(true);
-        
-        const { data: { session: existingSession } } = await supabase.auth.getSession();
-        
-        setUser(existingSession?.user ?? null);
-        setSession(existingSession);
-        
-        if (existingSession?.user) {
-          // Check if email is verified
-          const verified = await checkEmailVerification(existingSession.user.id);
-          setEmailVerified(verified);
-          
-          // Store authentication status in localStorage
-          localStorage.setItem('isAuthenticated', 'true');
-          if (verified) {
-            localStorage.setItem('emailVerificationCompleted', 'true');
-          }
-          if (existingSession?.user?.email) {
-            localStorage.setItem('authContact', existingSession.user.email);
-          }
-        } else {
-          localStorage.removeItem('isAuthenticated');
-          setEmailVerified(null);
+        const {
+          data: { session: existingSession },
+        } = await supabase.auth.getSession();
+
+        applySessionState(existingSession);
+        if (isMounted) {
+          setNetworkError(false);
         }
-        
-        setNetworkError(false);
       } catch (error) {
-        console.error("Error initializing auth state:", error);
-        setNetworkError(true);
-        
-        localStorage.removeItem('isAuthenticated');
-        setEmailVerified(null);
+        console.error('Error initializing auth state:', error);
+        if (isMounted) {
+          setNetworkError(true);
+          applySessionState(null);
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
-    initializeAuthState();
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      applySessionState(nextSession);
+      if (isMounted) {
+        setNetworkError(false);
+        setLoading(false);
+      }
+    });
+
+    void initializeAuthState();
 
     return () => {
+      isMounted = false;
       subscription.unsubscribe();
     };
   }, []);
 
-  // Only a real backend session should unlock private routes.
   const isAuthenticated = !!session?.user;
 
   return {
@@ -116,6 +113,6 @@ export const useAuthState = () => {
     loading,
     isAuthenticated,
     networkError,
-    emailVerified
+    emailVerified,
   };
 };

@@ -1,6 +1,6 @@
 
 import React, { useEffect } from 'react';
-import { BrowserRouter as Router, Route, Routes, useNavigate, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/auth';
 
 import Login from '@/pages/Login';
@@ -44,15 +44,9 @@ function App() {
 
   // Custom PrivateRoute component
   const PrivateRoute = ({ children, guardOnboarding = true }: { children: React.ReactNode; guardOnboarding?: boolean }) => {
-    const navigate = useNavigate();
-    
-    useEffect(() => {
-      if (!isAuthenticated && !loading) {
-        navigate('/login', { replace: true });
-      }
-    }, [navigate]);
+    const hasAuthenticatedUser = !!user?.id || isAuthenticated;
 
-    if (loading) {
+    if (loading && !hasAuthenticatedUser) {
       return (
         <div className="flex h-screen items-center justify-center bg-island-dark">
           <Loader2 className="h-12 w-12 animate-spin text-love" />
@@ -60,7 +54,10 @@ function App() {
       );
     }
 
-    if (!isAuthenticated) return null;
+    if (!hasAuthenticatedUser) {
+      return <Navigate to="/login" replace />;
+    }
+
     return guardOnboarding ? <OnboardingGuard>{children}</OnboardingGuard> : <>{children}</>;
   };
 

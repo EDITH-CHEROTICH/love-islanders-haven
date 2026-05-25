@@ -5,24 +5,80 @@ import { useAuth } from '@/context/auth';
 import { fetchUserProfile } from '@/services/profiles/core';
 import { supabase } from '@/integrations/supabase/client';
 
+const createDefaultProfile = (email?: string | null, id?: string) => ({
+  id: id || 'local-profile',
+  name: email?.split('@')[0] || 'New User',
+  age: 0,
+  bio: '',
+  distance: 0,
+  occupation: '',
+  education: '',
+  images: [],
+  interests: [],
+  relationshipGoal: 'both' as const,
+  height: '',
+  lastActive: new Date().toISOString(),
+  verified: false,
+  location: '',
+  genderPreference: 'both' as const,
+  showAge: true,
+});
+
 export function useProfilePage() {
-  const [profile, setProfile] = useState<any>(null);
+  const [profile, setProfile] = useState<any>(() => createDefaultProfile(localStorage.getItem('authContact')));
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
+  const [authReady, setAuthReady] = useState(false);
+  const [sessionUser, setSessionUser] = useState<any>(null);
   const { toast } = useToast();
-  const { isAuthenticated, user, loading, networkError } = useAuth();
+  const { networkError } = useAuth();
+
+  useEffect(() => {
+    let mounted = true;
+
+    const loadSession = async () => {
+      try {
+        const { data } = await supabase.auth.getSession();
+        if (!mounted) return;
+        setSessionUser(data.session?.user ?? null);
+      } finally {
+        if (mounted) {
+          setAuthReady(true);
+        }
+      }
+    };
+
+    void loadSession();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!mounted) return;
+      setSessionUser(session?.user ?? null);
+      setAuthReady(true);
+    });
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  const isAuthenticated = !!sessionUser?.id;
+  const user = sessionUser;
   
   // Load user profile when component mounts or when auth state changes
   useEffect(() => {
-    if (loading) {
+    if (!authReady) {
       return; // Don't do anything while auth is loading
     }
     
-    if (isAuthenticated && user?.id) {
-      loadUserProfile();
-    } else if (!loading) {
+    if (user?.id) {
+      setProfile((current: any) => current?.id === 'local-profile' ? createDefaultProfile(user.email, user.id) : current);
+      void loadUserProfile();
+    } else {
       toast({
         title: "Authentication required",
         description: "Please log in to view and edit your profile.",
@@ -30,7 +86,7 @@ export function useProfilePage() {
       });
       setIsLoading(false);
     }
-  }, [isAuthenticated, loading, retryCount]);
+  }, [authReady, user?.id, retryCount]);
   
   const loadUserProfile = async () => {
     setIsLoading(true);
@@ -39,7 +95,7 @@ export function useProfilePage() {
     try {
       console.log('Loading user profile...');
       
-      if (!isAuthenticated || !user?.id) {
+      if (!user?.id) {
         console.log('No authentication detected');
         throw new Error('Authentication required');
       }
@@ -51,15 +107,8 @@ export function useProfilePage() {
         console.log('Profile loaded successfully');
         setProfile(userData);
       } else {
-        // Create a default profile if none exists
         console.log('No profile found, creating default');
-        setProfile({
-          name: user?.email?.split('@')[0] || 'New User',
-          images: [],
-          verified: false,
-          gender_preference: 'both',
-          relationship_goal: 'both'
-        });
+        setProfile(createDefaultProfile(user?.email, user?.id));
         
         toast({
           title: "Complete your profile",
@@ -69,7 +118,10 @@ export function useProfilePage() {
     } catch (error: any) {
       console.error('Error loading profile:', error);
       setError(error?.message || 'Failed to load profile data');
-      
+
+      if (user?.id) {
+        setProfile(createDefaultProfile(user.email, user.id));
+      }
     } finally {
       setIsLoading(false);
     }
@@ -122,8 +174,9 @@ export function useProfilePage() {
     isLoading,
     isEditing,
     error,
-    loading,
+      loading: !authReady,
     isAuthenticated,
+      user,
     handleEditProfile,
     handleRetry,
     handleImagesChange,
