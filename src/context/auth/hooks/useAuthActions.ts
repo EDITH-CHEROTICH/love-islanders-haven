@@ -39,7 +39,7 @@ export const useAuthActions = () => {
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          emailRedirectTo: `${window.location.origin}/discover`,
           data: {
             name: email.split('@')[0],
             email_verified: false,
