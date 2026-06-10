@@ -11,70 +11,57 @@ interface ProfileCheck {
 
 export function useEmailVerification() {
   const [showVerificationPopup, setShowVerificationPopup] = useState(false);
-  const { isAuthenticated } = useAuth();
-
-  const checkEmailVerification = async () => {
-    // First check if user is authenticated
-    if (isAuthenticated) {
-      try {
-        // Check if verification has already been completed
-        const verificationCompleted = localStorage.getItem('emailVerificationCompleted');
-        
-        if (verificationCompleted === 'true') {
-          console.log("Email verification already completed, not showing popup");
-          setShowVerificationPopup(false);
-          return;
-        }
-        
-        // Check if we have an email in localStorage
-        const authContact = localStorage.getItem('authContact');
-        
-        if (authContact) {
-          // First, get the current user ID
-          const { data: { user } } = await supabase.auth.getUser();
-          
-          if (user?.id) {
-            // Then use the ID to query the profile
-            const { data, error } = await supabase
-              .from('profiles')
-              .select('id')
-              .eq('id', user.id);
-              
-            // If no profile found or query returned empty array, show verification popup
-            if (!data || data.length === 0 || error) {
-              setShowVerificationPopup(true);
-            } else {
-              // Profile exists, mark verification as completed
-              localStorage.setItem('emailVerificationCompleted', 'true');
-              setShowVerificationPopup(false);
-            }
-          } else {
-            // If no user ID is available, show verification popup
-            setShowVerificationPopup(true);
-          }
-        } else {
-          // If no email in localStorage, show verification popup
-          setShowVerificationPopup(true);
-        }
-      } catch (error) {
-        console.error('Error checking email verification:', error);
-      }
-    }
-  };
+  const { user } = useAuth();
+  const userId = user?.id;
 
   const handleVerificationComplete = () => {
-    console.log("Email verification completed, closing popup");
-    // Set verification completed in localStorage
     localStorage.setItem('emailVerificationCompleted', 'true');
     setShowVerificationPopup(false);
   };
 
   useEffect(() => {
-    checkEmailVerification();
-  }, [isAuthenticated]);
+    if (!userId) return;
+
+    // Skip entirely if already verified — no log spam on auth heartbeats
+    if (localStorage.getItem('emailVerificationCompleted') === 'true') {
+      setShowVerificationPopup(false);
+      return;
+    }
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('id, email_verified')
+          .eq('id', userId)
+          .maybeSingle();
+
+        if (cancelled) return;
+
+        if (error || !data) {
+          setShowVerificationPopup(true);
+          return;
+        }
+
+        if (data.email_verified) {
+          localStorage.setItem('emailVerificationCompleted', 'true');
+          setShowVerificationPopup(false);
+        } else {
+          setShowVerificationPopup(true);
+        }
+      } catch (err) {
+        console.error('Error checking email verification:', err);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [userId]);
 
   return {
     showVerificationPopup,
-    handleVerificationComplete
+    handleVerificationComplete,
   };
 }
