@@ -15,34 +15,35 @@ export const useDiscoverProfiles = (initialFilters: DiscoverFilters = {}) => {
   const { toast } = useToast();
   const [filtersLoaded, setFiltersLoaded] = useState(false);
 
-  // Load saved filters when component mounts
+  // Load saved filters once per authenticated user (not on every auth heartbeat)
   useEffect(() => {
-    if (isAuthenticated) {
-      loadSavedFilters();
-    }
-  }, [isAuthenticated]);
-
-  // Load saved filters from Supabase
-  const loadSavedFilters = async () => {
-    try {
-      const savedFilters = await getDiscoverFilters();
-      if (savedFilters) {
-        setFilters(savedFilters);
-        console.log('Loaded saved filters:', savedFilters);
+    if (!user?.id) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const savedFilters = await getDiscoverFilters();
+        if (cancelled) return;
+        if (savedFilters) {
+          setFilters(savedFilters);
+        }
+      } catch (error) {
+        console.error('Error loading saved filters:', error);
+      } finally {
+        if (!cancelled) setFiltersLoaded(true);
       }
-      setFiltersLoaded(true);
-    } catch (error) {
-      console.error('Error loading saved filters:', error);
-      setFiltersLoaded(true);
-    }
-  };
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id]);
 
-  // Fetch profiles when filters change or after filters are loaded
+  // Fetch profiles when filters change (after initial load) — serialize for stable dep
+  const filtersKey = JSON.stringify(filters);
   useEffect(() => {
     if (filtersLoaded) {
       fetchProfiles();
     }
-  }, [JSON.stringify(filters), filtersLoaded]);
+  }, [filtersKey, filtersLoaded]);
 
   const fetchProfiles = async () => {
     setLoading(true);
