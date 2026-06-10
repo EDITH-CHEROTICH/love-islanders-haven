@@ -37,6 +37,7 @@ const uploadStreakMedia = async (userId: string, postId: string, media: string[]
  */
 export const fetchStreakPosts = async (): Promise<StreakData[]> => {
   try {
+    const nowIso = new Date().toISOString();
     const { data, error } = await (supabase
       .from('streaks' as any)
       .select(`
@@ -50,6 +51,7 @@ export const fetchStreakPosts = async (): Promise<StreakData[]> => {
         comments_count,
         expires_at
       `)
+      .or(`expires_at.is.null,expires_at.gt.${nowIso}`)
       .order('created_at', { ascending: false })
       .limit(20) as any);
 
