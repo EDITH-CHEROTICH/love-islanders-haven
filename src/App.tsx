@@ -158,8 +158,8 @@ function App() {
             <Route path="/" element={<Navigate to="/discover" replace />} />
           </Routes>
           
-          {/* Hide MobileNavigation on onboarding */}
-          {isAuthenticated && user && location.pathname !== '/onboarding' && (
+          {/* Hide MobileNavigation on auth/onboarding routes */}
+          {isAuthenticated && user && !['/onboarding', '/login', '/signup', '/verify', '/reset-password'].includes(location.pathname) && (
             <MobileNavigation />
           )}
           
