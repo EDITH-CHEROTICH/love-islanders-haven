@@ -66,8 +66,8 @@ function App() {
       {online ? (
         <>
           <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
+            <Route path="/login" element={isAuthenticated && user ? <Navigate to="/discover" replace /> : <Login />} />
+            <Route path="/signup" element={isAuthenticated && user ? <Navigate to="/discover" replace /> : <Signup />} />
             <Route path="/verify" element={<Verify />} />
             
             <Route
@@ -158,8 +158,8 @@ function App() {
             <Route path="/" element={<Navigate to="/discover" replace />} />
           </Routes>
           
-          {/* Hide MobileNavigation on onboarding */}
-          {isAuthenticated && user && location.pathname !== '/onboarding' && (
+          {/* Hide MobileNavigation on auth/onboarding routes */}
+          {isAuthenticated && user && !['/onboarding', '/login', '/signup', '/verify', '/reset-password'].includes(location.pathname) && (
             <MobileNavigation />
           )}
           
