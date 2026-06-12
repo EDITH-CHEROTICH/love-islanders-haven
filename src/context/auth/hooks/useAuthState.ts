@@ -32,6 +32,52 @@ export const useAuthState = () => {
       }
     };
 
+    const ensureProfileExists = async (u: User) => {
+      try {
+        const { data: existing, error: selErr } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('id', u.id)
+          .maybeSingle();
+
+        if (selErr) {
+          console.error('ensureProfileExists select error:', selErr);
+          return;
+        }
+        if (existing) return;
+
+        const meta: any = u.user_metadata || {};
+        const name =
+          meta.name ||
+          meta.full_name ||
+          meta.user_name ||
+          (u.email ? u.email.split('@')[0] : 'New user');
+
+        const { error: upsertErr } = await supabase.from('profiles').upsert(
+          {
+            id: u.id,
+            email: u.email ?? null,
+            name,
+            display_name: name,
+            email_verified: !!u.email_confirmed_at,
+            onboarding_completed: false,
+          },
+          { onConflict: 'id' },
+        );
+        if (upsertErr) {
+          console.error('ensureProfileExists upsert error:', upsertErr);
+          return;
+        }
+
+        await supabase.from('profile_onboarding').upsert(
+          { profile_id: u.id, completed: false, current_step: 'basics' },
+          { onConflict: 'profile_id' },
+        );
+      } catch (err) {
+        console.error('ensureProfileExists exception:', err);
+      }
+    };
+
     const applySessionState = (nextSession: Session | null) => {
       if (!isMounted) return;
 
@@ -51,15 +97,18 @@ export const useAuthState = () => {
         localStorage.setItem('authContact', nextSession.user.email);
       }
 
-      void checkEmailVerification(nextSession.user.id).then((verified) => {
+      // Fire-and-forget: make sure a profile row exists (covers Google OAuth users).
+      void ensureProfileExists(nextSession.user).then(() => {
         if (!isMounted) return;
-
-        setEmailVerified(verified);
-        if (verified) {
-          localStorage.setItem('emailVerificationCompleted', 'true');
-        } else {
-          localStorage.removeItem('emailVerificationCompleted');
-        }
+        void checkEmailVerification(nextSession.user!.id).then((verified) => {
+          if (!isMounted) return;
+          setEmailVerified(verified);
+          if (verified) {
+            localStorage.setItem('emailVerificationCompleted', 'true');
+          } else {
+            localStorage.removeItem('emailVerificationCompleted');
+          }
+        });
       });
     };
 
