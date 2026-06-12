@@ -19,11 +19,12 @@ export const useStreaksData = (
   const { toast } = useToast();
 
   useEffect(() => {
-    if (isAuthenticated) {
+    if (user?.id) {
       fetchPosts();
       checkUserStreak();
     }
-  }, [isAuthenticated]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   const fetchPosts = async () => {
     try {
